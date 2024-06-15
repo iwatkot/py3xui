@@ -14,10 +14,21 @@
             "problemMatcher": []
         },
         {
-            "label": "pytest",
+            "label": "pytest-cov",
             "type": "shell",
-            "command": "ppytest --cov=py3xui --cov-report html",
+            "command": "pytest --cov=py3xui --cov-report html",
             "problemMatcher": []
+        },
+        {
+            "label": "pylint",
+            "type": "shell",
+            "command": "pylint py3xui",
+            "problemMatcher": []
+        },
+        {
+            "label": "Run all tasks",
+            "dependsOn": ["mypy", "pytest", "pytest-cov", "pylint"],
+            "dependsOrder": "sequence",
         }
     ]
 }

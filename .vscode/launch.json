@@ -12,5 +12,35 @@
               "PYTHONPATH": "${workspaceFolder}:${PYTHONPATH}"
             }
           },
+          {
+            "name": "Run all tasks",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "Run all tasks"
+        },
+        {
+            "name": "mypy",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "mypy"
+        },
+        {
+            "name": "pytest",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "pytest"
+        },
+        {
+            "name": "pytest-cov",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "pytest-cov"
+        },
+        {
+            "name": "pylint",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "pylint"
+        }
     ]
 }

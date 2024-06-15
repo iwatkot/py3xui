@@ -3,3 +3,5 @@ pytest
 pytest-cov
 requests-mock
 python-dotenv
+types-requests
+pylint

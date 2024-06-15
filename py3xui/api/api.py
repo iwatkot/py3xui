@@ -4,9 +4,16 @@ from typing import Any
 import requests
 from requests.exceptions import ConnectionError, Timeout
 
+from py3xui import env
 from py3xui.utils import Logger
 
 logger = Logger(__name__)
+
+# region debug
+from dotenv import load_dotenv
+
+load_dotenv("local.env")
+# endregion
 
 
 class ApiFields:
@@ -42,13 +49,24 @@ class Api:
     def max_retries(self) -> int:
         return self._max_retries
 
+    @max_retries.setter
+    def max_retries(self, value: int) -> None:
+        self._max_retries = value
+
     @property
     def session(self) -> str | None:
         return self._session
 
     @session.setter
-    def session(self, value: str | None):
+    def session(self, value: str | None) -> None:
         self._session = value
+
+    @classmethod
+    def from_env(cls, skip_login: bool = False):
+        host = env.xui_host()
+        username = env.xui_username()
+        password = env.xui_password()
+        return cls(host, username, password, skip_login)
 
     def login(self) -> None:
         endpoint = "login"
@@ -91,3 +109,7 @@ class Api:
             except requests.exceptions.RequestException as e:
                 raise e
         raise Exception(f"Max retries exceeded with no successful response to {url}")
+
+
+api = Api.from_env()
+print(api.host)
