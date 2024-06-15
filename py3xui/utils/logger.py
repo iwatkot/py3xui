@@ -1,3 +1,5 @@
+"""Logging module for the application."""
+
 import logging
 import os
 import sys

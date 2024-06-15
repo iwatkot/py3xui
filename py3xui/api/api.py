@@ -1,11 +1,11 @@
+"""This module provides classes to interact with the XUI API."""
+
 from time import sleep
-from typing import Any
+from typing import Any, Callable
 
 import requests
-from requests.exceptions import ConnectionError, Timeout
 
-from py3xui import env
-from py3xui.utils import Logger
+from py3xui.utils import Logger, env
 
 logger = Logger(__name__)
 
@@ -16,7 +16,10 @@ load_dotenv("local.env")
 # endregion
 
 
+# pylint: disable=too-few-public-methods
 class ApiFields:
+    """Stores the fields returned by the XUI API for parsing."""
+
     SUCCESS = "success"
     MSG = "msg"
 
@@ -72,19 +75,17 @@ class Api:
         endpoint = "login"
         url = self._url(endpoint)
         data = {"username": self.username, "password": self.password}
-        logger.info(f"Logging in with username: {self.username}...")
+        logger.info("Logging in with username: %s", self.username)
         response = self._post(url, data)
         cookie = response.cookies.get("session")
         if not cookie:
             raise ValueError("No session cookie found, something wrong with the login...")
-        logger.info(f"Session cookie successfully retrieved for username: {self.username}")
+        logger.info("Session cookie successfully retrieved for username: %s", self.username)
         self.session = cookie
 
     def _check_response(self, response: requests.Response) -> None:
-        try:
-            response_json = response.json()
-        except ValueError as e:
-            raise ValueError(f"Response is not in JSON format: {e}")
+        response_json = response.json()
+
         status = response_json.get(ApiFields.SUCCESS)
         message = response_json.get(ApiFields.MSG)
         if not status:
@@ -93,22 +94,34 @@ class Api:
     def _url(self, endpoint: str) -> str:
         return f"{self._host}/{endpoint}"
 
-    def _post(self, url: str, data: dict[str, Any]) -> requests.Response:
-        logger.debug(f"POST request to {url}...")
+    def _request_with_retry(
+        self, method: Callable[..., requests.Response], url: str, **kwargs: Any
+    ) -> requests.Response:
+        logger.debug("%s request to %s...", method.__name__.upper(), url)
         for retry in range(1, self.max_retries + 1):
             try:
-                response = requests.post(url, json=data)
+                response = method(url, **kwargs)
                 response.raise_for_status()
                 self._check_response(response)
                 return response
-            except (ConnectionError, Timeout) as e:
+            except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
                 if retry == self.max_retries:
                     raise e
-                logger.warning(f"Request to {url} failed: {e}, retry {retry} of {self.max_retries}")
+                logger.warning(
+                    "Request to %s failed: %s, retry %s of %s", url, e, retry, self.max_retries
+                )
                 sleep(1 * (retry + 1))
             except requests.exceptions.RequestException as e:
                 raise e
-        raise Exception(f"Max retries exceeded with no successful response to {url}")
+        raise requests.exceptions.RetryError(
+            f"Max retries exceeded with no successful response to {url}"
+        )
+
+    def _post(self, url: str, data: dict[str, Any]) -> requests.Response:
+        return self._request_with_retry(requests.post, url, json=data)
+
+    def _get(self, url: str) -> requests.Response:
+        return self._request_with_retry(requests.get, url)
 
 
 api = Api.from_env()
