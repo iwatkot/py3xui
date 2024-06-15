@@ -9,12 +9,6 @@ from py3xui.utils import Logger, env
 
 logger = Logger(__name__)
 
-# region debug
-from dotenv import load_dotenv
-
-load_dotenv("local.env")
-# endregion
-
 
 # pylint: disable=too-few-public-methods
 class ApiFields:
@@ -122,7 +116,3 @@ class Api:
 
     def _get(self, url: str) -> requests.Response:
         return self._request_with_retry(requests.get, url)
-
-
-api = Api.from_env()
-print(api.host)
