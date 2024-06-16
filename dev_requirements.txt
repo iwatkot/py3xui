@@ -1,7 +1,12 @@
+# Only for development:
 mypy
 pytest
 pytest-cov
-requests-mock
 python-dotenv
+requests-mock
 types-requests
 pylint
+
+# For production:
+pydantic
+requests
