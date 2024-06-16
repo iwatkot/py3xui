@@ -5,7 +5,7 @@ import os
 import sys
 
 # region constants
-LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG")
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 LOG_FORMATTER = "%(name)s | %(asctime)s | %(levelname)s | %(message)s"
 # endregion
 

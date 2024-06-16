@@ -2,6 +2,18 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python script",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "tests/tests.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}:${PYTHONPATH}",
+                "LOG_LEVEL": "DEBUG",
+            }
+        },
+        {
             "name": "Current File",
             "type": "debugpy",
             "request": "launch",
@@ -29,12 +41,6 @@
             "type": "debugpy",
             "request": "launch",
             "preLaunchTask": "pytest"
-        },
-        {
-            "name": "pytest-cov",
-            "type": "debugpy",
-            "request": "launch",
-            "preLaunchTask": "pytest-cov"
         },
         {
             "name": "pylint",

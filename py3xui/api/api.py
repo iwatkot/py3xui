@@ -16,6 +16,7 @@ class ApiFields:
 
     SUCCESS = "success"
     MSG = "msg"
+    OBJ = "obj"
 
 
 class Api:
@@ -24,11 +25,9 @@ class Api:
         self._username = username
         self._password = password
         self._max_retries: int = 3
-
+        self._session: dict[str, str] | None = None
         if not skip_login:
             self.login()
-
-        self._session: str | None = None
 
     @property
     def host(self) -> str:
@@ -51,11 +50,11 @@ class Api:
         self._max_retries = value
 
     @property
-    def session(self) -> str | None:
+    def session(self) -> dict[str, str] | None:
         return self._session
 
     @session.setter
-    def session(self, value: str | None) -> None:
+    def session(self, value: dict[str, str] | None) -> None:
         self._session = value
 
     @classmethod
@@ -67,15 +66,33 @@ class Api:
 
     def login(self) -> None:
         endpoint = "login"
+        headers: dict[str, str] = {}
+
         url = self._url(endpoint)
         data = {"username": self.username, "password": self.password}
         logger.info("Logging in with username: %s", self.username)
-        response = self._post(url, data)
+
+        response = self._post(url, headers, data)
         cookie = response.cookies.get("session")
         if not cookie:
             raise ValueError("No session cookie found, something wrong with the login...")
         logger.info("Session cookie successfully retrieved for username: %s", self.username)
-        self.session = cookie
+        self.session = {"session": cookie}
+
+    def get_inbounds(self):
+        endpoint = "panel/api/inbounds/list"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        logger.info("Getting inbounds...")
+
+        response = self._get(url, headers)
+
+        inbounds = response.json().get(ApiFields.OBJ)
+        inbound = inbounds[0]
+        import json
+
+        json.dump(inbound, open("inbound.json", "w"), indent=4)
 
     def _check_response(self, response: requests.Response) -> None:
         response_json = response.json()
@@ -89,12 +106,16 @@ class Api:
         return f"{self._host}/{endpoint}"
 
     def _request_with_retry(
-        self, method: Callable[..., requests.Response], url: str, **kwargs: Any
+        self,
+        method: Callable[..., requests.Response],
+        url: str,
+        headers: dict[str, str],
+        **kwargs: Any,
     ) -> requests.Response:
         logger.debug("%s request to %s...", method.__name__.upper(), url)
         for retry in range(1, self.max_retries + 1):
             try:
-                response = method(url, **kwargs)
+                response = method(url, cookies=self.session, headers=headers, **kwargs)
                 response.raise_for_status()
                 self._check_response(response)
                 return response
@@ -111,8 +132,8 @@ class Api:
             f"Max retries exceeded with no successful response to {url}"
         )
 
-    def _post(self, url: str, data: dict[str, Any]) -> requests.Response:
-        return self._request_with_retry(requests.post, url, json=data)
+    def _post(self, url: str, headers: dict[str, str], data: dict[str, Any]) -> requests.Response:
+        return self._request_with_retry(requests.post, url, headers, json=data)
 
-    def _get(self, url: str) -> requests.Response:
-        return self._request_with_retry(requests.get, url)
+    def _get(self, url: str, headers: dict[str, str]) -> requests.Response:
+        return self._request_with_retry(requests.get, url, headers)

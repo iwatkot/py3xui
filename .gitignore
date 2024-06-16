@@ -6,4 +6,5 @@ __pycache__/
 .pytest_cache/
 htmlcov/
 local.env
-tests/launch.py
+tests/tests.py
+*.json

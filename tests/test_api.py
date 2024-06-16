@@ -38,7 +38,7 @@ def test_login_success():
         m.post(f"{host}/login", json={ApiFields.SUCCESS: True}, cookies={"session": session})
         api = Api(host, "username", "password", skip_login=True)
         api.login()
-        assert api.session == session, f"Expected {session}, got {api.session}"
+        assert api.session == {"session": session}, f"Expected {session}, got {api.session}"
 
 
 def test_login_failed():

@@ -27,7 +27,7 @@
         },
         {
             "label": "Run all tasks",
-            "dependsOn": ["mypy", "pytest", "pytest-cov", "pylint"],
+            "dependsOn": ["mypy", "pytest-cov", "pylint"],
             "dependsOrder": "sequence",
         }
     ]
