@@ -6,6 +6,7 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from py3xui.clients.client_stats import ClientStats
+from py3xui.inbounds.sniffing import Sniffing
 from py3xui.inbounds.stream_settings import StreamSettings
 
 
@@ -46,7 +47,7 @@ class Inbound(BaseModel):
     settings: dict
     stream_settings: StreamSettings = Field(alias=InboundFields.STREAM_SETTINGS)  # type: ignore
     tag: str
-    sniffing: dict
+    sniffing: Sniffing
 
     @classmethod
     def from_json(cls, data: dict[str, Any]) -> Inbound:
@@ -58,14 +59,19 @@ class Inbound(BaseModel):
             client_stats.append(ClientStats.from_json(raw_client_stat))
         data[InboundFields.CLIENT_STATS] = client_stats
 
-        raw_stream_settings = json.loads(data.pop(InboundFields.STREAM_SETTINGS, "{}"))
-        stream_settings = StreamSettings.from_json(raw_stream_settings)
-        data[InboundFields.STREAM_SETTINGS] = stream_settings
-
-        possible_json_strings = [InboundFields.SETTINGS, InboundFields.SNIFFING]
+        possible_json_strings = [
+            InboundFields.SETTINGS,
+            InboundFields.SNIFFING,
+            InboundFields.STREAM_SETTINGS,
+        ]
         for key in possible_json_strings:
             if isinstance(data.get(key), str):
                 data[key] = json.loads(data[key])
+
+        data[InboundFields.STREAM_SETTINGS] = StreamSettings.from_json(
+            data[InboundFields.STREAM_SETTINGS]
+        )
+        data[InboundFields.SNIFFING] = Sniffing.from_json(data[InboundFields.SNIFFING])
 
         return cls.parse_obj(data)
 
