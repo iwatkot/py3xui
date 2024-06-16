@@ -81,7 +81,7 @@ class Api:
         logger.info("Session cookie successfully retrieved for username: %s", self.username)
         self.session = {"session": cookie}
 
-    def get_inbounds(self):
+    def get_inbounds(self) -> list[Inbound]:
         endpoint = "panel/api/inbounds/list"
         headers = {"Accept": "application/json"}
 
