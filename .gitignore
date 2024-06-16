@@ -8,3 +8,4 @@ htmlcov/
 local.env
 tests/tests.py
 *.json
+clean_trash.sh

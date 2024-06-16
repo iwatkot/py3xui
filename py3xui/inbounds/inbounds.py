@@ -13,7 +13,8 @@ class Inbound(BaseModel):
     remark: str
     enable: bool
     expiryTime: int
-    clientStats: list[ClientStats]
+    # clientStats can be a list of ClientStats objects or their JSON representation.
+    clientStats: list[ClientStats] | list[dict[str, int | bool | str]]
     listen: str
     port: int
     protocol: str
@@ -25,6 +26,8 @@ class Inbound(BaseModel):
 
     @classmethod
     def from_json(cls, data: dict[str, int | bool | str]) -> Inbound:
+        if isinstance(data["clientStats"][0], dict):
+            data["clientStats"] = [ClientStats.from_json(d) for d in data["clientStats"]]
         return cls(**data)  # type: ignore
 
     def __repr__(self) -> str:

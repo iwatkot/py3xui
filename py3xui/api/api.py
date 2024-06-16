@@ -5,7 +5,6 @@ from typing import Any, Callable
 
 import requests
 
-from py3xui.clients.client_stats import ClientStats
 from py3xui.inbounds.inbounds import Inbound
 from py3xui.utils import Logger, env
 
@@ -92,13 +91,7 @@ class Api:
         response = self._get(url, headers)
 
         inbounds_json = response.json().get(ApiFields.OBJ)
-        inbounds = []
-        for inbound_json in inbounds_json:
-            client_stats_json = inbound_json.pop(ApiFields.CLIENT_STATS)
-            inbound_json["clientStats"] = [
-                ClientStats.from_json(data) for data in client_stats_json
-            ]
-            inbounds.append(Inbound.from_json(inbound_json))
+        inbounds = [Inbound.from_json(data) for data in inbounds_json]
         return inbounds
 
     def _check_response(self, response: requests.Response) -> None:
