@@ -51,27 +51,13 @@ class Inbound(BaseModel):
 
     @classmethod
     def from_json(cls, data: dict[str, Any]) -> Inbound:
-        raw_client_stats = data.pop(InboundFields.CLIENT_STATS, [])
-        client_stats = []
-        for raw_client_stat in raw_client_stats:
-            if not isinstance(raw_client_stat, dict):
-                continue
-            client_stats.append(ClientStats.from_json(raw_client_stat))
-        data[InboundFields.CLIENT_STATS] = client_stats
-
+        # TODO: Create model for settings and remove this, use JsonStringModel instead.
         possible_json_strings = [
             InboundFields.SETTINGS,
-            InboundFields.SNIFFING,
-            InboundFields.STREAM_SETTINGS,
         ]
         for key in possible_json_strings:
             if isinstance(data.get(key), str):
                 data[key] = json.loads(data[key])
-
-        data[InboundFields.STREAM_SETTINGS] = StreamSettings.from_json(
-            data[InboundFields.STREAM_SETTINGS]
-        )
-        data[InboundFields.SNIFFING] = Sniffing.from_json(data[InboundFields.SNIFFING])
 
         return cls.parse_obj(data)
 

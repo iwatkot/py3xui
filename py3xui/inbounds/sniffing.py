@@ -1,15 +1,8 @@
 from __future__ import annotations
 
-from typing import Any
+from pydantic import Field
 
-from pydantic import BaseModel, Field
-
-# {
-#     "destOverride": ["http", "tls", "quic", "fakedns"],
-#     "enabled": True,
-#     "metadataOnly": False,
-#     "routeOnly": False,
-# }
+from py3xui.inbounds.bases import JsonStringModel
 
 
 # pylint: disable=too-few-public-methods
@@ -22,15 +15,11 @@ class SniffingFields:
     ROUTE_ONLY = "routeOnly"
 
 
-class Sniffing(BaseModel):
+class Sniffing(JsonStringModel):
     dest_override: list[str] = Field(alias=SniffingFields.DEST_OVERRIDE)  # type: ignore
     enabled: bool
     metadata_only: bool = Field(alias=SniffingFields.METADATA_ONLY)  # type: ignore
     route_only: bool = Field(alias=SniffingFields.ROUTE_ONLY)  # type: ignore
-
-    @classmethod
-    def from_json(cls, data: dict[str, Any]) -> Sniffing:
-        return cls.parse_obj(data)
 
     def __repr__(self) -> str:
         return (

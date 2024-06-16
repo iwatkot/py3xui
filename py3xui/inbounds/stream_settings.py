@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import Any
+from pydantic import Field
 
-from pydantic import BaseModel, Field
+from py3xui.inbounds.bases import JsonStringModel
 
 
 # pylint: disable=too-few-public-methods
@@ -18,23 +18,19 @@ class StreamSettingsFields:
     TLS_SETTINGS = "tlsSettings"
 
 
-class StreamSettings(BaseModel):
+class StreamSettings(JsonStringModel):
     external_proxy: list = Field(alias=StreamSettingsFields.EXTERNAL_PROXY)  # type: ignore
     network: str
     security: str
     tcp_settings: dict = Field(alias=StreamSettingsFields.TCP_SETTINGS)  # type: ignore
 
-    reality_settings: dict | None = Field(
+    reality_settings: dict | None = Field(  # type: ignore
         None, alias=StreamSettingsFields.REALITY_SETTINGS
-    )  # type: ignore
-    xtls_settings: dict | None = Field(
+    )
+    xtls_settings: dict | None = Field(  # type: ignore
         None, alias=StreamSettingsFields.XTLS_SETTINGS
-    )  # type: ignore
+    )
     tls_settings: dict | None = Field(None, alias=StreamSettingsFields.TLS_SETTINGS)  # type: ignore
-
-    @classmethod
-    def from_json(cls, data: dict[str, Any]) -> StreamSettings:
-        return cls.parse_obj(data)
 
     def __repr__(self) -> str:
         return (
