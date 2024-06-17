@@ -1,11 +1,13 @@
 import json
 
-from pydantic import BaseModel, root_validator
+from pydantic import BaseModel, model_validator
 
 
 class JsonStringModel(BaseModel):
-    @root_validator(pre=True)
-    def parse_json(cls, values):  # pylint: disable=no-self-argument
+    @model_validator(mode="before")
+    def model_validate(
+        cls, values, *args, **kwargs
+    ):  # pylint: disable=no-self-argument, arguments-differ
         if isinstance(values, str):
             try:
                 return json.loads(values)

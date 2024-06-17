@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from pydantic import BaseModel, Field
 
 
@@ -32,10 +30,6 @@ class ClientStats(BaseModel):
     expiry_time: int = Field(alias=ClientStatsFields.EXPIRY_TIME)  # type: ignore
     total: int
     reset: int
-
-    @classmethod
-    def from_json(cls, data: dict[str, Any]) -> ClientStats:
-        return cls.parse_obj(data)
 
     def __repr__(self) -> str:
         return (

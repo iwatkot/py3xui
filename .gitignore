@@ -7,5 +7,5 @@ __pycache__/
 htmlcov/
 local.env
 tests/tests.py
-*.json
+tests/dummy.py
 clean_trash.sh

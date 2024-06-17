@@ -59,7 +59,7 @@ class Inbound(BaseModel):
             if isinstance(data.get(key), str):
                 data[key] = json.loads(data[key])
 
-        return cls.parse_obj(data)
+        return cls.model_validate(data)
 
     def __repr__(self) -> str:
         return (

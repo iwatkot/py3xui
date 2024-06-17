@@ -23,30 +23,34 @@
             "env": {
               "PYTHONPATH": "${workspaceFolder}:${PYTHONPATH}"
             }
-          },
-          {
-            "name": "Run all tasks",
-            "type": "debugpy",
-            "request": "launch",
-            "preLaunchTask": "Run all tasks"
         },
         {
             "name": "mypy",
             "type": "debugpy",
             "request": "launch",
-            "preLaunchTask": "mypy"
+            "preLaunchTask": "mypy",
+            "program": "${workspaceFolder}/tests/dummy.py"
         },
         {
             "name": "pytest",
             "type": "debugpy",
             "request": "launch",
-            "preLaunchTask": "pytest"
+            "preLaunchTask": "pytest",
+            "program": "${workspaceFolder}/tests/dummy.py"
+        },
+        {
+            "name": "pytest-cov",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "pytest-cov",
+            "program": "${workspaceFolder}/tests/dummy.py"
         },
         {
             "name": "pylint",
             "type": "debugpy",
             "request": "launch",
-            "preLaunchTask": "pylint"
+            "preLaunchTask": "pylint",
+            "program": "${workspaceFolder}/tests/dummy.py"
         }
     ]
 }

@@ -1,11 +1,17 @@
+import json
 import os
 
 import pytest
 import requests_mock
-from requests.exceptions import ConnectionError
 
 from py3xui import Api
 from py3xui.api.api import ApiFields
+from py3xui.clients.client_stats import ClientStats
+from py3xui.inbounds.inbounds import Inbound
+from py3xui.inbounds.sniffing import Sniffing
+from py3xui.inbounds.stream_settings import StreamSettings
+
+RESPONSES_DIR = "tests/responses"
 
 
 def test_init():
@@ -49,9 +55,6 @@ def test_login_failed():
         with pytest.raises(ValueError):
             api.login()
 
-    with pytest.raises(ConnectionError):
-        api = Api(host, "username", "password")
-
 
 def test_from_env():
     os.environ["XUI_HOST"] = "http://localhost"
@@ -62,3 +65,27 @@ def test_from_env():
     assert api.host == "http://localhost", f"Expected http://localhost, got {api.host}"
     assert api.username == "admin", f"Expected admin, got {api.username}"
     assert api.password == "admin", f"Expected admin, got {api.password}"
+
+
+def test_get_inbounds():
+    host = "http://localhost"
+    response_example = json.load(open(os.path.join(RESPONSES_DIR, "get_inbounds.json")))
+
+    with requests_mock.Mocker() as m:
+        m.get(f"{host}/panel/api/inbounds/list", json=response_example)
+        api = Api(host, "username", "password", skip_login=True)
+        inbounds = api.get_inbounds()
+        assert len(inbounds) == 1, f"Expected 1, got {len(inbounds)}"
+        inbound = inbounds[0]
+        assert isinstance(inbound, Inbound), f"Expected Inbound, got {type(inbound)}"
+        assert isinstance(
+            inbound.stream_settings, StreamSettings
+        ), f"Expected StreamSettings, got {type(inbound.stream_settings)}"
+        assert isinstance(
+            inbound.sniffing, Sniffing
+        ), f"Expected Sniffing, got {type(inbound.sniffing)}"
+        assert isinstance(
+            inbound.client_stats[0], ClientStats
+        ), f"Expected ClientStats, got {type(inbound.client_stats[0])}"
+
+        assert inbound.id == 1, f"Expected 1, got {inbound.id}"

@@ -25,10 +25,5 @@
             "command": "pylint py3xui",
             "problemMatcher": []
         },
-        {
-            "label": "Run all tasks",
-            "dependsOn": ["mypy", "pytest-cov", "pylint"],
-            "dependsOrder": "sequence",
-        }
     ]
 }
