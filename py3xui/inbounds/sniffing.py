@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from pydantic import Field
 
 from py3xui.inbounds.bases import JsonStringModel

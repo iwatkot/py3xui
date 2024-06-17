@@ -1,0 +1,15 @@
+{
+  "success": true,
+  "msg": "",
+  "obj": {
+    "id": 1,
+    "inboundId": 1,
+    "enable": true,
+    "email": "alhtim2x",
+    "up": 0,
+    "down": 0,
+    "expiryTime": 0,
+    "total": 0,
+    "reset": 0
+  }
+}

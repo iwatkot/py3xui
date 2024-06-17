@@ -5,6 +5,7 @@ from typing import Any, Callable
 
 import requests
 
+from py3xui.clients.client import Client
 from py3xui.inbounds.inbounds import Inbound
 from py3xui.utils import Logger, env
 
@@ -93,6 +94,21 @@ class Api:
         inbounds_json = response.json().get(ApiFields.OBJ)
         inbounds = [Inbound.model_validate(data) for data in inbounds_json]
         return inbounds
+
+    def get_client(self, email: str) -> Client | None:
+        endpoint = f"panel/api/inbounds/getClientTraffics/{email}"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        logger.info("Getting client stats for email: %s", email)
+
+        response = self._get(url, headers)
+
+        client_json = response.json().get(ApiFields.OBJ)
+        if not client_json:
+            logger.warning("No client found for email: %s", email)
+            return None
+        return Client.model_validate(client_json)
 
     def _check_response(self, response: requests.Response) -> None:
         response_json = response.json()
