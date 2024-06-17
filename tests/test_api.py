@@ -7,7 +7,6 @@ import requests_mock
 from py3xui import Api
 from py3xui.api.api import ApiFields
 from py3xui.clients.client import Client
-from py3xui.clients.client_stats import ClientStats
 from py3xui.inbounds.inbounds import Inbound
 from py3xui.inbounds.sniffing import Sniffing
 from py3xui.inbounds.stream_settings import StreamSettings
@@ -81,7 +80,7 @@ def test_get_inbounds():
             inbound.sniffing, Sniffing
         ), f"Expected Sniffing, got {type(inbound.sniffing)}"
         assert isinstance(
-            inbound.client_stats[0], ClientStats
+            inbound.client_stats[0], Client
         ), f"Expected ClientStats, got {type(inbound.client_stats[0])}"
 
         assert inbound.id == 1, f"Expected 1, got {inbound.id}"

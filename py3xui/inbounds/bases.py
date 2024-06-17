@@ -6,7 +6,8 @@ from pydantic import BaseModel, model_validator
 class JsonStringModel(BaseModel):
     @model_validator(mode="before")
     def model_validate(
-        cls, values, *args, **kwargs
+        cls,
+        values,
     ):  # pylint: disable=no-self-argument, arguments-differ
         if isinstance(values, str):
             try:

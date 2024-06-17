@@ -96,6 +96,28 @@ class Api:
         return inbounds
 
     def get_client(self, email: str) -> Client | None:
+        """This route is used to retrieve information about a specific client based on their email.
+        This endpoint provides details such as traffic statistics and other relevant information
+        related to the client.
+
+        `Source documentation <https://documenter.getpostman.com/view/16802678/2s9YkgD5jm#9d0e5cd5-e6ac-4d72-abca-76cf75af5f00>`_
+
+        Args:
+            email (str): The email of the client to retrieve.
+
+        Returns:
+            Client | None: The client object if found, otherwise None.
+
+        Examples:
+            Here's how you can use the `get_client` method::
+            import py3xui
+
+            # It's recommended to store credentials in environment variables and use `from_env` method.
+            api = py3xui.Api.from_env()
+            client: py3xui.Client = api.get_client("email")
+            ```
+        """  # pylint: disable=line-too-long
+
         endpoint = f"panel/api/inbounds/getClientTraffics/{email}"
         headers = {"Accept": "application/json"}
 

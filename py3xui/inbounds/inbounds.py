@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 
-from py3xui.clients.client_stats import ClientStats
+from py3xui.clients.client import Client
 from py3xui.inbounds.settings import Settings
 from py3xui.inbounds.sniffing import Sniffing
 from py3xui.inbounds.stream_settings import StreamSettings
@@ -35,7 +35,7 @@ class Inbound(BaseModel):
     remark: str
     enable: bool
     expiry_time: int = Field(alias=InboundFields.EXPIRY_TIME)  # type: ignore
-    client_stats: list[ClientStats] = Field(alias=InboundFields.CLIENT_STATS)  # type: ignore
+    client_stats: list[Client] = Field(alias=InboundFields.CLIENT_STATS)  # type: ignore
     listen: str
     port: int
     protocol: str

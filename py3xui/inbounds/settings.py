@@ -42,7 +42,8 @@ class SettingsClient(BaseModel):
 
     def __repr__(self) -> str:
         return (
-            f"SettingsClient(email={self.email}, enable={self.enable}, expiry_time={self.expiry_time}, "
+            f"SettingsClient(email={self.email}, enable={self.enable}, "
+            f"expiry_time={self.expiry_time}, "
             f"flow={self.flow}, id={self.id}, limit_ip={self.limit_ip}, reset={self.reset}, "
             f"sub_id={self.sub_id}, tg_id={self.tg_id}, total_gb={self.total_gb})"
         )
@@ -54,4 +55,7 @@ class Settings(JsonStringModel):
     fallbacks: list
 
     def __repr__(self) -> str:
-        return f"Settings(clients={self.clients}, decryption={self.decryption}, fallbacks={self.fallbacks})"
+        return (
+            f"Settings(clients={self.clients}, decryption={self.decryption}, "
+            f"fallbacks={self.fallbacks})"
+        )
