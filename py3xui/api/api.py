@@ -91,7 +91,7 @@ class Api:
         response = self._get(url, headers)
 
         inbounds_json = response.json().get(ApiFields.OBJ)
-        inbounds = [Inbound.from_json(data) for data in inbounds_json]
+        inbounds = [Inbound.model_validate(data) for data in inbounds_json]
         return inbounds
 
     def _check_response(self, response: requests.Response) -> None:

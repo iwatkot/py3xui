@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-import json
-from typing import Any
-
 from pydantic import BaseModel, Field
 
 from py3xui.clients.client_stats import ClientStats
+from py3xui.inbounds.settings import Settings
 from py3xui.inbounds.sniffing import Sniffing
 from py3xui.inbounds.stream_settings import StreamSettings
 
@@ -43,23 +41,10 @@ class Inbound(BaseModel):
     listen: str
     port: int
     protocol: str
-    # TODO: Move dict values to pydantic models.
-    settings: dict
+    settings: Settings
     stream_settings: StreamSettings = Field(alias=InboundFields.STREAM_SETTINGS)  # type: ignore
     tag: str
     sniffing: Sniffing
-
-    @classmethod
-    def from_json(cls, data: dict[str, Any]) -> Inbound:
-        # TODO: Create model for settings and remove this, use JsonStringModel instead.
-        possible_json_strings = [
-            InboundFields.SETTINGS,
-        ]
-        for key in possible_json_strings:
-            if isinstance(data.get(key), str):
-                data[key] = json.loads(data[key])
-
-        return cls.model_validate(data)
 
     def __repr__(self) -> str:
         return (

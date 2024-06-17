@@ -16,7 +16,7 @@
         {
             "label": "pytest-cov",
             "type": "shell",
-            "command": "pytest --cov=py3xui --cov-report html",
+            "command": "pytest --cov=py3xui --cov-report html && open htmlcov/index.html",
             "problemMatcher": []
         },
         {
