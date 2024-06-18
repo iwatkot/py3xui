@@ -20,6 +20,7 @@ class ApiFields:
     MSG = "msg"
     OBJ = "obj"
     CLIENT_STATS = "clientStats"
+    NO_IP_RECORD = "No IP Record"
 
 
 class Api:
@@ -108,14 +109,11 @@ class Api:
         Returns:
             Client | None: The client object if found, otherwise None.
 
-        Examples:
-            Here's how you can use the `get_client` method::
+        Examples::
             import py3xui
 
-            # It's recommended to store credentials in environment variables and use `from_env` method.
             api = py3xui.Api.from_env()
             client: py3xui.Client = api.get_client("email")
-            ```
         """  # pylint: disable=line-too-long
 
         endpoint = f"panel/api/inbounds/getClientTraffics/{email}"
@@ -131,6 +129,36 @@ class Api:
             logger.warning("No client found for email: %s", email)
             return None
         return Client.model_validate(client_json)
+
+    def get_client_ips(self, email: str) -> str | None:
+        """This route is used to retrieve the IP records associated with a specific client
+        identified by their email.
+
+        `Source documentation <https://documenter.getpostman.com/view/16802678/2s9YkgD5jm#06f1214c-dbb0-49f2-81b5-8e924abd19a9>`_
+
+        Args:
+            email (str): The email of the client to retrieve.
+
+        Returns:
+            str | None: The client IPs if found, otherwise None.
+
+        Examples::
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            ips = api.get_client_ips("email")
+
+        """  # pylint: disable=line-too-long
+        endpoint = f"panel/api/inbounds/clientIps/{email}"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        logger.info("Getting client IPs for email: %s", email)
+
+        response = self._post(url, headers, {})
+
+        ips_json = response.json().get(ApiFields.OBJ)
+        return ips_json if ips_json != ApiFields.NO_IP_RECORD else None
 
     def _check_response(self, response: requests.Response) -> None:
         response_json = response.json()

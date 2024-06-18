@@ -6,6 +6,7 @@ python-dotenv
 requests-mock
 types-requests
 pylint
+pdoc
 
 # For production:
 pydantic

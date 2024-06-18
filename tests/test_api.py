@@ -98,3 +98,14 @@ def test_get_client():
         assert client.email == EMAIL, f"Expected {EMAIL}, got {client.email}"
         assert client.id == 1, f"Expected 1, got {client.id}"
         assert client.inbound_id == 1, f"Expected 1, got {client.inbound_id}"
+
+
+def test_get_client_ips():
+    response_example = {"success": True, "msg": "", "obj": "No IP Record"}
+
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/inbounds/clientIps/{EMAIL}", json=response_example)
+        api = Api(HOST, USERNAME, PASSWORD, skip_login=True)
+        ips = api.get_client_ips(EMAIL)
+
+        assert ips is None, f"Expected None, got {ips}"
