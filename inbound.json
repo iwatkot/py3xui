@@ -1,0 +1,11 @@
+{
+    "remark": "test",
+    "enable": true,
+    "expiryTime": 0,
+    "listen": "",
+    "port": 444,
+    "protocol": "vless",
+    "settings": "{\"clients\":[{\"email\":\"test\",\"enable\":true,\"expiryTime\":0,\"flow\":\"xtls-rprx-vision\",\"id\":\"52c11772-2404-4fbd-bbcf-79a4604f2826\",\"limitIp\":0,\"reset\":0,\"subId\":\"lkvvw2ngxye4puw7\",\"tgId\":\"\",\"totalGB\":0}],\"decryption\":\"none\",\"fallbacks\":[]}",
+    "streamSettings": "{\"externalProxy\":[],\"network\":\"tcp\",\"security\":\"reality\",\"tcpSettings\":{\"acceptProxyProtocol\":false,\"header\":{\"type\":\"none\"}},\"realitySettings\":{\"show\":false,\"xver\":0,\"dest\":\"yahoo.com:443\",\"serverNames\":[\"yahoo.com\",\"www.yahoo.com\"],\"privateKey\":\"\",\"minClient\":\"\",\"maxClient\":\"\",\"maxTimediff\":0,\"shortIds\":[\"015a40ef\"],\"settings\":{\"publicKey\":\"\",\"fingerprint\":\"firefox\",\"serverName\":\"\",\"spiderX\":\"/\"}},\"xtlsSettings\":null,\"tlsSettings\":null}",
+    "sniffing": "{\"destOverride\":[\"http\",\"tls\",\"quic\",\"fakedns\"],\"enabled\":true,\"metadataOnly\":false,\"routeOnly\":false}"
+}

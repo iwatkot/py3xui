@@ -65,13 +65,13 @@ class Inbound(BaseModel):
             InboundFields.EXPIRY_TIME,
         }
 
-        result = super().dict(by_alias=True)
+        result = super().model_dump(by_alias=True)
         result = {k: v for k, v in result.items() if k in include}
         result.update(
             {
-                InboundFields.SETTINGS: self.settings.json(),
-                InboundFields.STREAM_SETTINGS: self.stream_settings.json(),
-                InboundFields.SNIFFING: self.sniffing.json(),
+                InboundFields.SETTINGS: self.settings.model_dump_json(by_alias=True),
+                InboundFields.STREAM_SETTINGS: self.stream_settings.model_dump_json(by_alias=True),
+                InboundFields.SNIFFING: self.sniffing.model_dump_json(by_alias=True),
             }
         )
 
