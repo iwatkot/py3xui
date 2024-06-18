@@ -70,7 +70,9 @@ class Inbound(BaseModel):
         result.update(
             {
                 InboundFields.SETTINGS: self.settings.model_dump_json(by_alias=True),
-                InboundFields.STREAM_SETTINGS: self.stream_settings.model_dump_json(by_alias=True),
+                InboundFields.STREAM_SETTINGS: self.stream_settings.model_dump_json(  # pylint: disable=no-member
+                    by_alias=True
+                ),
                 InboundFields.SNIFFING: self.sniffing.model_dump_json(by_alias=True),
             }
         )
