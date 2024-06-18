@@ -12,6 +12,6 @@ class SettingsFields:
 
 
 class Settings(JsonStringModel):
-    clients: list[Client] = None
-    decryption: str = None
-    fallbacks: list = None
+    clients: list[Client] | None = None
+    decryption: str | None = None
+    fallbacks: list | None = None

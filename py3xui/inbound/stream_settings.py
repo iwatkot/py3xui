@@ -7,33 +7,32 @@ from py3xui.inbound.bases import JsonStringModel
 class StreamSettingsFields:
     """Stores the fields returned by the XUI API for parsing."""
 
-    EXTERNAL_PROXY = "externalProxy"
-    NETWORK = "network"
     SECURITY = "security"
+    NETWORK = "network"
     TCP_SETTINGS = "tcpSettings"
+
+    EXTERNAL_PROXY = "externalProxy"
+
     REALITY_SETTINGS = "realitySettings"
     XTLS_SETTINGS = "xtlsSettings"
     TLS_SETTINGS = "tlsSettings"
 
 
 class StreamSettings(JsonStringModel):
-    external_proxy: list = Field(alias=StreamSettingsFields.EXTERNAL_PROXY)  # type: ignore
-    network: str
     security: str
+    network: str
     tcp_settings: dict = Field(alias=StreamSettingsFields.TCP_SETTINGS)  # type: ignore
 
+    external_proxy: list | None = Field(
+        default=None, alias=StreamSettingsFields.EXTERNAL_PROXY
+    )  # type: ignore
+
     reality_settings: dict | None = Field(  # type: ignore
-        None, alias=StreamSettingsFields.REALITY_SETTINGS
+        default=None, alias=StreamSettingsFields.REALITY_SETTINGS
     )
     xtls_settings: dict | None = Field(  # type: ignore
-        None, alias=StreamSettingsFields.XTLS_SETTINGS
+        default=None, alias=StreamSettingsFields.XTLS_SETTINGS
     )
-    tls_settings: dict | None = Field(None, alias=StreamSettingsFields.TLS_SETTINGS)  # type: ignore
-
-    def __repr__(self) -> str:
-        return (
-            f"StreamSettings(external_proxy={self.external_proxy}, network={self.network}, "
-            f"security={self.security}, tcp_settings={self.tcp_settings}, "
-            f"reality_settings={self.reality_settings}, xtls_settings={self.xtls_settings}, "
-            f"tls_settings={self.tls_settings})"
-        )
+    tls_settings: dict | None = Field(  # type: ignore
+        default=None, alias=StreamSettingsFields.TLS_SETTINGS
+    )
