@@ -160,6 +160,28 @@ class Api:
         ips_json = response.json().get(ApiFields.OBJ)
         return ips_json if ips_json != ApiFields.NO_IP_RECORD else None
 
+    def add_inbound(self, inbound: Inbound) -> None:
+        endpoint = "panel/api/inbounds/add"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data = inbound.to_json()
+        logger.info("Adding inbound: %s", inbound)
+
+        self._post(url, headers, data)
+        logger.info("Inbound added successfully.")
+
+    def update_inbound(self, inbound_id: int, inbound: Inbound) -> None:
+        endpoint = f"panel/api/inbounds/update/{inbound_id}"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data = inbound.to_json()
+        logger.info("Updating inbound: %s", inbound)
+
+        self._post(url, headers, data)
+        logger.info("Inbound updated successfully.")
+
     def _check_response(self, response: requests.Response) -> None:
         response_json = response.json()
 

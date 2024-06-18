@@ -1,3 +1,5 @@
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 from py3xui.clients.client import Client
@@ -52,3 +54,25 @@ class Inbound(BaseModel):
             f"protocol={self.protocol}, settings={self.settings}, "
             f"streamSettings={self.stream_settings}, tag={self.tag}, sniffing={self.sniffing})"
         )
+
+    def to_json(self) -> dict[str, Any]:
+        include = {
+            InboundFields.REMARK,
+            InboundFields.ENABLE,
+            InboundFields.LISTEN,
+            InboundFields.PORT,
+            InboundFields.PROTOCOL,
+            InboundFields.EXPIRY_TIME,
+        }
+
+        result = super().dict(by_alias=True)
+        result = {k: v for k, v in result.items() if k in include}
+        result.update(
+            {
+                InboundFields.SETTINGS: self.settings.json(),
+                InboundFields.STREAM_SETTINGS: self.stream_settings.json(),
+                InboundFields.SNIFFING: self.sniffing.json(),
+            }
+        )
+
+        return result
