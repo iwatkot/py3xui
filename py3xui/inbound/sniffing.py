@@ -18,11 +18,7 @@ class SniffingFields:
 class Sniffing(JsonStringModel):
     enabled: bool
 
-    dest_override: list[str] | None = Field(
-        default=None, alias=SniffingFields.DEST_OVERRIDE
-    )  # type: ignore
+    dest_override: list[str] = Field(default=[], alias=SniffingFields.DEST_OVERRIDE)  # type: ignore
 
-    metadata_only: bool | None = Field(  # type: ignore
-        default=None, alias=SniffingFields.METADATA_ONLY
-    )
-    route_only: bool | None = Field(default=None, alias=SniffingFields.ROUTE_ONLY)  # type: ignore
+    metadata_only: bool = Field(default=False, alias=SniffingFields.METADATA_ONLY)  # type: ignore
+    route_only: bool = Field(default=False, alias=SniffingFields.ROUTE_ONLY)  # type: ignore

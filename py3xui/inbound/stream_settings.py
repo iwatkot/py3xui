@@ -1,4 +1,4 @@
-from pydantic import Field
+from pydantic import ConfigDict, Field
 
 from py3xui.inbound.bases import JsonStringModel
 
@@ -23,16 +23,18 @@ class StreamSettings(JsonStringModel):
     network: str
     tcp_settings: dict = Field(alias=StreamSettingsFields.TCP_SETTINGS)  # type: ignore
 
-    external_proxy: list | None = Field(
-        default=None, alias=StreamSettingsFields.EXTERNAL_PROXY
+    external_proxy: list = Field(
+        default=[], alias=StreamSettingsFields.EXTERNAL_PROXY
     )  # type: ignore
 
-    reality_settings: dict | None = Field(  # type: ignore
-        default=None, alias=StreamSettingsFields.REALITY_SETTINGS
+    reality_settings: dict = Field(
+        default={}, alias=StreamSettingsFields.REALITY_SETTINGS  # type: ignore
     )
-    xtls_settings: dict | None = Field(  # type: ignore
-        default=None, alias=StreamSettingsFields.XTLS_SETTINGS
+    xtls_settings: dict = Field(
+        default={}, alias=StreamSettingsFields.XTLS_SETTINGS  # type: ignore
     )
-    tls_settings: dict | None = Field(  # type: ignore
-        default=None, alias=StreamSettingsFields.TLS_SETTINGS
+    tls_settings: dict = Field(default={}, alias=StreamSettingsFields.TLS_SETTINGS)  # type: ignore
+
+    model_config = ConfigDict(
+        populate_by_name=True,
     )

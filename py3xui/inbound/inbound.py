@@ -1,6 +1,6 @@
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from py3xui.client.client import Client
 from py3xui.inbound.settings import Settings
@@ -40,21 +40,23 @@ class Inbound(BaseModel):
     stream_settings: StreamSettings = Field(alias=InboundFields.STREAM_SETTINGS)  # type: ignore
     sniffing: Sniffing
 
-    listen: str | None = None
-    remark: str | None = None
-    id: int | None = None
+    listen: str = ""
+    remark: str = ""
+    id: int = 0
 
-    up: int | None = None
-    down: int | None = None
+    up: int = 0
+    down: int = 0
 
-    total: int | None = None
+    total: int = 0
 
-    expiry_time: int | None = Field(default=None, alias=InboundFields.EXPIRY_TIME)  # type: ignore
-    client_stats: list[Client] | None = Field(  # type: ignore
-        default=None, alias=InboundFields.CLIENT_STATS
+    expiry_time: int = Field(default=0, alias=InboundFields.EXPIRY_TIME)  # type: ignore
+    client_stats: list[Client] = Field(default=[], alias=InboundFields.CLIENT_STATS)  # type: ignore
+
+    tag: str = ""
+
+    model_config = ConfigDict(
+        populate_by_name=True,
     )
-
-    tag: str | None = None
 
     def to_json(self) -> dict[str, Any]:
         include = {

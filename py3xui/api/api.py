@@ -171,6 +171,17 @@ class Api:
         self._post(url, headers, data)
         logger.info("Inbound added successfully.")
 
+    def delete_inbound(self, inbound_id: int) -> None:
+        endpoint = f"panel/api/inbounds/del/{inbound_id}"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data = {}
+
+        logger.info("Deleting inbound with ID: %s", inbound_id)
+        self._post(url, headers, data)
+        logger.info("Inbound deleted successfully.")
+
     def update_inbound(self, inbound_id: int, inbound: Inbound) -> None:
         endpoint = f"panel/api/inbounds/update/{inbound_id}"
         headers = {"Accept": "application/json"}
