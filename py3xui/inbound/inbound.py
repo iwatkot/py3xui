@@ -2,10 +2,10 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from py3xui.clients.client import Client
-from py3xui.inbounds.settings import Settings
-from py3xui.inbounds.sniffing import Sniffing
-from py3xui.inbounds.stream_settings import StreamSettings
+from py3xui.client.client import Client
+from py3xui.inbound.settings import Settings
+from py3xui.inbound.sniffing import Sniffing
+from py3xui.inbound.stream_settings import StreamSettings
 
 
 # pylint: disable=too-few-public-methods

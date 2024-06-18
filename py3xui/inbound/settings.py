@@ -1,5 +1,5 @@
-from py3xui.clients.client import Client
-from py3xui.inbounds.bases import JsonStringModel
+from py3xui.client.client import Client
+from py3xui.inbound.bases import JsonStringModel
 
 
 # pylint: disable=too-few-public-methods

@@ -6,10 +6,10 @@ import requests_mock
 
 from py3xui import Api
 from py3xui.api.api import ApiFields
-from py3xui.clients.client import Client
-from py3xui.inbounds.inbounds import Inbound
-from py3xui.inbounds.sniffing import Sniffing
-from py3xui.inbounds.stream_settings import StreamSettings
+from py3xui.client.client import Client
+from py3xui.inbound.inbound import Inbound
+from py3xui.inbound.sniffing import Sniffing
+from py3xui.inbound.stream_settings import StreamSettings
 
 RESPONSES_DIR = "tests/responses"
 HOST = "http://localhost"

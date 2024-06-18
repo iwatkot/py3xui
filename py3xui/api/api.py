@@ -5,8 +5,8 @@ from typing import Any, Callable
 
 import requests
 
-from py3xui.clients.client import Client
-from py3xui.inbounds.inbounds import Inbound
+from py3xui.client.client import Client
+from py3xui.inbound.inbound import Inbound
 from py3xui.utils import Logger, env
 
 logger = Logger(__name__)
