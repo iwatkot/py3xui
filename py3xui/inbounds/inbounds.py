@@ -46,15 +46,6 @@ class Inbound(BaseModel):
     tag: str
     sniffing: Sniffing
 
-    def __repr__(self) -> str:
-        return (
-            f"Inbound(id={self.id}, up={self.up}, down={self.down}, total={self.total}, "
-            f"remark={self.remark}, enable={self.enable}, expiryTime={self.expiry_time}, "
-            f"clientStats={self.client_stats}, listen={self.listen}, port={self.port}, "
-            f"protocol={self.protocol}, settings={self.settings}, "
-            f"streamSettings={self.stream_settings}, tag={self.tag}, sniffing={self.sniffing})"
-        )
-
     def to_json(self) -> dict[str, Any]:
         include = {
             InboundFields.REMARK,

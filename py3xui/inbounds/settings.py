@@ -12,12 +12,6 @@ class SettingsFields:
 
 
 class Settings(JsonStringModel):
-    clients: list[Client]
-    decryption: str
-    fallbacks: list
-
-    def __repr__(self) -> str:
-        return (
-            f"Settings(clients={self.clients}, decryption={self.decryption}, "
-            f"fallbacks={self.fallbacks})"
-        )
+    clients: list[Client] = None
+    decryption: str = None
+    fallbacks: list = None
