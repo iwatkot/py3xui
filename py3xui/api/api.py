@@ -182,15 +182,23 @@ class Api:
                 client.model_dump(by_alias=True, exclude_defaults=True) for client in clients
             ]
         }
-        settings = json.dumps(settings)
-        data = {
-            "id": inbound_id,
-            "settings": settings,
-        }
+        data = {"id": inbound_id, "settings": json.dumps(settings)}
         logger.info("Adding %s clients to inbound with ID: %s", len(clients), inbound_id)
 
         self._post(url, headers, data)
         logger.info("Client added successfully.")
+
+    def update_client(self, client_uuid: str, client: Client) -> None:
+        endpoint = f"panel/api/inbounds/updateClient/{client_uuid}"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        settings = {"clients": [client.model_dump(by_alias=True, exclude_defaults=True)]}
+        data = {"id": client.inbound_id, "settings": json.dumps(settings)}
+
+        logger.info("Updating client: %s", client)
+        self._post(url, headers, data)
+        logger.info("Client updated successfully.")
 
     def delete_inbound(self, inbound_id: int) -> None:
         endpoint = f"panel/api/inbounds/del/{inbound_id}"

@@ -1,15 +1,13 @@
 import json
 import os
+import uuid
 
 import pytest
 import requests_mock
 
-from py3xui import Api
+from py3xui import Api, Client, Inbound
 from py3xui.api.api import ApiFields
-from py3xui.client.client import Client
-from py3xui.inbound.inbound import Inbound
-from py3xui.inbound.sniffing import Sniffing
-from py3xui.inbound.stream_settings import StreamSettings
+from py3xui.inbound import Settings, Sniffing, StreamSettings
 
 RESPONSES_DIR = "tests/responses"
 HOST = "http://localhost"
@@ -109,3 +107,75 @@ def test_get_client_ips():
         ips = api.get_client_ips(EMAIL)
 
         assert ips is None, f"Expected None, got {ips}"
+
+
+def _prepare_inbound() -> Inbound:
+    settings = Settings()
+    sniffing = Sniffing(enabled=True)
+
+    tcp_settings = {
+        "acceptProxyProtocol": False,
+        "header": {"type": "none"},
+    }
+    stream_settings = StreamSettings(security="reality", network="tcp", tcp_settings=tcp_settings)
+
+    inbound = Inbound(
+        enable=True,
+        port=999,
+        protocol="vless",
+        settings=settings,
+        stream_settings=stream_settings,
+        sniffing=sniffing,
+    )
+
+    return inbound
+
+
+def test_add_inbound():
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/inbounds/add", json={ApiFields.SUCCESS: True})
+        api = Api(HOST, USERNAME, PASSWORD, skip_login=True)
+        api.add_inbound(_prepare_inbound())
+
+
+def test_delete_inbound_success_():
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/inbounds/del/1", json={ApiFields.SUCCESS: True})
+        api = Api(HOST, USERNAME, PASSWORD, skip_login=True)
+        api.delete_inbound(1)
+
+
+def test_delete_inbound_failed():
+    with requests_mock.Mocker() as m:
+        m.post(
+            f"{HOST}/panel/api/inbounds/del/1",
+            json={ApiFields.SUCCESS: False, ApiFields.MSG: "Delete Failed: record not found"},
+        )
+        api = Api(HOST, USERNAME, PASSWORD, skip_login=True)
+        with pytest.raises(ValueError):
+            api.delete_inbound(1)
+
+
+def test_update_inbound():
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/inbounds/update/1", json={ApiFields.SUCCESS: True})
+        api = Api(HOST, USERNAME, PASSWORD, skip_login=True)
+        api.update_inbound(1, _prepare_inbound())
+
+
+def test_add_clients():
+    client = Client(id=str(uuid.uuid4()), email="test", enable=True)
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/inbounds/addClient", json={ApiFields.SUCCESS: True})
+        api = Api(HOST, USERNAME, PASSWORD, skip_login=True)
+        api.add_clients(1, [client])
+
+
+def test_update_client():
+    client = Client(id=str(uuid.uuid4()), email="test", enable=True)
+    with requests_mock.Mocker() as m:
+        m.post(
+            f"{HOST}/panel/api/inbounds/updateClient/{client.id}", json={ApiFields.SUCCESS: True}
+        )
+        api = Api(HOST, USERNAME, PASSWORD, skip_login=True)
+        api.update_client(client.id, client)
