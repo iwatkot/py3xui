@@ -31,18 +31,18 @@ class Client(BaseModel):
     enable: bool
 
     id: int | str | None = None
-    inbound_id: int = Field(default=None, alias=ClientFields.INBOUND_ID)  # type: ignore
+    inbound_id: int | None = Field(default=None, alias=ClientFields.INBOUND_ID)  # type: ignore
 
-    up: int | None = None
-    down: int | None = None
+    up: int = 0
+    down: int = 0
 
-    expiry_time: int | None = Field(default=None, alias=ClientFields.EXPIRY_TIME)  # type: ignore
+    expiry_time: int = Field(default=0, alias=ClientFields.EXPIRY_TIME)  # type: ignore
 
-    total: int | None = None
-    reset: int | None = None
+    total: int = 0
+    reset: int = 0
 
-    flow: str | None = None
-    limit_ip: int | None = Field(default=None, alias=ClientFields.LIMIT_IP)  # type: ignore
-    sub_id: str | None = Field(default=None, alias=ClientFields.SUB_ID)  # type: ignore
-    tg_id: str | None = Field(default=None, alias=ClientFields.TG_ID)  # type: ignore
-    total_gb: int | None = Field(default=None, alias=ClientFields.TOTAL_GB)  # type: ignore
+    flow: str = ""
+    limit_ip: int = Field(default=0, alias=ClientFields.LIMIT_IP)  # type: ignore
+    sub_id: str = Field(default="", alias=ClientFields.SUB_ID)  # type: ignore
+    tg_id: str = Field(default="", alias=ClientFields.TG_ID)  # type: ignore
+    total_gb: int = Field(default=0, alias=ClientFields.TOTAL_GB)  # type: ignore
