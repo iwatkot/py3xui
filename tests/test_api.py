@@ -6,7 +6,7 @@ import pytest
 import requests_mock
 
 from py3xui import Api, Client, Inbound
-from py3xui.api.api import ApiFields
+from py3xui.api.api_base import ApiFields
 from py3xui.inbound import Settings, Sniffing, StreamSettings
 
 RESPONSES_DIR = "tests/responses"
@@ -17,29 +17,12 @@ SESSION = "abc123"
 EMAIL = "alhtim2x"
 
 
-def test_init():
-    api = Api(HOST, USERNAME, PASSWORD, skip_login=True)
-    assert api.host == HOST, f"Expected {HOST}, got {api.host}"
-    assert api.username == USERNAME, f"Expected {USERNAME}, got {api.username}"
-    assert api.password == PASSWORD, f"Expected {PASSWORD}, got {api.password}"
-    assert api.max_retries == 3, f"Expected 3, got {api.max_retries}"
-    assert api.session is None, f"Expected None, got {api.session}"
-
-
-def test_setters():
-    api = Api(HOST, USERNAME, PASSWORD, skip_login=True)
-    api.max_retries = 5
-    api.session = "abc123"
-    assert api.max_retries == 5, f"Expected 5, got {api.max_retries}"
-    assert api.session == "abc123", f"Expected abc123, got {api.session}"
-
-
 def test_login_success():
     with requests_mock.Mocker() as m:
         m.post(f"{HOST}/login", json={ApiFields.SUCCESS: True}, cookies={"session": SESSION})
         api = Api(HOST, "username", "password", skip_login=True)
         api.login()
-        assert api.session == {"session": SESSION}, f"Expected {SESSION}, got {api.session}"
+        assert api.client.session == SESSION, f"Expected {SESSION}, got {api.client.session}"
 
 
 def test_login_failed():
@@ -47,7 +30,7 @@ def test_login_failed():
         m.post(f"{HOST}/login", json={ApiFields.SUCCESS: True})
         api = Api(HOST, "username", "password", skip_login=True)
         with pytest.raises(ValueError):
-            api.login()
+            api.client.login()
 
 
 def test_from_env():
@@ -56,9 +39,9 @@ def test_from_env():
     os.environ["XUI_PASSWORD"] = PASSWORD
 
     api = Api.from_env(skip_login=True)
-    assert api.host == HOST, f"Expected {HOST}, got {api.host}"
-    assert api.username == USERNAME, f"Expected {USERNAME}, got {api.username}"
-    assert api.password == PASSWORD, f"Expected {PASSWORD}, got {api.password}"
+    assert api.inbound.host == HOST, f"Expected {HOST}, got {api.host}"
+    assert api.inbound.username == USERNAME, f"Expected {USERNAME}, got {api.username}"
+    assert api.inbound.password == PASSWORD, f"Expected {PASSWORD}, got {api.password}"
 
 
 def test_get_inbounds():
@@ -67,7 +50,7 @@ def test_get_inbounds():
     with requests_mock.Mocker() as m:
         m.get(f"{HOST}/panel/api/inbounds/list", json=response_example)
         api = Api(HOST, USERNAME, PASSWORD, skip_login=True)
-        inbounds = api.get_inbounds()
+        inbounds = api.inbound.get_list()
         assert len(inbounds) == 1, f"Expected 1, got {len(inbounds)}"
         inbound = inbounds[0]
         assert isinstance(inbound, Inbound), f"Expected Inbound, got {type(inbound)}"
@@ -90,7 +73,7 @@ def test_get_client():
     with requests_mock.Mocker() as m:
         m.get(f"{HOST}/panel/api/inbounds/getClientTraffics/{EMAIL}", json=response_example)
         api = Api(HOST, USERNAME, PASSWORD, skip_login=True)
-        client = api.get_client(EMAIL)
+        client = api.client.get_by_email(EMAIL)
         assert isinstance(client, Client), f"Expected Client, got {type(client)}"
 
         assert client.email == EMAIL, f"Expected {EMAIL}, got {client.email}"
@@ -104,7 +87,7 @@ def test_get_client_ips():
     with requests_mock.Mocker() as m:
         m.post(f"{HOST}/panel/api/inbounds/clientIps/{EMAIL}", json=response_example)
         api = Api(HOST, USERNAME, PASSWORD, skip_login=True)
-        ips = api.get_client_ips(EMAIL)
+        ips = api.client.get_ips(EMAIL)
 
         assert ips is None, f"Expected None, got {ips}"
 
@@ -135,14 +118,14 @@ def test_add_inbound():
     with requests_mock.Mocker() as m:
         m.post(f"{HOST}/panel/api/inbounds/add", json={ApiFields.SUCCESS: True})
         api = Api(HOST, USERNAME, PASSWORD, skip_login=True)
-        api.add_inbound(_prepare_inbound())
+        api.inbound.add(_prepare_inbound())
 
 
 def test_delete_inbound_success_():
     with requests_mock.Mocker() as m:
         m.post(f"{HOST}/panel/api/inbounds/del/1", json={ApiFields.SUCCESS: True})
         api = Api(HOST, USERNAME, PASSWORD, skip_login=True)
-        api.delete_inbound(1)
+        api.inbound.delete(1)
 
 
 def test_delete_inbound_failed():
@@ -153,14 +136,14 @@ def test_delete_inbound_failed():
         )
         api = Api(HOST, USERNAME, PASSWORD, skip_login=True)
         with pytest.raises(ValueError):
-            api.delete_inbound(1)
+            api.inbound.delete(1)
 
 
 def test_update_inbound():
     with requests_mock.Mocker() as m:
         m.post(f"{HOST}/panel/api/inbounds/update/1", json={ApiFields.SUCCESS: True})
         api = Api(HOST, USERNAME, PASSWORD, skip_login=True)
-        api.update_inbound(1, _prepare_inbound())
+        api.inbound.update(1, _prepare_inbound())
 
 
 def test_add_clients():
@@ -168,7 +151,7 @@ def test_add_clients():
     with requests_mock.Mocker() as m:
         m.post(f"{HOST}/panel/api/inbounds/addClient", json={ApiFields.SUCCESS: True})
         api = Api(HOST, USERNAME, PASSWORD, skip_login=True)
-        api.add_clients(1, [client])
+        api.client.add(1, [client])
 
 
 def test_update_client():
@@ -178,21 +161,21 @@ def test_update_client():
             f"{HOST}/panel/api/inbounds/updateClient/{client.id}", json={ApiFields.SUCCESS: True}
         )
         api = Api(HOST, USERNAME, PASSWORD, skip_login=True)
-        api.update_client(client.id, client)
+        api.client.update(client.id, client)
 
 
 def test_reset_client_ips():
     with requests_mock.Mocker() as m:
         m.post(f"{HOST}/panel/api/inbounds/clearClientIps/{EMAIL}", json={ApiFields.SUCCESS: True})
         api = Api(HOST, USERNAME, PASSWORD, skip_login=True)
-        api.reset_client_ips(EMAIL)
+        api.client.reset_ips(EMAIL)
 
 
 def test_reset_inbounds_stats():
     with requests_mock.Mocker() as m:
         m.post(f"{HOST}/panel/api/inbounds/resetAllTraffics", json={ApiFields.SUCCESS: True})
         api = Api(HOST, USERNAME, PASSWORD, skip_login=True)
-        api.reset_inbounds_stats()
+        api.inbound.reset_stats()
 
 
 def test_reset_inbound_client_stats():
@@ -201,7 +184,7 @@ def test_reset_inbound_client_stats():
             f"{HOST}/panel/api/inbounds/resetAllClientTraffics/1", json={ApiFields.SUCCESS: True}
         )
         api = Api(HOST, USERNAME, PASSWORD, skip_login=True)
-        api.reset_inbound_client_stats(1)
+        api.inbound.reset_client_stats(1)
 
 
 def test_reset_client_stats():
@@ -211,4 +194,4 @@ def test_reset_client_stats():
             json={ApiFields.SUCCESS: True},
         )
         api = Api(HOST, USERNAME, PASSWORD, skip_login=True)
-        api.reset_client_stats(1, EMAIL)
+        api.client.reset_stats(1, EMAIL)

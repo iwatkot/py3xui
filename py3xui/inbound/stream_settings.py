@@ -23,15 +23,15 @@ class StreamSettings(JsonStringModel):
     network: str
     tcp_settings: dict = Field(alias=StreamSettingsFields.TCP_SETTINGS)  # type: ignore
 
-    external_proxy: list = Field(
+    external_proxy: list = Field(  # type: ignore
         default=[], alias=StreamSettingsFields.EXTERNAL_PROXY
-    )  # type: ignore
-
-    reality_settings: dict = Field(
-        default={}, alias=StreamSettingsFields.REALITY_SETTINGS  # type: ignore
     )
-    xtls_settings: dict = Field(
-        default={}, alias=StreamSettingsFields.XTLS_SETTINGS  # type: ignore
+
+    reality_settings: dict = Field(  # type: ignore
+        default={}, alias=StreamSettingsFields.REALITY_SETTINGS
+    )
+    xtls_settings: dict = Field(  # type: ignore
+        default={}, alias=StreamSettingsFields.XTLS_SETTINGS
     )
     tls_settings: dict = Field(default={}, alias=StreamSettingsFields.TLS_SETTINGS)  # type: ignore
 
