@@ -20,14 +20,12 @@ class ApiFields:
 
 
 class BaseApi:
-    def __init__(self, host: str, username: str, password: str, skip_login: bool = False):
+    def __init__(self, host: str, username: str, password: str):
         self._host = host.rstrip("/")
         self._username = username
         self._password = password
         self._max_retries: int = 3
         self._session: str | None = None
-        if not skip_login:
-            self.login()
 
     @property
     def host(self) -> str:

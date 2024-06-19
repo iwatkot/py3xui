@@ -122,3 +122,14 @@ class ClientApi(BaseApi):
 
         self._post(url, headers, data)
         logger.info("Client stats reset successfully.")
+
+    def delete(self, inbound_id: int, client_uuid: str) -> None:
+        endpoint = f"panel/api/inbounds/{inbound_id}/delClient/{client_uuid}"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data: dict[str, Any] = {}
+        logger.info("Deleting client with ID: %s", client_uuid)
+
+        self._post(url, headers, data)
+        logger.info("Client deleted successfully.")

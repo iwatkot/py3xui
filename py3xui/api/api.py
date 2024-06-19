@@ -8,8 +8,8 @@ logger = Logger(__name__)
 
 class Api:
     def __init__(self, host: str, username: str, password: str, skip_login: bool = False):
-        self.client = ClientApi(host, username, password, skip_login)
-        self.inbound = InboundApi(host, username, password, skip_login=True)
+        self.client = ClientApi(host, username, password)
+        self.inbound = InboundApi(host, username, password)
         if not skip_login:
             self.login()
 
