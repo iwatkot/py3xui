@@ -244,6 +244,28 @@ class Api:
         self._post(url, headers, data)
         logger.info("Inbounds stats reset successfully.")
 
+    def reset_inbound_client_stats(self, inbound_id: int) -> None:
+        endpoint = f"panel/api/inbounds/resetAllClientTraffics/{inbound_id}"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data = {}
+        logger.info("Resetting inbound client stats for ID: %s", inbound_id)
+
+        self._post(url, headers, data)
+        logger.info("Inbound client stats reset successfully.")
+
+    def reset_client_stats(self, inbound_id: int, email: str) -> None:
+        endpoint = f"panel/api/inbounds/{inbound_id}/resetClientTraffic/{email}"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data = {}
+        logger.info("Resetting client stats for inbound ID: %s, email: %s", inbound_id, email)
+
+        self._post(url, headers, data)
+        logger.info("Client stats reset successfully.")
+
     def _check_response(self, response: requests.Response) -> None:
         response_json = response.json()
 
