@@ -1,5 +1,6 @@
 """This module provides classes to interact with the XUI API."""
 
+import json
 from time import sleep
 from typing import Any, Callable
 
@@ -170,6 +171,26 @@ class Api:
 
         self._post(url, headers, data)
         logger.info("Inbound added successfully.")
+
+    def add_clients(self, inbound_id: int, clients: list[Client]):
+        endpoint = "panel/api/inbounds/addClient"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        settings = {
+            "clients": [
+                client.model_dump(by_alias=True, exclude_defaults=True) for client in clients
+            ]
+        }
+        settings = json.dumps(settings)
+        data = {
+            "id": inbound_id,
+            "settings": settings,
+        }
+        logger.info("Adding %s clients to inbound with ID: %s", len(clients), inbound_id)
+
+        self._post(url, headers, data)
+        logger.info("Client added successfully.")
 
     def delete_inbound(self, inbound_id: int) -> None:
         endpoint = f"panel/api/inbounds/del/{inbound_id}"

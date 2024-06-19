@@ -29,8 +29,8 @@ class ClientFields:
 class Client(BaseModel):
     email: str
     enable: bool
+    id: int | str
 
-    id: int | str | None = None
     inbound_id: int | None = Field(default=None, alias=ClientFields.INBOUND_ID)  # type: ignore
 
     up: int = 0
