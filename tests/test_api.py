@@ -179,3 +179,17 @@ def test_update_client():
         )
         api = Api(HOST, USERNAME, PASSWORD, skip_login=True)
         api.update_client(client.id, client)
+
+
+def test_reset_client_ips():
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/inbounds/clearClientIps/{EMAIL}", json={ApiFields.SUCCESS: True})
+        api = Api(HOST, USERNAME, PASSWORD, skip_login=True)
+        api.reset_client_ips(EMAIL)
+
+
+def reset_inbounds_stats():
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/inbounds/resetAllTraffics", json={ApiFields.SUCCESS: True})
+        api = Api(HOST, USERNAME, PASSWORD, skip_login=True)
+        api.reset_inbounds_stats()
