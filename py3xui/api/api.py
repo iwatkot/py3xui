@@ -200,6 +200,17 @@ class Api:
         self._post(url, headers, data)
         logger.info("Client updated successfully.")
 
+    def reset_client_ips(self, email: str) -> None:
+        endpoint = f"panel/api/inbounds/clearClientIps/{email}"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data = {}
+        logger.info("Resetting client IPs for email: %s", email)
+
+        self._post(url, headers, data)
+        logger.info("Client IPs reset successfully.")
+
     def delete_inbound(self, inbound_id: int) -> None:
         endpoint = f"panel/api/inbounds/del/{inbound_id}"
         headers = {"Accept": "application/json"}
@@ -221,6 +232,17 @@ class Api:
 
         self._post(url, headers, data)
         logger.info("Inbound updated successfully.")
+
+    def reset_inbounds_stats(self) -> None:
+        endpoint = "panel/api/inbounds/resetAllTraffics"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data = {}
+        logger.info("Resetting inbounds stats...")
+
+        self._post(url, headers, data)
+        logger.info("Inbounds stats reset successfully.")
 
     def _check_response(self, response: requests.Response) -> None:
         response_json = response.json()
