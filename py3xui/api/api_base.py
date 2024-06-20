@@ -19,6 +19,8 @@ class ApiFields:
     OBJ = "obj"
     CLIENT_STATS = "clientStats"
     NO_IP_RECORD = "No IP Record"
+    GET = "GET"
+    POST = "POST"
 
 
 class BaseApi:

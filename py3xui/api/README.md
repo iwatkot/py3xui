@@ -20,7 +20,6 @@ Access to the client, inbound, and database APIs is provided through this class.
 - `host` _str_ - The XUI host URL.
 - `username` _str_ - The XUI username.
 - `password` _str_ - The XUI password.
-- `skip_login` _bool_ - Skip the login process. Default is False.
   
   Attributes and Properties:
 - `client` _ClientApi_ - The client API.

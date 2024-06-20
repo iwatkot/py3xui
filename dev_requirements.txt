@@ -11,3 +11,4 @@ pydoc-markdown
 # For production:
 pydantic
 requests
+httpx
