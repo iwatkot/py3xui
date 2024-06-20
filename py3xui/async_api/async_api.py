@@ -19,9 +19,9 @@ class AsyncApi(Api):
         password (str): The XUI password.
 
     Attributes and Properties:
-        client (ClientApi): The client API.
-        inbound (InboundApi): The inbound API.
-        database (DatabaseApi): The database API.
+        client (AsyncClientApi): The client API.
+        inbound (AsyncInboundApi): The inbound API.
+        database (AsyncDatabaseApi): The database API.
 
     Public Methods:
         login: Logs into the XUI API.
@@ -50,11 +50,11 @@ class AsyncApi(Api):
     """
 
     def __init__(self, host: str, username: str, password: str):
-        self.client = AsyncClientApi(host, username, password)
-        # self.inbound = AsyncInboundApi(host, username, password)
-        # self.database = AsyncDatabaseApi(host, username, password)
+        self.client = AsyncClientApi(host, username, password)  # type: ignore
+        # self.inbound = AsyncInboundApi(host, username, password)  # type: ignore
+        # self.database = AsyncDatabaseApi(host, username, password) # type: ignore
 
-    async def login(self) -> None:
+    async def login(self) -> None:  # type: ignore
         """Logs into the XUI API and sets the session cookie for the client, inbound, and
         database APIs.
 
@@ -66,7 +66,7 @@ class AsyncApi(Api):
             await api.login()
             ```
         """
-        await self.client.login()
+        await self.client.login()  # type: ignore
         # self.inbound.session = self.client.session
         # self.database.session = self.client.session
         logger.info("Logged in successfully.")

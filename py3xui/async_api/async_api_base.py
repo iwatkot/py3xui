@@ -36,7 +36,7 @@ class AsyncBaseApi(BaseApi):
 
     """
 
-    async def _request_with_retry(
+    async def _request_with_retry(  # type: ignore
         self,
         method: str,
         url: str,
@@ -61,7 +61,9 @@ class AsyncBaseApi(BaseApi):
         for retry in range(1, self.max_retries + 1):
             try:
                 skip_check = kwargs.pop("skip_check", False)
-                async with httpx.AsyncClient(cookies={"session": self.session}) as client:
+                async with httpx.AsyncClient(
+                    cookies={"session": self.session}  # type: ignore
+                ) as client:
                     if method == ApiFields.GET:
                         response = await client.get(url, headers=headers, **kwargs)
                     elif method == ApiFields.POST:
@@ -80,9 +82,9 @@ class AsyncBaseApi(BaseApi):
                 await asyncio.sleep(1 * (retry + 1))
             except httpx.HTTPStatusError as e:
                 raise e
-        raise httpx.HTTPStatusError(f"Max retries exceeded with no successful response to {url}")
+        raise ConnectionError(f"Max retries exceeded with no successful response to {url}")
 
-    async def login(self) -> None:
+    async def login(self) -> None:  # type: ignore
         """Logs into the XUI API and sets the session cookie if successful.
 
         Raises:
@@ -101,7 +103,7 @@ class AsyncBaseApi(BaseApi):
         logger.info("Session cookie successfully retrieved for username: %s", self.username)
         self.session = cookie
 
-    async def _check_response(self, response: httpx.Response) -> None:
+    async def _check_response(self, response: httpx.Response) -> None:  # type: ignore
         """Checks the response from the XUI API using the success field.
 
         Arguments:
@@ -117,7 +119,7 @@ class AsyncBaseApi(BaseApi):
         if not status:
             raise ValueError(f"Response status is not successful, message: {message}")
 
-    async def _post(
+    async def _post(  # type: ignore
         self, url: str, headers: dict[str, str], data: dict[str, Any], **kwargs
     ) -> httpx.Response:
         """Makes a POST request to the XUI API.
@@ -132,7 +134,9 @@ class AsyncBaseApi(BaseApi):
             httpx.Response: The response from the XUI API."""
         return await self._request_with_retry(ApiFields.POST, url, headers, json=data, **kwargs)
 
-    async def _get(self, url: str, headers: dict[str, str], **kwargs) -> httpx.Response:
+    async def _get(  # type: ignore
+        self, url: str, headers: dict[str, str], **kwargs
+    ) -> httpx.Response:
         """Makes a GET request to the XUI API.
 
         Arguments:
