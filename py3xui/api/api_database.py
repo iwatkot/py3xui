@@ -46,7 +46,7 @@ class DatabaseApi(BaseApi):
 
             api.database.export()
             ```
-        """
+        """  # pylint: disable=line-too-long
         endpoint = "panel/api/inbounds/createbackup"
         headers = {"Accept": "application/json"}
 
