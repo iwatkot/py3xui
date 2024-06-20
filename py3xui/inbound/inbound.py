@@ -1,3 +1,5 @@
+"""This module contains the Inbound class, which represents an inbound connection in the XUI API."""
+
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -33,6 +35,26 @@ class InboundFields:
 
 
 class Inbound(BaseModel):
+    """Represents an inbound connection in the XUI API.
+
+    Attributes:
+        enable (bool): Whether the inbound connection is enabled. Required.
+        port (int): The port number for the inbound connection. Required.
+        protocol (str): The protocol for the inbound connection. Required.
+        settings (Settings): The settings for the inbound connection. Required.
+        stream_settings (StreamSettings): The stream settings for the inbound connection. Required.
+        sniffing (Sniffing): The sniffing settings for the inbound connection. Required.
+        listen (str): The listen address for the inbound connection. Optional.
+        remark (str): The remark for the inbound connection. Optional.
+        id (int): The ID of the inbound connection. Optional.
+        up (int): The up value for the inbound connection. Optional.
+        down (int): The down value for the inbound connection. Optional.
+        total (int): The total value for the inbound connection. Optional.
+        expiry_time (int): The expiry time for the inbound connection. Optional.
+        client_stats (list[Client]): The client stats for the inbound connection. Optional.
+        tag (str): The tag for the inbound connection. Optional.
+    """
+
     enable: bool
     port: int
     protocol: str
@@ -59,6 +81,12 @@ class Inbound(BaseModel):
     )
 
     def to_json(self) -> dict[str, Any]:
+        """Converts the Inbound instance to a JSON-compatible dictionary for the XUI API.
+
+        Returns:
+            dict[str, Any]: The JSON-compatible dictionary.
+        """
+
         include = {
             InboundFields.REMARK,
             InboundFields.ENABLE,

@@ -1,3 +1,5 @@
+"""This module contains the Sniffing class for parsing the XUI API response."""
+
 from pydantic import Field
 
 from py3xui.inbound.bases import JsonStringModel
@@ -16,6 +18,16 @@ class SniffingFields:
 
 
 class Sniffing(JsonStringModel):
+    """Represents the sniffing settings for an inbound.
+
+    Attributes:
+        enabled (bool): Whether sniffing is enabled. Required.
+        dest_override (list[str]): The destination override. Optional.
+        metadata_only (bool): Whether to only sniff metadata. Optional.
+        route_only (bool): Whether to only sniff routes. Optional.
+
+    """
+
     enabled: bool
 
     dest_override: list[str] = Field(default=[], alias=SniffingFields.DEST_OVERRIDE)  # type: ignore
