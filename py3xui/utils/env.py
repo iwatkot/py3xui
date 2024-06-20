@@ -11,7 +11,7 @@ def parse_env(
     """Parse the environment for the first key that is found and return the value after
     postprocessing it.
 
-    Args:
+    Arguments:
         keys (list[str]): The keys to search for in the environment
         postprocess_fn (Callable[[str], Any]): The postprocessing function to apply to the value
 

@@ -13,7 +13,7 @@ LOG_FORMATTER = "%(name)s | %(asctime)s | %(levelname)s | %(message)s"
 class Logger(logging.Logger):
     """Handles logging to the file and stdout with timestamps.
 
-    Args:
+    Arguments:
         name (str): Logger name.
         level (str): Log level.
         log_dir (str): Log directory.

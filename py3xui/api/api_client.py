@@ -16,7 +16,7 @@ class ClientApi(BaseApi):
 
         [Source documentation](https://documenter.getpostman.com/view/16802678/2s9YkgD5jm#9d0e5cd5-e6ac-4d72-abca-76cf75af5f00)
 
-        Args:
+        Arguments:
             email (str): The email of the client to retrieve.
 
         Returns:
@@ -51,7 +51,7 @@ class ClientApi(BaseApi):
 
         [Source documentation](https://documenter.getpostman.com/view/16802678/2s9YkgD5jm#06f1214c-dbb0-49f2-81b5-8e924abd19a9)
 
-        Args:
+        Arguments:
             email (str): The email of the client to retrieve.
 
         Returns:

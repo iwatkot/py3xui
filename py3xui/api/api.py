@@ -12,7 +12,7 @@ class Api:
     """This class provides a high-level interface to interact with the XUI API.
     Access to the client, inbound, and database APIs is provided through this class.
 
-    Args:
+    Arguments:
         host (str): The XUI host URL.
         username (str): The XUI username.
         password (str): The XUI password.
@@ -62,7 +62,7 @@ class Api:
         - XUI_USERNAME: The XUI username.
         - XUI_PASSWORD: The XUI password.
 
-        Args:
+        Arguments:
             skip_login (bool): Skip the login process. Default is False.
 
         Returns:
