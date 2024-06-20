@@ -1,4 +1,4 @@
-name: Check with pylint
+name: Run mypy, pylint and pytest
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  lint-check:
+  check:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
@@ -20,7 +20,13 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pylint pydantic requests
+          pip install mypy pylint pytest pydantic requests requests-mock
+
+      - name: Run mypy
+        run: mypy py3xui
 
       - name: Run pylint
         run: pylint py3xui
+
+      - name: Run pytest
+        run: pytest
