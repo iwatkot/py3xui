@@ -292,9 +292,7 @@ class ClientApi(BaseApi):
                 api.client.delete_depleted(inbound.id)
             ```
         """  # pylint: disable=line-too-long
-        endpoint = "panel/api/inbounds/delDepletedClients/0"
-        if inbound_id:
-            endpoint += f"{inbound_id}"
+        endpoint = f"panel/api/inbounds/delDepletedClients/{inbound_id}"
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)

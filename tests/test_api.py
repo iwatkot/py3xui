@@ -89,7 +89,7 @@ def test_get_client_ips():
         api = Api(HOST, USERNAME, PASSWORD, skip_login=True)
         ips = api.client.get_ips(EMAIL)
 
-        assert ips is None, f"Expected None, got {ips}"
+        assert ips == [], f"Expected None, got {ips}"
 
 
 def _prepare_inbound() -> Inbound:
