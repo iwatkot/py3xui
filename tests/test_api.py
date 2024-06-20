@@ -195,3 +195,31 @@ def test_reset_client_stats():
         )
         api = Api(HOST, USERNAME, PASSWORD, skip_login=True)
         api.client.reset_stats(1, EMAIL)
+
+
+def test_delete_client():
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/inbounds/1/delClient/1", json={ApiFields.SUCCESS: True})
+        api = Api(HOST, USERNAME, PASSWORD, skip_login=True)
+        api.client.delete(1, "1")
+
+
+def test_delete_depleted_clients():
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/inbounds/delDepletedClients/1", json={ApiFields.SUCCESS: True})
+        api = Api(HOST, USERNAME, PASSWORD, skip_login=True)
+        api.client.delete_depleted(1)
+
+
+def test_client_online():
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/inbounds/onlines", json={ApiFields.SUCCESS: True})
+        api = Api(HOST, USERNAME, PASSWORD, skip_login=True)
+        api.client.online()
+
+
+def test_database_export():
+    with requests_mock.Mocker() as m:
+        m.get(f"{HOST}/panel/api/inbounds/createbackup", json={ApiFields.SUCCESS: True})
+        api = Api(HOST, USERNAME, PASSWORD, skip_login=True)
+        api.database.export()

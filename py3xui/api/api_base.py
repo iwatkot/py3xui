@@ -91,8 +91,11 @@ class BaseApi:
         logger.debug("%s request to %s...", method.__name__.upper(), url)
         for retry in range(1, self.max_retries + 1):
             try:
+                skip_check = kwargs.pop("skip_check", False)
                 response = method(url, cookies={"session": self.session}, headers=headers, **kwargs)
                 response.raise_for_status()
+                if skip_check:
+                    return response
                 self._check_response(response)
                 return response
             except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
@@ -108,8 +111,10 @@ class BaseApi:
             f"Max retries exceeded with no successful response to {url}"
         )
 
-    def _post(self, url: str, headers: dict[str, str], data: dict[str, Any]) -> requests.Response:
-        return self._request_with_retry(requests.post, url, headers, json=data)
+    def _post(
+        self, url: str, headers: dict[str, str], data: dict[str, Any], **kwargs
+    ) -> requests.Response:
+        return self._request_with_retry(requests.post, url, headers, json=data, **kwargs)
 
-    def _get(self, url: str, headers: dict[str, str]) -> requests.Response:
-        return self._request_with_retry(requests.get, url, headers)
+    def _get(self, url: str, headers: dict[str, str], **kwargs) -> requests.Response:
+        return self._request_with_retry(requests.get, url, headers, **kwargs)

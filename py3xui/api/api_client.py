@@ -133,3 +133,26 @@ class ClientApi(BaseApi):
 
         self._post(url, headers, data)
         logger.info("Client deleted successfully.")
+
+    def delete_depleted(self, inbound_id: int) -> None:
+        endpoint = f"panel/api/inbounds/delDepletedClients/{inbound_id}"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data: dict[str, Any] = {}
+        logger.info("Deleting depleted clients for inbound ID: %s", inbound_id)
+
+        self._post(url, headers, data)
+        logger.info("Depleted clients deleted successfully.")
+
+    def online(self) -> list[str]:
+        endpoint = "panel/api/inbounds/onlines"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data: dict[str, Any] = {}
+        logger.info("Getting online clients")
+
+        response = self._post(url, headers, data)
+        online = response.json().get(ApiFields.OBJ)
+        return online or []
