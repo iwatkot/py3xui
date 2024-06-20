@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any, Callable
+from typing import Any
 
 import httpx
 
@@ -61,15 +61,11 @@ class AsyncBaseApi(BaseApi):
         for retry in range(1, self.max_retries + 1):
             try:
                 skip_check = kwargs.pop("skip_check", False)
-                async with httpx.AsyncClient() as client:
+                async with httpx.AsyncClient(cookies={"session": self.session}) as client:
                     if method == ApiFields.GET:
-                        response = await client.get(
-                            url, cookies={"session": self.session}, headers=headers, **kwargs
-                        )
+                        response = await client.get(url, headers=headers, **kwargs)
                     elif method == ApiFields.POST:
-                        response = await client.post(
-                            url, cookies={"session": self.session}, headers=headers, **kwargs
-                        )
+                        response = await client.post(url, headers=headers, **kwargs)
                 response.raise_for_status()
                 if skip_check:
                     return response

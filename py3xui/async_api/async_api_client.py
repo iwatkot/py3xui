@@ -1,9 +1,6 @@
 """This module contains the ClientApi class which provides methods to interact with the
 clients in the XUI API."""
 
-import json
-from typing import Any
-
 from py3xui.api.api_base import ApiFields
 from py3xui.async_api.async_api_base import AsyncBaseApi
 from py3xui.client.client import Client
