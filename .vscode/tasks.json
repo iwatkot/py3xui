@@ -25,5 +25,11 @@
             "command": "pylint py3xui",
             "problemMatcher": []
         },
+        {
+            "label": "pdoc",
+            "type": "shell",
+            "command": "pdoc --docformat markdown --output-dir ./docs py3xui && open docs/index.html",
+            "problemMatcher": []
+        }
     ]
 }
