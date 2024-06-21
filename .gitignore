@@ -8,3 +8,4 @@ htmlcov/
 local.env
 tests/tests.py
 tests/dummy.py
+README.md
