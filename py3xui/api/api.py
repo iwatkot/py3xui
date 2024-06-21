@@ -89,6 +89,7 @@ class Api:
             import py3xui
 
             api = py3xui.Api.from_env()
+            api.login()
             ```
         """
         host = env.xui_host()

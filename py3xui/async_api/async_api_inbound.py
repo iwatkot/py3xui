@@ -53,9 +53,9 @@ class AsyncInboundApi(AsyncBaseApi):
             ```python
             import py3xui
 
-            api = py3xui.Api.from_env()
-
-            inbounds: list[py3xui.Inbound] = api.inbound.get_list()
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+            inbounds: list[py3xui.Inbound] = await api.inbound.get_list()
             ```
         """  # pylint: disable=line-too-long
         endpoint = "panel/api/inbounds/list"
@@ -82,7 +82,8 @@ class AsyncInboundApi(AsyncBaseApi):
             ```python
             import py3xui
 
-            api = py3xui.Api.from_env()
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
 
             settings = Settings()
             sniffing = Sniffing(enabled=True)
@@ -102,6 +103,7 @@ class AsyncInboundApi(AsyncBaseApi):
                 sniffing=sniffing,
                 remark="test3",
             )
+            await api.inbound.add(inbound)
             ```
         """  # pylint: disable=line-too-long
         endpoint = "panel/api/inbounds/add"
@@ -127,8 +129,9 @@ class AsyncInboundApi(AsyncBaseApi):
             ```python
             import py3xui
 
-            api = py3xui.Api.from_env()
-            inbounds: list[py3xui.Inbound] = api.inbound.get_list()
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+            inbounds: list[py3xui.Inbound] = await api.inbound.get_list()
 
             for inbound in inbounds:
                 api.inbound.delete(inbound.id)
@@ -157,8 +160,9 @@ class AsyncInboundApi(AsyncBaseApi):
             ```python
             import py3xui
 
-            api = py3xui.Api.from_env()
-            inbounds: list[py3xui.Inbound] = api.inbound.get_list()
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+            inbounds: list[py3xui.Inbound] = await api.inbound.get_list()
             inbound = inbounds[0]
 
             inbound.remark = "updated"
@@ -185,8 +189,9 @@ class AsyncInboundApi(AsyncBaseApi):
             ```python
             import py3xui
 
-            api = py3xui.Api.from_env()
-            api.inbound.reset_stats()
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+            await api.inbound.reset_stats()
             ```
         """  # pylint: disable=line-too-long
         endpoint = "panel/api/inbounds/resetAllTraffics"
@@ -212,11 +217,12 @@ class AsyncInboundApi(AsyncBaseApi):
             ```python
             import py3xui
 
-            api = py3xui.Api.from_env()
-            inbounds: list[py3xui.Inbound] = api.inbound.get_list()
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+            inbounds: list[py3xui.Inbound] = await api.inbound.get_list()
             inbound = inbounds[0]
 
-            api.inbound.reset_client_stats(inbound.id)
+            await api.inbound.reset_client_stats(inbound.id)
             ```
         """  # pylint: disable=line-too-long
         endpoint = f"panel/api/inbounds/resetAllClientTraffics/{inbound_id}"

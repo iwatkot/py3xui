@@ -38,6 +38,7 @@ class ClientApi(BaseApi):
         import py3xui
 
         api = py3xui.Api.from_env()
+        api.login()
 
         client: py3xui.Client = api.client.get_by_email("email")
 
@@ -65,6 +66,7 @@ class ClientApi(BaseApi):
             import py3xui
 
             api = py3xui.Api.from_env()
+            api.login()
             client: py3xui.Client = api.client.get_by_email("email")
             ```
         """  # pylint: disable=line-too-long
@@ -100,6 +102,7 @@ class ClientApi(BaseApi):
             import py3xui
 
             api = py3xui.Api.from_env()
+            api.login()
             ips = api.client.get_ips("email")
             ```
         """  # pylint: disable=line-too-long
@@ -129,7 +132,7 @@ class ClientApi(BaseApi):
             import py3xui
 
             api = py3xui.Api.from_env()
-
+            api.login()
             new_client = py3xui.Client(id=str(uuid.uuid4()), email="test", enable=True)
             inbound_id = 1
 
@@ -165,6 +168,7 @@ class ClientApi(BaseApi):
             import py3xui
 
             api = py3xui.Api.from_env()
+            api.login()
             client = api.client.get_by_email("email")
             client.email = "newemail"
             api.client.update(client.id, client)
@@ -195,7 +199,7 @@ class ClientApi(BaseApi):
             import py3xui
 
             api = py3xui.Api.from_env()
-
+            api.login()
             api.client.reset_ips("email")
             ```
         """  # pylint: disable=line-too-long
@@ -224,6 +228,7 @@ class ClientApi(BaseApi):
             import py3xui
 
             api = py3xui.Api.from_env()
+            api.login()
             inbound_id = 1
 
             api.client.reset_stats(inbound_id, "test")
@@ -254,6 +259,7 @@ class ClientApi(BaseApi):
             import py3xui
 
             api = py3xui.Api.from_env()
+            api.login()
             client = api.client.get_by_email("email")
             inbound_id = 1
 
@@ -285,7 +291,7 @@ class ClientApi(BaseApi):
             import py3xui
 
             api = py3xui.Api.from_env()
-
+            api.login()
             inbounds: list[py3xui.Inbound] = api.inbound.get_list()
 
             for inbound in inbounds:
@@ -315,6 +321,7 @@ class ClientApi(BaseApi):
             import py3xui
 
             api = py3xui.Api.from_env()
+            api.login()
             res = api.client.online()
             print(res)
             ```

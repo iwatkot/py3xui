@@ -43,7 +43,7 @@ class AsyncApi:
         # Alternatively, you can provide the credentials directly.
         api = py3xui.AsyncApi("https://xui.example.com", "username", "password")
 
-        api.login()
+        await api.login()
 
         # Some examples of using the API.
         inbounds: list[py3xui.Inbound] = await api.inbound.get_list()
@@ -88,7 +88,8 @@ class AsyncApi:
             ```python
             import py3xui
 
-            api = py3xui.Api.from_env()
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
             ```
         """
         host = env.xui_host()
@@ -104,7 +105,7 @@ class AsyncApi:
             ```python
             import py3xui
 
-            api = py3xui.Api.from_env()
+            api = py3xui.AsyncApi.from_env()
             await api.login()
             ```
         """

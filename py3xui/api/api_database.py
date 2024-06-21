@@ -25,7 +25,7 @@ class DatabaseApi(BaseApi):
         import py3xui
 
         api = py3xui.Api.from_env()
-
+        api.login()
         api.database.export()
         ```
     """
@@ -43,7 +43,7 @@ class DatabaseApi(BaseApi):
             import py3xui
 
             api = py3xui.Api.from_env()
-
+            api.login()
             api.database.export()
             ```
         """  # pylint: disable=line-too-long

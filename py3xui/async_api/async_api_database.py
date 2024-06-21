@@ -24,9 +24,9 @@ class AsyncDatabaseApi(AsyncBaseApi):
         ```python
         import py3xui
 
-        api = py3xui.Api.from_env()
-
-        api.database.export()
+        api = py3xui.AsyncApi.from_env()
+        await api.login()
+        await api.database.export()
         ```
     """
 
@@ -42,9 +42,9 @@ class AsyncDatabaseApi(AsyncBaseApi):
             ```python
             import py3xui
 
-            api = py3xui.Api.from_env()
-
-            api.database.export()
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+            await api.database.export()
             ```
         """  # pylint: disable=line-too-long
         endpoint = "panel/api/inbounds/createbackup"

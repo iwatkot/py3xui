@@ -40,7 +40,7 @@ class AsyncClientApi(AsyncBaseApi):
 
         api = py3xui.AsyncApi.from_env()
 
-        api.login()
+        await api.login()
 
         client: py3xui.Client = api.client.get_by_email("email")
 
@@ -68,7 +68,7 @@ class AsyncClientApi(AsyncBaseApi):
             import py3xui
 
             api = py3xui.AsyncApi.from_env()
-            api.login()
+            await api.login()
             client: py3xui.Client = await api.client.get_by_email("email")
             ```
         """  # pylint: disable=line-too-long
@@ -104,7 +104,7 @@ class AsyncClientApi(AsyncBaseApi):
             import py3xui
 
             api = py3xui.AsyncApi.from_env()
-            api.login()
+            await api.login()
             ips = await api.client.get_ips("email")
             ```
         """  # pylint: disable=line-too-long
@@ -134,12 +134,12 @@ class AsyncClientApi(AsyncBaseApi):
             import py3xui
 
             api = py3xui.AsyncApi.from_env()
-            api.login()
+            await api.login()
 
             new_client = py3xui.Client(id=str(uuid.uuid4()), email="test", enable=True)
             inbound_id = 1
 
-            api.client.add(inbound_id, [new_client])
+            await api.client.add(inbound_id, [new_client])
         """  # pylint: disable=line-too-long
         endpoint = "panel/api/inbounds/addClient"
         headers = {"Accept": "application/json"}
@@ -171,10 +171,10 @@ class AsyncClientApi(AsyncBaseApi):
             import py3xui
 
             api = py3xui.AsyncApi.from_env()
-            api.login()
-            client = api.client.get_by_email("email")
+            await api.login()
+            client = await api.client.get_by_email("email")
             client.email = "newemail"
-            api.client.update(client.id, client)
+            await api.client.update(client.id, client)
             ```
         """  # pylint: disable=line-too-long
         endpoint = f"panel/api/inbounds/updateClient/{client_uuid}"
@@ -202,9 +202,9 @@ class AsyncClientApi(AsyncBaseApi):
             import py3xui
 
             api = py3xui.AsyncApi.from_env()
-            api.login()
+            await api.login()
 
-            api.client.reset_ips("email")
+            await api.client.reset_ips("email")
             ```
         """  # pylint: disable=line-too-long
         endpoint = f"panel/api/inbounds/clearClientIps/{email}"
@@ -232,10 +232,10 @@ class AsyncClientApi(AsyncBaseApi):
             import py3xui
 
             api = py3xui.AsyncApi.from_env()
-            api.login()
+            await api.login()
             inbound_id = 1
 
-            api.client.reset_stats(inbound_id, "test")
+            await api.client.reset_stats(inbound_id, "test")
             ```
         """  # pylint: disable=line-too-long
         endpoint = f"panel/api/inbounds/{inbound_id}/resetClientTraffic/{email}"
@@ -263,11 +263,11 @@ class AsyncClientApi(AsyncBaseApi):
             import py3xui
 
             api = py3xui.AsyncApi.from_env()
-            api.login()
+            await api.login()
             client = api.client.get_by_email("email")
             inbound_id = 1
 
-            api.client.delete(inbound_id, client.id)
+            await api.client.delete(inbound_id, client.id)
             ```
         """  # pylint: disable=line-too-long
         endpoint = f"panel/api/inbounds/{inbound_id}/delClient/{client_uuid}"
@@ -295,12 +295,12 @@ class AsyncClientApi(AsyncBaseApi):
             import py3xui
 
             api = py3xui.AsyncApi.from_env()
-            api.login()
+            await api.login()
 
             inbounds: list[py3xui.Inbound] = api.inbound.get_list()
 
             for inbound in inbounds:
-                api.client.delete_depleted(inbound.id)
+                await api.client.delete_depleted(inbound.id)
             ```
         """  # pylint: disable=line-too-long
         endpoint = f"panel/api/inbounds/delDepletedClients/{inbound_id}"
@@ -326,8 +326,8 @@ class AsyncClientApi(AsyncBaseApi):
             import py3xui
 
             api = py3xui.AsyncApi.from_env()
-            api.login()
-            res = api.client.online()
+            await api.login()
+            res = await api.client.online()
             print(res)
             ```
 

@@ -52,6 +52,7 @@ class InboundApi(BaseApi):
             import py3xui
 
             api = py3xui.Api.from_env()
+            api.login()
 
             inbounds: list[py3xui.Inbound] = api.inbound.get_list()
             ```
@@ -81,6 +82,7 @@ class InboundApi(BaseApi):
             import py3xui
 
             api = py3xui.Api.from_env()
+            api.login()
 
             settings = Settings()
             sniffing = Sniffing(enabled=True)
@@ -100,6 +102,8 @@ class InboundApi(BaseApi):
                 sniffing=sniffing,
                 remark="test3",
             )
+
+            api.inbound.add(inbound)
             ```
         """  # pylint: disable=line-too-long
         endpoint = "panel/api/inbounds/add"
@@ -126,6 +130,7 @@ class InboundApi(BaseApi):
             import py3xui
 
             api = py3xui.Api.from_env()
+            api.login()
             inbounds: list[py3xui.Inbound] = api.inbound.get_list()
 
             for inbound in inbounds:
@@ -156,6 +161,7 @@ class InboundApi(BaseApi):
             import py3xui
 
             api = py3xui.Api.from_env()
+            api.login()
             inbounds: list[py3xui.Inbound] = api.inbound.get_list()
             inbound = inbounds[0]
 
@@ -184,6 +190,7 @@ class InboundApi(BaseApi):
             import py3xui
 
             api = py3xui.Api.from_env()
+            api.login()
             api.inbound.reset_stats()
             ```
         """  # pylint: disable=line-too-long
@@ -211,6 +218,7 @@ class InboundApi(BaseApi):
             import py3xui
 
             api = py3xui.Api.from_env()
+            api.login()
             inbounds: list[py3xui.Inbound] = api.inbound.get_list()
             inbound = inbounds[0]
 
