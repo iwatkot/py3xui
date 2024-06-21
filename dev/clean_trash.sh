@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Directories to be removed
-dirs=".mypy_cache .pytest_cache htmlcov"
+dirs=".mypy_cache .pytest_cache htmlcov dist pyx3ui.egg-info"
 
 # Files to be removed
 files=".coverage"

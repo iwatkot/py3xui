@@ -127,7 +127,7 @@ class BaseApi:
         data = {"username": self.username, "password": self.password}
         logger.info("Logging in with username: %s", self.username)
 
-        response = self._post(url, headers, data)
+        response = self._post(url, headers, data, is_login=True)
         cookie: str | None = response.cookies.get("session")
         if not cookie:
             raise ValueError("No session cookie found, something wrong with the login...")
@@ -215,8 +215,13 @@ class BaseApi:
             data (dict[str, Any]): The data for the request.
             **kwargs (Any): Additional keyword arguments for the request.
 
+        Raises:
+            ValueError: If the session cookie is not set and it's not a login request.
+
         Returns:
             requests.Response: The response from the XUI API."""
+        if not kwargs.get("is_login", False) and not self.session:
+            raise ValueError("Before making a POST request, you must use the login() method.")
         return self._request_with_retry(requests.post, url, headers, json=data, **kwargs)
 
     def _get(self, url: str, headers: dict[str, str], **kwargs) -> requests.Response:
@@ -227,6 +232,11 @@ class BaseApi:
             headers (dict[str, str]): The headers for the request.
             **kwargs (Any): Additional keyword arguments for the request.
 
+        Raises:
+            ValueError: If the session cookie is not set and it's not a login request.
+
         Returns:
             requests.Response: The response from the XUI API."""
+        if not kwargs.get("is_login", False) and not self.session:
+            raise ValueError("Before making a GET request, you must use the login() method.")
         return self._request_with_retry(requests.get, url, headers, **kwargs)

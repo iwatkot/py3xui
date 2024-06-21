@@ -175,7 +175,7 @@ class AsyncBaseApi:
         data = {"username": self.username, "password": self.password}
         logger.info("Logging in with username: %s", self.username)
 
-        response = await self._post(url, headers, data)
+        response = await self._post(url, headers, data, is_login=True)
         cookie: str | None = response.cookies.get("session")
         if not cookie:
             raise ValueError("No session cookie found, something wrong with the login...")
@@ -209,8 +209,13 @@ class AsyncBaseApi:
             data (dict[str, Any]): The data for the request.
             **kwargs (Any): Additional keyword arguments for the request.
 
+        Raises:
+            ValueError: If the session cookie is not set and it's not a login request.
+
         Returns:
             httpx.Response: The response from the XUI API."""
+        if not kwargs.get("is_login", False) and not self.session:
+            raise ValueError("Before making a POST request, you must use the login() method.")
         return await self._request_with_retry(ApiFields.POST, url, headers, json=data, **kwargs)
 
     async def _get(self, url: str, headers: dict[str, str], **kwargs) -> httpx.Response:
@@ -220,7 +225,11 @@ class AsyncBaseApi:
             url (str): The URL for the XUI API.
             headers (dict[str, str]): The headers for the request.
             **kwargs (Any): Additional keyword arguments for the request.
+        Raises:
+            ValueError: If the session cookie is not set and it's not a login request.
 
         Returns:
             httpx.Response: The response from the XUI API."""
+        if not kwargs.get("is_login", False) and not self.session:
+            raise ValueError("Before making a POST request, you must use the login() method.")
         return await self._request_with_retry(ApiFields.GET, url, headers, **kwargs)

@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyx3ui"
+version = "0.1.2"
+description = "Sync and Async Object-oriented Python SDK for the 3x-ui app."
+authors = [{name = "iwatkot", email = "iwatkot@gmail.com"}]
+license = {text = "MIT License"}
+readme = "README.md"
+keywords = ["vpn", "3x-ui", "sdk", "api"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "pydantic>=2.0.0",
+    "requests>=2.0.0",
+    "httpx>=0.20.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/iwatkot/py3xui"
+Repository = "https://github.com/iwatkot/py3xui"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["py3xui*"]
+exclude = ["dev*"]
