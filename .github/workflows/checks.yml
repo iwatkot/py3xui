@@ -47,4 +47,4 @@ jobs:
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
         run: |
-          ./cc-test-reporter after-build --exit-code 0 -t coverage.py --prefix /github/workspace/
+          ./cc-test-reporter after-build --exit-code 0 -t coverage.py --prefix /home/runner/work/py3xui/py3xui/
