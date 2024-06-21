@@ -47,4 +47,4 @@ jobs:
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
         run: |
-          ./cc-test-reporter after-build --exit-code ${{ job.status }} -t coverage.py --prefix /github/workspace/
+          ./cc-test-reporter after-build --exit-code ${{ steps.pytest.outcome == 'success' && 0 || 1 }} -t coverage.py --prefix /github/workspace/
