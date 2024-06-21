@@ -6,7 +6,7 @@ from typing import Any
 
 from py3xui.api.api_base import ApiFields
 from py3xui.async_api.async_api_base import AsyncBaseApi
-from py3xui.client.client import Client
+from py3xui.client import Client
 from py3xui.utils import Logger
 
 logger = Logger(__name__)

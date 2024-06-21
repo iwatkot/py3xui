@@ -16,6 +16,8 @@ PASSWORD = "admin"
 SESSION = "abc123"
 EMAIL = "alhtim2x"
 
+# region BaseApi tests
+
 
 def test_login_success():
     with requests_mock.Mocker() as m:
@@ -44,6 +46,10 @@ def test_from_env():
     assert api.inbound.password == PASSWORD, f"Expected {PASSWORD}, got {api.password}"
 
 
+# endregion
+# region InboundApi tests
+
+
 def test_get_inbounds():
     response_example = json.load(open(os.path.join(RESPONSES_DIR, "get_inbounds.json")))
 
@@ -65,31 +71,6 @@ def test_get_inbounds():
         ), f"Expected ClientStats, got {type(inbound.client_stats[0])}"
 
         assert inbound.id == 1, f"Expected 1, got {inbound.id}"
-
-
-def test_get_client():
-    response_example = json.load(open(os.path.join(RESPONSES_DIR, "get_client.json")))
-
-    with requests_mock.Mocker() as m:
-        m.get(f"{HOST}/panel/api/inbounds/getClientTraffics/{EMAIL}", json=response_example)
-        api = Api(HOST, USERNAME, PASSWORD)
-        client = api.client.get_by_email(EMAIL)
-        assert isinstance(client, Client), f"Expected Client, got {type(client)}"
-
-        assert client.email == EMAIL, f"Expected {EMAIL}, got {client.email}"
-        assert client.id == 1, f"Expected 1, got {client.id}"
-        assert client.inbound_id == 1, f"Expected 1, got {client.inbound_id}"
-
-
-def test_get_client_ips():
-    response_example = {"success": True, "msg": "", "obj": "No IP Record"}
-
-    with requests_mock.Mocker() as m:
-        m.post(f"{HOST}/panel/api/inbounds/clientIps/{EMAIL}", json=response_example)
-        api = Api(HOST, USERNAME, PASSWORD)
-        ips = api.client.get_ips(EMAIL)
-
-        assert ips == [], f"Expected None, got {ips}"
 
 
 def _prepare_inbound() -> Inbound:
@@ -144,6 +125,35 @@ def test_update_inbound():
         m.post(f"{HOST}/panel/api/inbounds/update/1", json={ApiFields.SUCCESS: True})
         api = Api(HOST, USERNAME, PASSWORD)
         api.inbound.update(1, _prepare_inbound())
+
+
+# endregion
+# region ClientApi tests
+
+
+def test_get_client():
+    response_example = json.load(open(os.path.join(RESPONSES_DIR, "get_client.json")))
+
+    with requests_mock.Mocker() as m:
+        m.get(f"{HOST}/panel/api/inbounds/getClientTraffics/{EMAIL}", json=response_example)
+        api = Api(HOST, USERNAME, PASSWORD)
+        client = api.client.get_by_email(EMAIL)
+        assert isinstance(client, Client), f"Expected Client, got {type(client)}"
+
+        assert client.email == EMAIL, f"Expected {EMAIL}, got {client.email}"
+        assert client.id == 1, f"Expected 1, got {client.id}"
+        assert client.inbound_id == 1, f"Expected 1, got {client.inbound_id}"
+
+
+def test_get_client_ips():
+    response_example = {"success": True, "msg": "", "obj": "No IP Record"}
+
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/inbounds/clientIps/{EMAIL}", json=response_example)
+        api = Api(HOST, USERNAME, PASSWORD)
+        ips = api.client.get_ips(EMAIL)
+
+        assert ips == [], f"Expected None, got {ips}"
 
 
 def test_add_clients():
@@ -218,8 +228,15 @@ def test_client_online():
         api.client.online()
 
 
+# endregion
+# region DatabaseApi tests
+
+
 def test_database_export():
     with requests_mock.Mocker() as m:
         m.get(f"{HOST}/panel/api/inbounds/createbackup", json={ApiFields.SUCCESS: True})
         api = Api(HOST, USERNAME, PASSWORD)
         api.database.export()
+
+
+# endregion

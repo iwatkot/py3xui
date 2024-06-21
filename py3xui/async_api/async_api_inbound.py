@@ -1,15 +1,17 @@
-"""This module contains the InboundApi class for handling inbounds in the XUI API."""
+"""This module contains the InboundApi class which provides methods to interact with the
+clients in the XUI API asynchronously."""
 
 from typing import Any
 
-from py3xui.api.api_base import ApiFields, BaseApi
+from py3xui.api.api_base import ApiFields
+from py3xui.async_api.async_api_base import AsyncBaseApi
 from py3xui.inbound import Inbound
 from py3xui.utils import Logger
 
 logger = Logger(__name__)
 
 
-class InboundApi(BaseApi):
+class AsyncInboundApi(AsyncBaseApi):
     """This class provides methods to interact with the inbounds in the XUI API.
 
     Attributes and Properties:
@@ -31,14 +33,14 @@ class InboundApi(BaseApi):
         ```python
         import py3xui
 
-        api = py3xui.Api.from_env()
-        api.login()
+        api = py3xui.AsyncApi.from_env()
+        await api.login()
 
-        inbounds: list[py3xui.Inbound] = api.inbound.get_list()
+        inbounds: list[py3xui.Inbound] = await api.inbound.get_list()
         ```
     """
 
-    def get_list(self) -> list[Inbound]:
+    async def get_list(self) -> list[Inbound]:
         """This route is used to retrieve a comprehensive list of all inbounds along with
         their associated client options and statistics.
 
@@ -62,13 +64,13 @@ class InboundApi(BaseApi):
         url = self._url(endpoint)
         logger.info("Getting inbounds...")
 
-        response = self._get(url, headers)
+        response = await self._get(url, headers)
 
         inbounds_json = response.json().get(ApiFields.OBJ)
         inbounds = [Inbound.model_validate(data) for data in inbounds_json]
         return inbounds
 
-    def add(self, inbound: Inbound) -> None:
+    async def add(self, inbound: Inbound) -> None:
         """This route is used to add a new inbound configuration.
 
         [Source documentation](https://documenter.getpostman.com/view/16802678/2s9YkgD5jm#813ac729-5ba6-4314-bc2a-d0d3acc70388)
@@ -109,10 +111,10 @@ class InboundApi(BaseApi):
         data = inbound.to_json()
         logger.info("Adding inbound: %s", inbound)
 
-        self._post(url, headers, data)
+        await self._post(url, headers, data)
         logger.info("Inbound added successfully.")
 
-    def delete(self, inbound_id: int) -> None:
+    async def delete(self, inbound_id: int) -> None:
         """This route is used to delete an inbound identified by its ID.
 
         [Source documentation](https://documenter.getpostman.com/view/16802678/2s9YkgD5jm#a655d0e3-7d8c-4331-9061-422fcb515da9)
@@ -139,10 +141,10 @@ class InboundApi(BaseApi):
         data: dict[str, Any] = {}
 
         logger.info("Deleting inbound with ID: %s", inbound_id)
-        self._post(url, headers, data)
+        await self._post(url, headers, data)
         logger.info("Inbound deleted successfully.")
 
-    def update(self, inbound_id: int, inbound: Inbound) -> None:
+    async def update(self, inbound_id: int, inbound: Inbound) -> None:
         """This route is used to update an existing inbound identified by its ID.
 
         [Source documentation](https://documenter.getpostman.com/view/16802678/2s9YkgD5jm#19249b9f-a940-41e2-8bf4-86ff8dde857e)
@@ -171,10 +173,10 @@ class InboundApi(BaseApi):
         data = inbound.to_json()
         logger.info("Updating inbound: %s", inbound)
 
-        self._post(url, headers, data)
+        await self._post(url, headers, data)
         logger.info("Inbound updated successfully.")
 
-    def reset_stats(self) -> None:
+    async def reset_stats(self) -> None:
         """This route is used to reset the traffic statistics for all inbounds within the system.
 
         [Source documentation](https://documenter.getpostman.com/view/16802678/2s9YkgD5jm#6749f362-dc81-4769-8f45-37dc9e99f5e9)
@@ -194,10 +196,10 @@ class InboundApi(BaseApi):
         data: dict[str, Any] = {}
         logger.info("Resetting inbounds stats...")
 
-        self._post(url, headers, data)
+        await self._post(url, headers, data)
         logger.info("Inbounds stats reset successfully.")
 
-    def reset_client_stats(self, inbound_id: int) -> None:
+    async def reset_client_stats(self, inbound_id: int) -> None:
         """This route is used to reset the traffic statistics for all clients associated with a
         specific inbound identified by its ID.
 
@@ -224,5 +226,5 @@ class InboundApi(BaseApi):
         data: dict[str, Any] = {}
         logger.info("Resetting inbound client stats for ID: %s", inbound_id)
 
-        self._post(url, headers, data)
+        await self._post(url, headers, data)
         logger.info("Inbound client stats reset successfully.")
