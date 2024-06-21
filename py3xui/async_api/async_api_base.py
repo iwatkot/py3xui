@@ -3,13 +3,13 @@ from typing import Any
 
 import httpx
 
-from py3xui.api.api_base import ApiFields, BaseApi
+from py3xui.api.api_base import ApiFields
 from py3xui.utils import Logger
 
 logger = Logger(__name__)
 
 
-class AsyncBaseApi(BaseApi):
+class AsyncBaseApi:
     """Base class for the XUI API. Contains async common methods for making requests.
 
     Arguments:
@@ -36,7 +36,80 @@ class AsyncBaseApi(BaseApi):
 
     """
 
-    async def _request_with_retry(  # type: ignore
+    def __init__(self, host: str, username: str, password: str):
+        self._host = host.rstrip("/")
+        self._username = username
+        self._password = password
+        self._max_retries: int = 3
+        self._session: str | None = None
+
+    @property
+    def host(self) -> str:
+        """The host of the XUI API.
+
+        Returns:
+            str: The host of the XUI API."""
+        return self._host
+
+    @property
+    def username(self) -> str:
+        """The username for the XUI API.
+
+        Returns:
+            str: The username for the XUI API."""
+        return self._username
+
+    @property
+    def password(self) -> str:
+        """The password for the XUI API.
+
+        Returns:
+            str: The password for the XUI API."""
+        return self._password
+
+    @property
+    def max_retries(self) -> int:
+        """The maximum number of retries for a request.
+
+        Returns:
+            int: The maximum number of retries for a request."""
+        return self._max_retries
+
+    @max_retries.setter
+    def max_retries(self, value: int) -> None:
+        """Sets the maximum number of retries for a request.
+
+        Arguments:
+            value (int): The maximum number of retries for a request."""
+        self._max_retries = value
+
+    @property
+    def session(self) -> str | None:
+        """The session cookie for the XUI API.
+
+        Returns:
+            str | None: The session cookie for the XUI API."""
+        return self._session
+
+    @session.setter
+    def session(self, value: str | None) -> None:
+        """Sets the session cookie for the XUI API.
+
+        Arguments:
+            value (str | None): The session cookie for the XUI API."""
+        self._session = value
+
+    def _url(self, endpoint: str) -> str:
+        """Returns the URL for the XUI API (adds the endpoint to the host URL).
+
+        Arguments:
+            endpoint (str): The endpoint for the XUI API.
+
+        Returns:
+            str: The URL for the XUI API."""
+        return f"{self._host}/{endpoint}"
+
+    async def _request_with_retry(
         self,
         method: str,
         url: str,
@@ -61,9 +134,8 @@ class AsyncBaseApi(BaseApi):
         for retry in range(1, self.max_retries + 1):
             try:
                 skip_check = kwargs.pop("skip_check", False)
-                async with httpx.AsyncClient(
-                    cookies={"session": self.session}  # type: ignore
-                ) as client:
+                cookies = {"session": self.session} if self.session else {}
+                async with httpx.AsyncClient(cookies=cookies) as client:
                     if method == ApiFields.GET:
                         response = await client.get(url, headers=headers, **kwargs)
                     elif method == ApiFields.POST:
@@ -84,7 +156,7 @@ class AsyncBaseApi(BaseApi):
                 raise e
         raise ConnectionError(f"Max retries exceeded with no successful response to {url}")
 
-    async def login(self) -> None:  # type: ignore
+    async def login(self) -> None:
         """Logs into the XUI API and sets the session cookie if successful.
 
         Raises:
@@ -103,7 +175,7 @@ class AsyncBaseApi(BaseApi):
         logger.info("Session cookie successfully retrieved for username: %s", self.username)
         self.session = cookie
 
-    async def _check_response(self, response: httpx.Response) -> None:  # type: ignore
+    async def _check_response(self, response: httpx.Response) -> None:
         """Checks the response from the XUI API using the success field.
 
         Arguments:
@@ -119,7 +191,7 @@ class AsyncBaseApi(BaseApi):
         if not status:
             raise ValueError(f"Response status is not successful, message: {message}")
 
-    async def _post(  # type: ignore
+    async def _post(
         self, url: str, headers: dict[str, str], data: dict[str, Any], **kwargs
     ) -> httpx.Response:
         """Makes a POST request to the XUI API.
@@ -134,9 +206,7 @@ class AsyncBaseApi(BaseApi):
             httpx.Response: The response from the XUI API."""
         return await self._request_with_retry(ApiFields.POST, url, headers, json=data, **kwargs)
 
-    async def _get(  # type: ignore
-        self, url: str, headers: dict[str, str], **kwargs
-    ) -> httpx.Response:
+    async def _get(self, url: str, headers: dict[str, str], **kwargs) -> httpx.Response:
         """Makes a GET request to the XUI API.
 
         Arguments:

@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-from py3xui.api.api import Api
 from py3xui.async_api import AsyncClientApi  # , AsyncDatabaseApi, AsyncInboundApi
-from py3xui.utils import Logger
+from py3xui.utils import Logger, env
 
 logger = Logger(__name__)
 
 
-class AsyncApi(Api):
+class AsyncApi:
     """This class provides a high-level interface to interact with the XUI API.
     Access to the client, inbound, and database APIs is provided through this class.
 
@@ -50,11 +49,34 @@ class AsyncApi(Api):
     """
 
     def __init__(self, host: str, username: str, password: str):
-        self.client = AsyncClientApi(host, username, password)  # type: ignore
-        # self.inbound = AsyncInboundApi(host, username, password)  # type: ignore
-        # self.database = AsyncDatabaseApi(host, username, password) # type: ignore
+        self.client = AsyncClientApi(host, username, password)
+        # self.inbound = AsyncInboundApi(host, username, password)
+        # self.database = AsyncDatabaseApi(host, username, password)
 
-    async def login(self) -> None:  # type: ignore
+    @classmethod
+    def from_env(cls) -> AsyncApi:
+        """Creates an instance of the API from environment variables.
+        Following environment variables should be set:
+        - XUI_HOST: The XUI host URL.
+        - XUI_USERNAME: The XUI username.
+        - XUI_PASSWORD: The XUI password.
+
+        Returns:
+            Api: The API instance.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            ```
+        """
+        host = env.xui_host()
+        username = env.xui_username()
+        password = env.xui_password()
+        return cls(host, username, password)
+
+    async def login(self) -> None:
         """Logs into the XUI API and sets the session cookie for the client, inbound, and
         database APIs.
 
@@ -66,7 +88,7 @@ class AsyncApi(Api):
             await api.login()
             ```
         """
-        await self.client.login()  # type: ignore
+        await self.client.login()
         # self.inbound.session = self.client.session
         # self.database.session = self.client.session
         logger.info("Logged in successfully.")
