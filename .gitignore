@@ -8,5 +8,3 @@ htmlcov/
 local.env
 tests/tests.py
 tests/dummy.py
-clean_trash.sh
-push.sh
