@@ -1,4 +1,4 @@
-name: Run mypy, pylint and pytest
+name: Run mypy, pylint, pytest and upload coverage to Code Climate
 
 on:
   push:
@@ -20,7 +20,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install mypy pylint pytest pydantic requests requests-mock httpx respx pytest-asyncio
+          pip install mypy pylint pytest pydantic requests requests-mock httpx respx pytest-asyncio pytest-cov
 
       - name: Run mypy to generate cache
         run: mypy py3xui || true
@@ -34,5 +34,17 @@ jobs:
       - name: Run pylint
         run: pylint py3xui
 
-      - name: Run pytest
-        run: pytest
+      - name: Run pytest with coverage
+        run: pytest --cov=py3xui --cov-report xml
+
+      - name: Download Code Climate test-reporter
+        run: |
+          curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+          chmod +x ./cc-test-reporter
+          ./cc-test-reporter before-build
+
+      - name: Upload coverage data to Code Climate
+        env:
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+        run: |
+          ./cc-test-reporter after-build --exit-code ${{ job.status }} -t coverage.py --prefix /github/workspace/
