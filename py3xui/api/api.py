@@ -1,5 +1,7 @@
 """This module provides classes to interact with the XUI API."""
 
+# pylint: disable=R0801
+
 from __future__ import annotations
 
 from py3xui.api import ClientApi, DatabaseApi, InboundApi
@@ -21,6 +23,7 @@ class Api:
         client (ClientApi): The client API.
         inbound (InboundApi): The inbound API.
         database (DatabaseApi): The database API.
+        session (str): The session cookie for the XUI API.
 
     Public Methods:
         login: Logs into the XUI API.
@@ -52,6 +55,23 @@ class Api:
         self.client = ClientApi(host, username, password)
         self.inbound = InboundApi(host, username, password)
         self.database = DatabaseApi(host, username, password)
+        self._session: str | None = None
+
+    @property
+    def session(self) -> str | None:
+        """The session cookie for the XUI API.
+
+        Returns:
+            str: The session cookie for the XUI API.
+        """
+        return self._session
+
+    @session.setter
+    def session(self, value: str) -> None:
+        self._session = value
+        self.client.session = value
+        self.inbound.session = value
+        self.database.session = value
 
     @classmethod
     def from_env(cls) -> Api:
@@ -89,6 +109,7 @@ class Api:
             ```
         """
         self.client.login()
-        self.inbound.session = self.client.session
-        self.database.session = self.client.session
+        self._session = self.client.session
+        self.inbound.session = self._session
+        self.database.session = self._session
         logger.info("Logged in successfully.")

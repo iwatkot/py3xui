@@ -220,7 +220,7 @@ class BaseApi:
 
         Returns:
             requests.Response: The response from the XUI API."""
-        if not kwargs.get("is_login", False) and not self.session:
+        if not kwargs.pop("is_login", False) and not self.session:
             raise ValueError("Before making a POST request, you must use the login() method.")
         return self._request_with_retry(requests.post, url, headers, json=data, **kwargs)
 
@@ -237,6 +237,6 @@ class BaseApi:
 
         Returns:
             requests.Response: The response from the XUI API."""
-        if not kwargs.get("is_login", False) and not self.session:
+        if not kwargs.pop("is_login", False) and not self.session:
             raise ValueError("Before making a GET request, you must use the login() method.")
         return self._request_with_retry(requests.get, url, headers, **kwargs)

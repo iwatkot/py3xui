@@ -28,6 +28,7 @@ async def test_get_client():
             200, json=response_example
         )
         api = AsyncApi(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
         client = await api.client.get_by_email(EMAIL)
 
         assert request.called, "Mocked request was not called"
@@ -45,6 +46,7 @@ async def test_get_ips():
             200, json=response_example
         )
         api = AsyncApi(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
         ips = await api.client.get_ips(EMAIL)
 
         assert request.called, "Mocked request was not called"
@@ -59,6 +61,7 @@ async def test_add_clients():
             200, json={"success": True}
         )
         api = AsyncApi(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
         await api.client.add(1, [client])
 
         assert request.called, "Mocked request was not called"
@@ -72,6 +75,7 @@ async def test_update_client():
             200, json={"success": True}
         )
         api = AsyncApi(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
         await api.client.update(client.id, client)
 
         assert request.called, "Mocked request was not called"
@@ -84,6 +88,7 @@ async def test_reset_client_ips():
             200, json={"success": True}
         )
         api = AsyncApi(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
         await api.client.reset_ips(EMAIL)
 
         assert request.called, "Mocked request was not called"
@@ -96,6 +101,7 @@ async def test_reset_client_stats():
             200, json={"success": True}
         )
         api = AsyncApi(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
         await api.client.reset_stats(1, EMAIL)
 
         assert request.called, "Mocked request was not called"
@@ -108,6 +114,7 @@ async def test_delete_client():
             200, json={"success": True}
         )
         api = AsyncApi(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
         await api.client.delete(1, "1")
 
         assert request.called, "Mocked request was not called"
@@ -120,6 +127,7 @@ async def test_delete_depleted_clients():
             200, json={"success": True}
         )
         api = AsyncApi(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
         await api.client.delete_depleted(1)
 
         assert request.called, "Mocked request was not called"
@@ -132,6 +140,7 @@ async def test_client_online():
             200, json={"success": True}
         )
         api = AsyncApi(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
         await api.client.online()
 
         assert request.called, "Mocked request was not called"
@@ -170,6 +179,7 @@ async def test_get_inbounds():
     with respx.mock:
         request = respx.get(f"{HOST}/panel/api/inbounds/list").respond(200, json=response_example)
         api = AsyncApi(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
         inbounds = await api.inbound.get_list()
 
         assert request.called, "Mocked request was not called"
@@ -194,6 +204,7 @@ async def test_add_inbound():
     with respx.mock:
         request = respx.post(f"{HOST}/panel/api/inbounds/add").respond(200, json={"success": True})
         api = AsyncApi(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
         await api.inbound.add(_prepare_inbound())
 
         assert request.called, "Mocked request was not called"
@@ -206,6 +217,7 @@ async def test_delete_inbound_success_():
             200, json={"success": True}
         )
         api = AsyncApi(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
         await api.inbound.delete(1)
 
         assert request.called, "Mocked request was not called"
@@ -218,6 +230,7 @@ async def test_delete_inbound_failed():
             200, json={"success": False, "msg": "Delete Failed: record not found"}
         )
         api = AsyncApi(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
         with pytest.raises(ValueError):
             await api.inbound.delete(1)
 
@@ -231,6 +244,7 @@ async def test_update_inbound():
             200, json={"success": True}
         )
         api = AsyncApi(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
         await api.inbound.update(1, _prepare_inbound())
 
         assert request.called, "Mocked request was not called"
@@ -247,6 +261,7 @@ async def test_database_export():
             200, json={"success": True}
         )
         api = AsyncApi(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
         await api.database.export()
 
         assert request.called, "Mocked request was not called"

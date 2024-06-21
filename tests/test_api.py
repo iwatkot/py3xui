@@ -15,6 +15,7 @@ USERNAME = "admin"
 PASSWORD = "admin"
 SESSION = "abc123"
 EMAIL = "alhtim2x"
+SESSION = "abc123"
 
 # region BaseApi tests
 
@@ -56,6 +57,7 @@ def test_get_inbounds():
     with requests_mock.Mocker() as m:
         m.get(f"{HOST}/panel/api/inbounds/list", json=response_example)
         api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
         inbounds = api.inbound.get_list()
         assert len(inbounds) == 1, f"Expected 1, got {len(inbounds)}"
         inbound = inbounds[0]
@@ -99,6 +101,7 @@ def test_add_inbound():
     with requests_mock.Mocker() as m:
         m.post(f"{HOST}/panel/api/inbounds/add", json={ApiFields.SUCCESS: True})
         api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
         api.inbound.add(_prepare_inbound())
 
 
@@ -106,6 +109,7 @@ def test_delete_inbound_success_():
     with requests_mock.Mocker() as m:
         m.post(f"{HOST}/panel/api/inbounds/del/1", json={ApiFields.SUCCESS: True})
         api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
         api.inbound.delete(1)
 
 
@@ -116,6 +120,7 @@ def test_delete_inbound_failed():
             json={ApiFields.SUCCESS: False, ApiFields.MSG: "Delete Failed: record not found"},
         )
         api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
         with pytest.raises(ValueError):
             api.inbound.delete(1)
 
@@ -124,6 +129,7 @@ def test_update_inbound():
     with requests_mock.Mocker() as m:
         m.post(f"{HOST}/panel/api/inbounds/update/1", json={ApiFields.SUCCESS: True})
         api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
         api.inbound.update(1, _prepare_inbound())
 
 
@@ -137,6 +143,7 @@ def test_get_client():
     with requests_mock.Mocker() as m:
         m.get(f"{HOST}/panel/api/inbounds/getClientTraffics/{EMAIL}", json=response_example)
         api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
         client = api.client.get_by_email(EMAIL)
         assert isinstance(client, Client), f"Expected Client, got {type(client)}"
 
@@ -151,6 +158,7 @@ def test_get_client_ips():
     with requests_mock.Mocker() as m:
         m.post(f"{HOST}/panel/api/inbounds/clientIps/{EMAIL}", json=response_example)
         api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
         ips = api.client.get_ips(EMAIL)
 
         assert ips == [], f"Expected None, got {ips}"
@@ -161,6 +169,7 @@ def test_add_clients():
     with requests_mock.Mocker() as m:
         m.post(f"{HOST}/panel/api/inbounds/addClient", json={ApiFields.SUCCESS: True})
         api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
         api.client.add(1, [client])
 
 
@@ -171,6 +180,7 @@ def test_update_client():
             f"{HOST}/panel/api/inbounds/updateClient/{client.id}", json={ApiFields.SUCCESS: True}
         )
         api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
         api.client.update(client.id, client)
 
 
@@ -178,6 +188,7 @@ def test_reset_client_ips():
     with requests_mock.Mocker() as m:
         m.post(f"{HOST}/panel/api/inbounds/clearClientIps/{EMAIL}", json={ApiFields.SUCCESS: True})
         api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
         api.client.reset_ips(EMAIL)
 
 
@@ -185,6 +196,7 @@ def test_reset_inbounds_stats():
     with requests_mock.Mocker() as m:
         m.post(f"{HOST}/panel/api/inbounds/resetAllTraffics", json={ApiFields.SUCCESS: True})
         api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
         api.inbound.reset_stats()
 
 
@@ -194,6 +206,7 @@ def test_reset_inbound_client_stats():
             f"{HOST}/panel/api/inbounds/resetAllClientTraffics/1", json={ApiFields.SUCCESS: True}
         )
         api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
         api.inbound.reset_client_stats(1)
 
 
@@ -204,6 +217,7 @@ def test_reset_client_stats():
             json={ApiFields.SUCCESS: True},
         )
         api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
         api.client.reset_stats(1, EMAIL)
 
 
@@ -211,6 +225,7 @@ def test_delete_client():
     with requests_mock.Mocker() as m:
         m.post(f"{HOST}/panel/api/inbounds/1/delClient/1", json={ApiFields.SUCCESS: True})
         api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
         api.client.delete(1, "1")
 
 
@@ -218,6 +233,7 @@ def test_delete_depleted_clients():
     with requests_mock.Mocker() as m:
         m.post(f"{HOST}/panel/api/inbounds/delDepletedClients/1", json={ApiFields.SUCCESS: True})
         api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
         api.client.delete_depleted(1)
 
 
@@ -225,6 +241,7 @@ def test_client_online():
     with requests_mock.Mocker() as m:
         m.post(f"{HOST}/panel/api/inbounds/onlines", json={ApiFields.SUCCESS: True})
         api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
         api.client.online()
 
 
@@ -236,6 +253,7 @@ def test_database_export():
     with requests_mock.Mocker() as m:
         m.get(f"{HOST}/panel/api/inbounds/createbackup", json={ApiFields.SUCCESS: True})
         api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
         api.database.export()
 
 

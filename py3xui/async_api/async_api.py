@@ -1,5 +1,7 @@
 """This module provides classes to interact with the XUI API in an asynchronous manner."""
 
+# pylint: disable=R0801
+
 from __future__ import annotations
 
 from py3xui.async_api import AsyncClientApi, AsyncDatabaseApi, AsyncInboundApi
@@ -21,6 +23,7 @@ class AsyncApi:
         client (AsyncClientApi): The client API.
         inbound (AsyncInboundApi): The inbound API.
         database (AsyncDatabaseApi): The database API.
+        session (str): The session cookie for the XUI API.
 
     Public Methods:
         login: Logs into the XUI API.
@@ -52,6 +55,23 @@ class AsyncApi:
         self.client = AsyncClientApi(host, username, password)
         self.inbound = AsyncInboundApi(host, username, password)
         self.database = AsyncDatabaseApi(host, username, password)
+        self._session: str | None = None
+
+    @property
+    def session(self) -> str | None:
+        """The session cookie for the XUI API.
+
+        Returns:
+            str: The session cookie for the XUI API.
+        """
+        return self._session
+
+    @session.setter
+    def session(self, value: str) -> None:
+        self._session = value
+        self.client.session = value
+        self.inbound.session = value
+        self.database.session = value
 
     @classmethod
     def from_env(cls) -> AsyncApi:
@@ -89,6 +109,7 @@ class AsyncApi:
             ```
         """
         await self.client.login()
-        self.inbound.session = self.client.session
-        self.database.session = self.client.session
+        self._session = self.client.session
+        self.inbound.session = self._session
+        self.database.session = self._session
         logger.info("Logged in successfully.")

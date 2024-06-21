@@ -214,7 +214,7 @@ class AsyncBaseApi:
 
         Returns:
             httpx.Response: The response from the XUI API."""
-        if not kwargs.get("is_login", False) and not self.session:
+        if not kwargs.pop("is_login", False) and not self.session:
             raise ValueError("Before making a POST request, you must use the login() method.")
         return await self._request_with_retry(ApiFields.POST, url, headers, json=data, **kwargs)
 
@@ -230,6 +230,6 @@ class AsyncBaseApi:
 
         Returns:
             httpx.Response: The response from the XUI API."""
-        if not kwargs.get("is_login", False) and not self.session:
+        if not kwargs.pop("is_login", False) and not self.session:
             raise ValueError("Before making a POST request, you must use the login() method.")
         return await self._request_with_retry(ApiFields.GET, url, headers, **kwargs)
