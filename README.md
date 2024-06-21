@@ -1,0 +1,2 @@
+[![Maintainability](https://api.codeclimate.com/v1/badges/c03ca2bca0191cb4a2ae/maintainability)](https://codeclimate.com/github/iwatkot/py3xui/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/c03ca2bca0191cb4a2ae/test_coverage)](https://codeclimate.com/github/iwatkot/py3xui/test_coverage)

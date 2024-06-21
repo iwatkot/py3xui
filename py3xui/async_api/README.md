@@ -1,15 +1,15 @@
-<a id="api.api"></a>
+<a id="async_api.async_api"></a>
 
-# api.api
+# async\_api.async\_api
 
-This module provides classes to interact with the XUI API.
+This module provides classes to interact with the XUI API in an asynchronous manner.
 
-<a id="api.api.Api"></a>
+<a id="async_api.async_api.AsyncApi"></a>
 
-## Api Objects
+## AsyncApi Objects
 
 ```python
-class Api()
+class AsyncApi()
 ```
 
 This class provides a high-level interface to interact with the XUI API.
@@ -22,9 +22,9 @@ Access to the client, inbound, and database APIs is provided through this class.
 - `password` _str_ - The XUI password.
   
   Attributes and Properties:
-- `client` _ClientApi_ - The client API.
-- `inbound` _InboundApi_ - The inbound API.
-- `database` _DatabaseApi_ - The database API.
+- `client` _AsyncClientApi_ - The client API.
+- `inbound` _AsyncInboundApi_ - The inbound API.
+- `database` _AsyncDatabaseApi_ - The database API.
 - `session` _str_ - The session cookie for the XUI API.
   
   Public Methods:
@@ -42,19 +42,19 @@ Access to the client, inbound, and database APIs is provided through this class.
     os.environ["XUI_USERNAME"] = "username"
     os.environ["XUI_PASSWORD"] = "password"
 
-    api = py3xui.Api.from_env()
+    api = py3xui.AsyncApi.from_env()
 
     # Alternatively, you can provide the credentials directly.
-    api = py3xui.Api("https://xui.example.com", "username", "password")
+    api = py3xui.AsyncApi("https://xui.example.com", "username", "password")
 
     api.login()
 
     # Some examples of using the API.
-    inbounds: list[py3xui.Inbound] = api.inbound.get_list()
-    client: py3xui.Client = api.client.get_by_email("email")
+    inbounds: list[py3xui.Inbound] = await api.inbound.get_list()
+    client: py3xui.Client = await api.client.get_by_email("email")
     ```
 
-<a id="api.api.Api.session"></a>
+<a id="async_api.async_api.AsyncApi.session"></a>
 
 #### session
 
@@ -69,13 +69,13 @@ The session cookie for the XUI API.
 
 - `str` - The session cookie for the XUI API.
 
-<a id="api.api.Api.from_env"></a>
+<a id="async_api.async_api.AsyncApi.from_env"></a>
 
 #### from\_env
 
 ```python
 @classmethod
-def from_env(cls) -> Api
+def from_env(cls) -> AsyncApi
 ```
 
 Creates an instance of the API from environment variables.
@@ -97,12 +97,12 @@ Following environment variables should be set:
     api = py3xui.Api.from_env()
     ```
 
-<a id="api.api.Api.login"></a>
+<a id="async_api.async_api.AsyncApi.login"></a>
 
 #### login
 
 ```python
-def login() -> None
+async def login() -> None
 ```
 
 Logs into the XUI API and sets the session cookie for the client, inbound, and
@@ -114,34 +114,24 @@ database APIs.
     import py3xui
 
     api = py3xui.Api.from_env()
-    api.login()
+    await api.login()
     ```
 
-<a id="api.api_base"></a>
+<a id="async_api.async_api_base"></a>
 
-# api.api\_base
+# async\_api.async\_api\_base
 
-This module contains the base class for the XUI API.
+This module contains the async base class for the XUI API.
 
-<a id="api.api_base.ApiFields"></a>
+<a id="async_api.async_api_base.AsyncBaseApi"></a>
 
-## ApiFields Objects
-
-```python
-class ApiFields()
-```
-
-Stores the fields returned by the XUI API for parsing.
-
-<a id="api.api_base.BaseApi"></a>
-
-## BaseApi Objects
+## AsyncBaseApi Objects
 
 ```python
-class BaseApi()
+class AsyncBaseApi()
 ```
 
-Base class for the XUI API. Contains common methods for making requests.
+Base class for the XUI API. Contains async common methods for making requests.
 
 **Arguments**:
 
@@ -166,7 +156,7 @@ Base class for the XUI API. Contains common methods for making requests.
 - `_post` - Makes a POST request to the XUI API.
 - `_get` - Makes a GET request to the XUI API.
 
-<a id="api.api_base.BaseApi.host"></a>
+<a id="async_api.async_api_base.AsyncBaseApi.host"></a>
 
 #### host
 
@@ -181,7 +171,7 @@ The host of the XUI API.
 
 - `str` - The host of the XUI API.
 
-<a id="api.api_base.BaseApi.username"></a>
+<a id="async_api.async_api_base.AsyncBaseApi.username"></a>
 
 #### username
 
@@ -196,7 +186,7 @@ The username for the XUI API.
 
 - `str` - The username for the XUI API.
 
-<a id="api.api_base.BaseApi.password"></a>
+<a id="async_api.async_api_base.AsyncBaseApi.password"></a>
 
 #### password
 
@@ -211,7 +201,7 @@ The password for the XUI API.
 
 - `str` - The password for the XUI API.
 
-<a id="api.api_base.BaseApi.max_retries"></a>
+<a id="async_api.async_api_base.AsyncBaseApi.max_retries"></a>
 
 #### max\_retries
 
@@ -226,7 +216,7 @@ The maximum number of retries for a request.
 
 - `int` - The maximum number of retries for a request.
 
-<a id="api.api_base.BaseApi.max_retries"></a>
+<a id="async_api.async_api_base.AsyncBaseApi.max_retries"></a>
 
 #### max\_retries
 
@@ -241,7 +231,7 @@ Sets the maximum number of retries for a request.
 
 - `value` _int_ - The maximum number of retries for a request.
 
-<a id="api.api_base.BaseApi.session"></a>
+<a id="async_api.async_api_base.AsyncBaseApi.session"></a>
 
 #### session
 
@@ -256,7 +246,7 @@ The session cookie for the XUI API.
 
   str | None: The session cookie for the XUI API.
 
-<a id="api.api_base.BaseApi.session"></a>
+<a id="async_api.async_api_base.AsyncBaseApi.session"></a>
 
 #### session
 
@@ -271,12 +261,12 @@ Sets the session cookie for the XUI API.
 
 - `value` _str | None_ - The session cookie for the XUI API.
 
-<a id="api.api_base.BaseApi.login"></a>
+<a id="async_api.async_api_base.AsyncBaseApi.login"></a>
 
 #### login
 
 ```python
-def login() -> None
+async def login() -> None
 ```
 
 Logs into the XUI API and sets the session cookie if successful.
@@ -285,22 +275,22 @@ Logs into the XUI API and sets the session cookie if successful.
 
 - `ValueError` - If the login is unsuccessful.
 
-<a id="api.api_client"></a>
+<a id="async_api.async_api_client"></a>
 
-# api.api\_client
+# async\_api.async\_api\_client
 
 This module contains the ClientApi class which provides methods to interact with the
 clients in the XUI API.
 
-<a id="api.api_client.ClientApi"></a>
+<a id="async_api.async_api_client.AsyncClientApi"></a>
 
-## ClientApi Objects
+## AsyncClientApi Objects
 
 ```python
-class ClientApi(BaseApi)
+class AsyncClientApi(AsyncBaseApi)
 ```
 
-This class provides methods to interact with the clients in the XUI API.
+This class provides async methods to interact with the clients in the XUI API.
 
 Attributes and Properties:
 host (str): The XUI host URL.
@@ -326,7 +316,9 @@ online: Retrieves online clients.
     import uuid
     import py3xui
 
-    api = py3xui.Api.from_env()
+    api = py3xui.AsyncApi.from_env()
+
+    api.login()
 
     client: py3xui.Client = api.client.get_by_email("email")
 
@@ -335,12 +327,12 @@ online: Retrieves online clients.
     api.client.add(inbound_id, [new_client])
     ```
 
-<a id="api.api_client.ClientApi.get_by_email"></a>
+<a id="async_api.async_api_client.AsyncClientApi.get_by_email"></a>
 
 #### get\_by\_email
 
 ```python
-def get_by_email(email: str) -> Client | None
+async def get_by_email(email: str) -> Client | None
 ```
 
 This route is used to retrieve information about a specific client based on their email.
@@ -364,16 +356,17 @@ related to the client.
     ```python
     import py3xui
 
-    api = py3xui.Api.from_env()
-    client: py3xui.Client = api.client.get_by_email("email")
+    api = py3xui.AsyncApi.from_env()
+    api.login()
+    client: py3xui.Client = await api.client.get_by_email("email")
     ```
 
-<a id="api.api_client.ClientApi.get_ips"></a>
+<a id="async_api.async_api_client.AsyncClientApi.get_ips"></a>
 
 #### get\_ips
 
 ```python
-def get_ips(email: str) -> list[str]
+async def get_ips(email: str) -> list[str]
 ```
 
 This route is used to retrieve the IP records associated with a specific client
@@ -396,16 +389,17 @@ identified by their email.
     ```python
     import py3xui
 
-    api = py3xui.Api.from_env()
-    ips = api.client.get_ips("email")
+    api = py3xui.AsyncApi.from_env()
+    api.login()
+    ips = await api.client.get_ips("email")
     ```
 
-<a id="api.api_client.ClientApi.add"></a>
+<a id="async_api.async_api_client.AsyncClientApi.add"></a>
 
 #### add
 
 ```python
-def add(inbound_id: int, clients: list[Client])
+async def add(inbound_id: int, clients: list[Client])
 ```
 
 This route is used to add a new clients to a specific inbound identified by its ID.
@@ -424,19 +418,20 @@ This route is used to add a new clients to a specific inbound identified by its 
     import uuid
     import py3xui
 
-    api = py3xui.Api.from_env()
+    api = py3xui.AsyncApi.from_env()
+    api.login()
 
     new_client = py3xui.Client(id=str(uuid.uuid4()), email="test", enable=True)
     inbound_id = 1
 
     api.client.add(inbound_id, [new_client])
 
-<a id="api.api_client.ClientApi.update"></a>
+<a id="async_api.async_api_client.AsyncClientApi.update"></a>
 
 #### update
 
 ```python
-def update(client_uuid: str, client: Client) -> None
+async def update(client_uuid: str, client: Client) -> None
 ```
 
 This route is used to update an existing client identified by its UUID within a specific
@@ -455,18 +450,19 @@ inbound.
     ```python
     import py3xui
 
-    api = py3xui.Api.from_env()
+    api = py3xui.AsyncApi.from_env()
+    api.login()
     client = api.client.get_by_email("email")
     client.email = "newemail"
     api.client.update(client.id, client)
     ```
 
-<a id="api.api_client.ClientApi.reset_ips"></a>
+<a id="async_api.async_api_client.AsyncClientApi.reset_ips"></a>
 
 #### reset\_ips
 
 ```python
-def reset_ips(email: str) -> None
+async def reset_ips(email: str) -> None
 ```
 
 This route is used to reset or clear the IP records associated with a specific client
@@ -484,17 +480,18 @@ identified by their email address.
     ```python
     import py3xui
 
-    api = py3xui.Api.from_env()
+    api = py3xui.AsyncApi.from_env()
+    api.login()
 
     api.client.reset_ips("email")
     ```
 
-<a id="api.api_client.ClientApi.reset_stats"></a>
+<a id="async_api.async_api_client.AsyncClientApi.reset_stats"></a>
 
 #### reset\_stats
 
 ```python
-def reset_stats(inbound_id: int, email: str) -> None
+async def reset_stats(inbound_id: int, email: str) -> None
 ```
 
 This route is used to reset the traffic statistics for a specific client identified by
@@ -513,18 +510,19 @@ their email address  within a particular inbound identified by its ID.
     ```python
     import py3xui
 
-    api = py3xui.Api.from_env()
+    api = py3xui.AsyncApi.from_env()
+    api.login()
     inbound_id = 1
 
     api.client.reset_stats(inbound_id, "test")
     ```
 
-<a id="api.api_client.ClientApi.delete"></a>
+<a id="async_api.async_api_client.AsyncClientApi.delete"></a>
 
 #### delete
 
 ```python
-def delete(inbound_id: int, client_uuid: str) -> None
+async def delete(inbound_id: int, client_uuid: str) -> None
 ```
 
 This route is used to delete a client identified by its UUID within a specific inbound
@@ -543,19 +541,20 @@ identified by its ID.
     ```python
     import py3xui
 
-    api = py3xui.Api.from_env()
+    api = py3xui.AsyncApi.from_env()
+    api.login()
     client = api.client.get_by_email("email")
     inbound_id = 1
 
     api.client.delete(inbound_id, client.id)
     ```
 
-<a id="api.api_client.ClientApi.delete_depleted"></a>
+<a id="async_api.async_api_client.AsyncClientApi.delete_depleted"></a>
 
 #### delete\_depleted
 
 ```python
-def delete_depleted(inbound_id: int) -> None
+async def delete_depleted(inbound_id: int) -> None
 ```
 
 This route is used to delete all depleted clients associated with a specific inbound
@@ -574,7 +573,8 @@ identified by its ID.
     ```python
     import py3xui
 
-    api = py3xui.Api.from_env()
+    api = py3xui.AsyncApi.from_env()
+    api.login()
 
     inbounds: list[py3xui.Inbound] = api.inbound.get_list()
 
@@ -582,12 +582,12 @@ identified by its ID.
         api.client.delete_depleted(inbound.id)
     ```
 
-<a id="api.api_client.ClientApi.online"></a>
+<a id="async_api.async_api_client.AsyncClientApi.online"></a>
 
 #### online
 
 ```python
-def online() -> list[str]
+async def online() -> list[str]
 ```
 
 Returns a list of email addresses of online clients.
@@ -604,24 +604,25 @@ Returns a list of email addresses of online clients.
     ```python
     import py3xui
 
-    api = py3xui.Api.from_env()
+    api = py3xui.AsyncApi.from_env()
+    api.login()
     res = api.client.online()
     print(res)
     ```
 
-<a id="api.api_database"></a>
+<a id="async_api.async_api_database"></a>
 
-# api.api\_database
+# async\_api.async\_api\_database
 
-This module contains the DatabaseApi class, which is responsible handling database operations
-in the XUI API.
+This module contains the DatabaseApi class which provides methods to interact with the
+database in the XUI API asynchronously.
 
-<a id="api.api_database.DatabaseApi"></a>
+<a id="async_api.async_api_database.AsyncDatabaseApi"></a>
 
-## DatabaseApi Objects
+## AsyncDatabaseApi Objects
 
 ```python
-class DatabaseApi(BaseApi)
+class AsyncDatabaseApi(AsyncBaseApi)
 ```
 
 This class provides methods to interact with the database in the XUI API.
@@ -646,12 +647,12 @@ export: Exports the database.
     api.database.export()
     ```
 
-<a id="api.api_database.DatabaseApi.export"></a>
+<a id="async_api.async_api_database.AsyncDatabaseApi.export"></a>
 
 #### export
 
 ```python
-def export() -> None
+async def export() -> None
 ```
 
 This endpoint triggers the creation of a system backup and initiates the delivery of
@@ -671,18 +672,19 @@ the presence of admin IDs specified in the settings before sending the backup.
     api.database.export()
     ```
 
-<a id="api.api_inbound"></a>
+<a id="async_api.async_api_inbound"></a>
 
-# api.api\_inbound
+# async\_api.async\_api\_inbound
 
-This module contains the InboundApi class for handling inbounds in the XUI API.
+This module contains the InboundApi class which provides methods to interact with the
+clients in the XUI API asynchronously.
 
-<a id="api.api_inbound.InboundApi"></a>
+<a id="async_api.async_api_inbound.AsyncInboundApi"></a>
 
-## InboundApi Objects
+## AsyncInboundApi Objects
 
 ```python
-class InboundApi(BaseApi)
+class AsyncInboundApi(AsyncBaseApi)
 ```
 
 This class provides methods to interact with the inbounds in the XUI API.
@@ -707,18 +709,18 @@ reset_client_stats: Resets the statistics of a specific inbound.
     ```python
     import py3xui
 
-    api = py3xui.Api.from_env()
-    api.login()
+    api = py3xui.AsyncApi.from_env()
+    await api.login()
 
-    inbounds: list[py3xui.Inbound] = api.inbound.get_list()
+    inbounds: list[py3xui.Inbound] = await api.inbound.get_list()
     ```
 
-<a id="api.api_inbound.InboundApi.get_list"></a>
+<a id="async_api.async_api_inbound.AsyncInboundApi.get_list"></a>
 
 #### get\_list
 
 ```python
-def get_list() -> list[Inbound]
+async def get_list() -> list[Inbound]
 ```
 
 This route is used to retrieve a comprehensive list of all inbounds along with
@@ -741,12 +743,12 @@ their associated client options and statistics.
     inbounds: list[py3xui.Inbound] = api.inbound.get_list()
     ```
 
-<a id="api.api_inbound.InboundApi.add"></a>
+<a id="async_api.async_api_inbound.AsyncInboundApi.add"></a>
 
 #### add
 
 ```python
-def add(inbound: Inbound) -> None
+async def add(inbound: Inbound) -> None
 ```
 
 This route is used to add a new inbound configuration.
@@ -785,12 +787,12 @@ This route is used to add a new inbound configuration.
     )
     ```
 
-<a id="api.api_inbound.InboundApi.delete"></a>
+<a id="async_api.async_api_inbound.AsyncInboundApi.delete"></a>
 
 #### delete
 
 ```python
-def delete(inbound_id: int) -> None
+async def delete(inbound_id: int) -> None
 ```
 
 This route is used to delete an inbound identified by its ID.
@@ -815,12 +817,12 @@ This route is used to delete an inbound identified by its ID.
         api.inbound.delete(inbound.id)
     ```
 
-<a id="api.api_inbound.InboundApi.update"></a>
+<a id="async_api.async_api_inbound.AsyncInboundApi.update"></a>
 
 #### update
 
 ```python
-def update(inbound_id: int, inbound: Inbound) -> None
+async def update(inbound_id: int, inbound: Inbound) -> None
 ```
 
 This route is used to update an existing inbound identified by its ID.
@@ -847,12 +849,12 @@ This route is used to update an existing inbound identified by its ID.
     api.inbound.update(inbound.id, inbound)
     ```
 
-<a id="api.api_inbound.InboundApi.reset_stats"></a>
+<a id="async_api.async_api_inbound.AsyncInboundApi.reset_stats"></a>
 
 #### reset\_stats
 
 ```python
-def reset_stats() -> None
+async def reset_stats() -> None
 ```
 
 This route is used to reset the traffic statistics for all inbounds within the system.
@@ -868,12 +870,12 @@ This route is used to reset the traffic statistics for all inbounds within the s
     api.inbound.reset_stats()
     ```
 
-<a id="api.api_inbound.InboundApi.reset_client_stats"></a>
+<a id="async_api.async_api_inbound.AsyncInboundApi.reset_client_stats"></a>
 
 #### reset\_client\_stats
 
 ```python
-def reset_client_stats(inbound_id: int) -> None
+async def reset_client_stats(inbound_id: int) -> None
 ```
 
 This route is used to reset the traffic statistics for all clients associated with a
