@@ -1,3 +1,7 @@
+"""This module contains the async base class for the XUI API."""
+
+# pylint: disable=R0801
+
 import asyncio
 from typing import Any
 
@@ -128,6 +132,7 @@ class AsyncBaseApi:
             httpx.Response: The response from the XUI API.
 
         Raises:
+            ValueError: If the invalid method is provided.
             httpx.RequestError: If the request fails.
             httpx.HTTPStatusError: If the maximum number of retries is exceeded."""
         logger.debug("%s request to %s...", method, url)
@@ -140,6 +145,8 @@ class AsyncBaseApi:
                         response = await client.get(url, headers=headers, **kwargs)
                     elif method == ApiFields.POST:
                         response = await client.post(url, headers=headers, **kwargs)
+                    else:
+                        raise ValueError(f"Invalid method: {method}")
                 response.raise_for_status()
                 if skip_check:
                     return response

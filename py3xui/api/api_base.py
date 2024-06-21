@@ -1,5 +1,7 @@
 """This module contains the base class for the XUI API."""
 
+# pylint: disable=R0801
+
 from time import sleep
 from typing import Any, Callable
 
