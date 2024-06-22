@@ -80,6 +80,7 @@ class InboundApi(BaseApi):
         Examples:
             ```python
             import py3xui
+            from py3xui.inbound import Inbound, Settings, Sniffing, StreamSettings
 
             api = py3xui.Api.from_env()
             api.login()
