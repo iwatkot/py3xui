@@ -12,7 +12,9 @@ Sync and Async Object-oriented Python SDK for the 3x-ui API.
 
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/iwatkot/py3xui)
 ![GitHub issues](https://img.shields.io/github/issues/iwatkot/py3xui)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/py3xui)<br>
+[![Build Status](https://github.com/iwatkot/py3xui/actions/workflows/checks.yml/badge.svg)](https://github.com/iwatkot/py3xui/actions)
+[![Checked with mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)<br>
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/py3xui)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/pyx3ui)
 [![Maintainability](https://api.codeclimate.com/v1/badges/c03ca2bca0191cb4a2ae/maintainability)](https://codeclimate.com/github/iwatkot/py3xui/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/c03ca2bca0191cb4a2ae/test_coverage)](https://codeclimate.com/github/iwatkot/py3xui/test_coverage)

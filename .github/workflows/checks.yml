@@ -1,4 +1,4 @@
-name: Run mypy, pylint, pytest and upload coverage to Code Climate
+name: Tests
 
 on:
   push:
