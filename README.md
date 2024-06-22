@@ -22,7 +22,7 @@ Sync and Async Object-oriented Python SDK for the 3x-ui API.
 </div>
 
 ## Overview
-This SDK is designed to interact with the 3x-ui app in a more object-oriented way. It provides both synchronous and asynchronous methods to interact with the app. The SDK is designed to be as simple as possible to use, while still providing a lot of flexibility and uses `Pydantic` models to validate the data.<br>
+This SDK is designed to interact with the [3x-ui](https://github.com/MHSanaei/3x-ui) app in a more object-oriented way. It provides both synchronous and asynchronous methods to interact with the app. The SDK is designed to be as simple as possible to use, while still providing a lot of flexibility and uses `Pydantic` models to validate the data.<br>
 Used dependencies:
 - `requests` for synchronous API
 - `httpx` for asynchronous API
