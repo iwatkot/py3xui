@@ -7,7 +7,8 @@ Sync and Async Object-oriented Python SDK for the 3x-ui API.
     <a href="#Overview">Overview</a> • 
     <a href="#Quick-Start">Quick Start</a> • 
     <a href="#Examples">Examples</a> •
-    <a href="#Bugs-and-Feature-Requests">Bugs and Feature Requests</a>
+    <a href="#Bugs-and-Feature-Requests">Bugs and Feature Requests</a> •
+    <a href="https://pypi.org/project/py3xui/">PyPI</a>
 </p>
 
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/iwatkot/py3xui)
