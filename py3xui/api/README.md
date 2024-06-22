@@ -95,6 +95,7 @@ Following environment variables should be set:
     import py3xui
 
     api = py3xui.Api.from_env()
+    api.login()
     ```
 
 <a id="api.api.Api.login"></a>
@@ -327,6 +328,7 @@ online: Retrieves online clients.
     import py3xui
 
     api = py3xui.Api.from_env()
+    api.login()
 
     client: py3xui.Client = api.client.get_by_email("email")
 
@@ -365,6 +367,7 @@ related to the client.
     import py3xui
 
     api = py3xui.Api.from_env()
+    api.login()
     client: py3xui.Client = api.client.get_by_email("email")
     ```
 
@@ -397,6 +400,7 @@ identified by their email.
     import py3xui
 
     api = py3xui.Api.from_env()
+    api.login()
     ips = api.client.get_ips("email")
     ```
 
@@ -425,7 +429,7 @@ This route is used to add a new clients to a specific inbound identified by its 
     import py3xui
 
     api = py3xui.Api.from_env()
-
+    api.login()
     new_client = py3xui.Client(id=str(uuid.uuid4()), email="test", enable=True)
     inbound_id = 1
 
@@ -456,6 +460,7 @@ inbound.
     import py3xui
 
     api = py3xui.Api.from_env()
+    api.login()
     client = api.client.get_by_email("email")
     client.email = "newemail"
     api.client.update(client.id, client)
@@ -485,7 +490,7 @@ identified by their email address.
     import py3xui
 
     api = py3xui.Api.from_env()
-
+    api.login()
     api.client.reset_ips("email")
     ```
 
@@ -514,6 +519,7 @@ their email address  within a particular inbound identified by its ID.
     import py3xui
 
     api = py3xui.Api.from_env()
+    api.login()
     inbound_id = 1
 
     api.client.reset_stats(inbound_id, "test")
@@ -544,6 +550,7 @@ identified by its ID.
     import py3xui
 
     api = py3xui.Api.from_env()
+    api.login()
     client = api.client.get_by_email("email")
     inbound_id = 1
 
@@ -575,7 +582,7 @@ identified by its ID.
     import py3xui
 
     api = py3xui.Api.from_env()
-
+    api.login()
     inbounds: list[py3xui.Inbound] = api.inbound.get_list()
 
     for inbound in inbounds:
@@ -605,6 +612,7 @@ Returns a list of email addresses of online clients.
     import py3xui
 
     api = py3xui.Api.from_env()
+    api.login()
     res = api.client.online()
     print(res)
     ```
@@ -642,7 +650,7 @@ export: Exports the database.
     import py3xui
 
     api = py3xui.Api.from_env()
-
+    api.login()
     api.database.export()
     ```
 
@@ -667,7 +675,7 @@ the presence of admin IDs specified in the settings before sending the backup.
     import py3xui
 
     api = py3xui.Api.from_env()
-
+    api.login()
     api.database.export()
     ```
 
@@ -737,6 +745,7 @@ their associated client options and statistics.
     import py3xui
 
     api = py3xui.Api.from_env()
+    api.login()
 
     inbounds: list[py3xui.Inbound] = api.inbound.get_list()
     ```
@@ -762,8 +771,10 @@ This route is used to add a new inbound configuration.
 
     ```python
     import py3xui
+    from py3xui.inbound import Inbound, Settings, Sniffing, StreamSettings
 
     api = py3xui.Api.from_env()
+    api.login()
 
     settings = Settings()
     sniffing = Sniffing(enabled=True)
@@ -783,6 +794,8 @@ This route is used to add a new inbound configuration.
         sniffing=sniffing,
         remark="test3",
     )
+
+    api.inbound.add(inbound)
     ```
 
 <a id="api.api_inbound.InboundApi.delete"></a>
@@ -809,6 +822,7 @@ This route is used to delete an inbound identified by its ID.
     import py3xui
 
     api = py3xui.Api.from_env()
+    api.login()
     inbounds: list[py3xui.Inbound] = api.inbound.get_list()
 
     for inbound in inbounds:
@@ -839,6 +853,7 @@ This route is used to update an existing inbound identified by its ID.
     import py3xui
 
     api = py3xui.Api.from_env()
+    api.login()
     inbounds: list[py3xui.Inbound] = api.inbound.get_list()
     inbound = inbounds[0]
 
@@ -865,6 +880,7 @@ This route is used to reset the traffic statistics for all inbounds within the s
     import py3xui
 
     api = py3xui.Api.from_env()
+    api.login()
     api.inbound.reset_stats()
     ```
 
@@ -892,6 +908,7 @@ specific inbound identified by its ID.
     import py3xui
 
     api = py3xui.Api.from_env()
+    api.login()
     inbounds: list[py3xui.Inbound] = api.inbound.get_list()
     inbound = inbounds[0]
 

@@ -47,7 +47,7 @@ Access to the client, inbound, and database APIs is provided through this class.
     # Alternatively, you can provide the credentials directly.
     api = py3xui.AsyncApi("https://xui.example.com", "username", "password")
 
-    api.login()
+    await api.login()
 
     # Some examples of using the API.
     inbounds: list[py3xui.Inbound] = await api.inbound.get_list()
@@ -94,7 +94,8 @@ Following environment variables should be set:
     ```python
     import py3xui
 
-    api = py3xui.Api.from_env()
+    api = py3xui.AsyncApi.from_env()
+    await api.login()
     ```
 
 <a id="async_api.async_api.AsyncApi.login"></a>
@@ -113,7 +114,7 @@ database APIs.
     ```python
     import py3xui
 
-    api = py3xui.Api.from_env()
+    api = py3xui.AsyncApi.from_env()
     await api.login()
     ```
 
@@ -318,7 +319,7 @@ online: Retrieves online clients.
 
     api = py3xui.AsyncApi.from_env()
 
-    api.login()
+    await api.login()
 
     client: py3xui.Client = api.client.get_by_email("email")
 
@@ -357,7 +358,7 @@ related to the client.
     import py3xui
 
     api = py3xui.AsyncApi.from_env()
-    api.login()
+    await api.login()
     client: py3xui.Client = await api.client.get_by_email("email")
     ```
 
@@ -390,7 +391,7 @@ identified by their email.
     import py3xui
 
     api = py3xui.AsyncApi.from_env()
-    api.login()
+    await api.login()
     ips = await api.client.get_ips("email")
     ```
 
@@ -419,12 +420,12 @@ This route is used to add a new clients to a specific inbound identified by its 
     import py3xui
 
     api = py3xui.AsyncApi.from_env()
-    api.login()
+    await api.login()
 
     new_client = py3xui.Client(id=str(uuid.uuid4()), email="test", enable=True)
     inbound_id = 1
 
-    api.client.add(inbound_id, [new_client])
+    await api.client.add(inbound_id, [new_client])
 
 <a id="async_api.async_api_client.AsyncClientApi.update"></a>
 
@@ -451,10 +452,10 @@ inbound.
     import py3xui
 
     api = py3xui.AsyncApi.from_env()
-    api.login()
-    client = api.client.get_by_email("email")
+    await api.login()
+    client = await api.client.get_by_email("email")
     client.email = "newemail"
-    api.client.update(client.id, client)
+    await api.client.update(client.id, client)
     ```
 
 <a id="async_api.async_api_client.AsyncClientApi.reset_ips"></a>
@@ -481,9 +482,9 @@ identified by their email address.
     import py3xui
 
     api = py3xui.AsyncApi.from_env()
-    api.login()
+    await api.login()
 
-    api.client.reset_ips("email")
+    await api.client.reset_ips("email")
     ```
 
 <a id="async_api.async_api_client.AsyncClientApi.reset_stats"></a>
@@ -511,10 +512,10 @@ their email address  within a particular inbound identified by its ID.
     import py3xui
 
     api = py3xui.AsyncApi.from_env()
-    api.login()
+    await api.login()
     inbound_id = 1
 
-    api.client.reset_stats(inbound_id, "test")
+    await api.client.reset_stats(inbound_id, "test")
     ```
 
 <a id="async_api.async_api_client.AsyncClientApi.delete"></a>
@@ -542,11 +543,11 @@ identified by its ID.
     import py3xui
 
     api = py3xui.AsyncApi.from_env()
-    api.login()
+    await api.login()
     client = api.client.get_by_email("email")
     inbound_id = 1
 
-    api.client.delete(inbound_id, client.id)
+    await api.client.delete(inbound_id, client.id)
     ```
 
 <a id="async_api.async_api_client.AsyncClientApi.delete_depleted"></a>
@@ -574,12 +575,12 @@ identified by its ID.
     import py3xui
 
     api = py3xui.AsyncApi.from_env()
-    api.login()
+    await api.login()
 
     inbounds: list[py3xui.Inbound] = api.inbound.get_list()
 
     for inbound in inbounds:
-        api.client.delete_depleted(inbound.id)
+        await api.client.delete_depleted(inbound.id)
     ```
 
 <a id="async_api.async_api_client.AsyncClientApi.online"></a>
@@ -605,8 +606,8 @@ Returns a list of email addresses of online clients.
     import py3xui
 
     api = py3xui.AsyncApi.from_env()
-    api.login()
-    res = api.client.online()
+    await api.login()
+    res = await api.client.online()
     print(res)
     ```
 
@@ -642,9 +643,9 @@ export: Exports the database.
     ```python
     import py3xui
 
-    api = py3xui.Api.from_env()
-
-    api.database.export()
+    api = py3xui.AsyncApi.from_env()
+    await api.login()
+    await api.database.export()
     ```
 
 <a id="async_api.async_api_database.AsyncDatabaseApi.export"></a>
@@ -667,9 +668,9 @@ the presence of admin IDs specified in the settings before sending the backup.
     ```python
     import py3xui
 
-    api = py3xui.Api.from_env()
-
-    api.database.export()
+    api = py3xui.AsyncApi.from_env()
+    await api.login()
+    await api.database.export()
     ```
 
 <a id="async_api.async_api_inbound"></a>
@@ -738,9 +739,9 @@ their associated client options and statistics.
     ```python
     import py3xui
 
-    api = py3xui.Api.from_env()
-
-    inbounds: list[py3xui.Inbound] = api.inbound.get_list()
+    api = py3xui.AsyncApi.from_env()
+    await api.login()
+    inbounds: list[py3xui.Inbound] = await api.inbound.get_list()
     ```
 
 <a id="async_api.async_api_inbound.AsyncInboundApi.add"></a>
@@ -765,7 +766,8 @@ This route is used to add a new inbound configuration.
     ```python
     import py3xui
 
-    api = py3xui.Api.from_env()
+    api = py3xui.AsyncApi.from_env()
+    await api.login()
 
     settings = Settings()
     sniffing = Sniffing(enabled=True)
@@ -785,6 +787,7 @@ This route is used to add a new inbound configuration.
         sniffing=sniffing,
         remark="test3",
     )
+    await api.inbound.add(inbound)
     ```
 
 <a id="async_api.async_api_inbound.AsyncInboundApi.delete"></a>
@@ -810,8 +813,9 @@ This route is used to delete an inbound identified by its ID.
     ```python
     import py3xui
 
-    api = py3xui.Api.from_env()
-    inbounds: list[py3xui.Inbound] = api.inbound.get_list()
+    api = py3xui.AsyncApi.from_env()
+    await api.login()
+    inbounds: list[py3xui.Inbound] = await api.inbound.get_list()
 
     for inbound in inbounds:
         api.inbound.delete(inbound.id)
@@ -840,8 +844,9 @@ This route is used to update an existing inbound identified by its ID.
     ```python
     import py3xui
 
-    api = py3xui.Api.from_env()
-    inbounds: list[py3xui.Inbound] = api.inbound.get_list()
+    api = py3xui.AsyncApi.from_env()
+    await api.login()
+    inbounds: list[py3xui.Inbound] = await api.inbound.get_list()
     inbound = inbounds[0]
 
     inbound.remark = "updated"
@@ -866,8 +871,9 @@ This route is used to reset the traffic statistics for all inbounds within the s
     ```python
     import py3xui
 
-    api = py3xui.Api.from_env()
-    api.inbound.reset_stats()
+    api = py3xui.AsyncApi.from_env()
+    await api.login()
+    await api.inbound.reset_stats()
     ```
 
 <a id="async_api.async_api_inbound.AsyncInboundApi.reset_client_stats"></a>
@@ -893,10 +899,11 @@ specific inbound identified by its ID.
     ```python
     import py3xui
 
-    api = py3xui.Api.from_env()
-    inbounds: list[py3xui.Inbound] = api.inbound.get_list()
+    api = py3xui.AsyncApi.from_env()
+    await api.login()
+    inbounds: list[py3xui.Inbound] = await api.inbound.get_list()
     inbound = inbounds[0]
 
-    api.inbound.reset_client_stats(inbound.id)
+    await api.inbound.reset_client_stats(inbound.id)
     ```
 
