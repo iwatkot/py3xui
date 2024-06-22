@@ -1,5 +1,5 @@
 <div align="center" markdown>
-<img src="https://github.com/iwatkot/py3xui/assets/118521851/d5aef3cc-13e3-4af4-8888-c3a91db45488">
+<img src="https://github.com/iwatkot/py3xui/assets/118521851/42c5d579-6202-4a9e-88f3-2d844fdd95b6">
 
 Sync and Async Object-oriented Python SDK for the 3x-ui API.
 
