@@ -2,9 +2,6 @@
 database in the XUI API asynchronously."""
 
 from py3xui.async_api.async_api_base import AsyncBaseApi
-from py3xui.utils import Logger
-
-logger = Logger(__name__)
 
 
 class AsyncDatabaseApi(AsyncBaseApi):
@@ -51,7 +48,7 @@ class AsyncDatabaseApi(AsyncBaseApi):
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
-        logger.info("Exporting database...")
+        self.logger.info("Exporting database...")
 
         await self._get(url, headers, skip_check=True)
-        logger.info("Database exported successfully.")
+        self.logger.info("Database exported successfully.")

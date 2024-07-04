@@ -1,13 +1,12 @@
 """This module provides classes to interact with the XUI API."""
 
 # pylint: disable=R0801
-
 from __future__ import annotations
+
+from typing import Any
 
 from py3xui.api import ClientApi, DatabaseApi, InboundApi
 from py3xui.utils import Logger, env
-
-logger = Logger(__name__)
 
 
 class Api:
@@ -18,6 +17,7 @@ class Api:
         host (str): The XUI host URL.
         username (str): The XUI username.
         password (str): The XUI password.
+        logger (Any | None): The logger, if not set, a dummy logger is used.
 
     Attributes and Properties:
         client (ClientApi): The client API.
@@ -51,10 +51,11 @@ class Api:
         ```
     """
 
-    def __init__(self, host: str, username: str, password: str):
-        self.client = ClientApi(host, username, password)
-        self.inbound = InboundApi(host, username, password)
-        self.database = DatabaseApi(host, username, password)
+    def __init__(self, host: str, username: str, password: str, logger: Any | None = None):
+        self.logger = logger or Logger(__name__)
+        self.client = ClientApi(host, username, password, logger)
+        self.inbound = InboundApi(host, username, password, logger)
+        self.database = DatabaseApi(host, username, password, logger)
         self._session: str | None = None
 
     @property
@@ -113,4 +114,4 @@ class Api:
         self._session = self.client.session
         self.inbound.session = self._session
         self.database.session = self._session
-        logger.info("Logged in successfully.")
+        self.logger.info("Logged in successfully.")

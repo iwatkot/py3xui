@@ -6,9 +6,6 @@ from typing import Any
 from py3xui.api.api_base import ApiFields
 from py3xui.async_api.async_api_base import AsyncBaseApi
 from py3xui.inbound import Inbound
-from py3xui.utils import Logger
-
-logger = Logger(__name__)
 
 
 class AsyncInboundApi(AsyncBaseApi):
@@ -62,7 +59,7 @@ class AsyncInboundApi(AsyncBaseApi):
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
-        logger.info("Getting inbounds...")
+        self.logger.info("Getting inbounds...")
 
         response = await self._get(url, headers)
 
@@ -111,10 +108,10 @@ class AsyncInboundApi(AsyncBaseApi):
 
         url = self._url(endpoint)
         data = inbound.to_json()
-        logger.info("Adding inbound: %s", inbound)
+        self.logger.info("Adding inbound: %s", inbound)
 
         await self._post(url, headers, data)
-        logger.info("Inbound added successfully.")
+        self.logger.info("Inbound added successfully.")
 
     async def delete(self, inbound_id: int) -> None:
         """This route is used to delete an inbound identified by its ID.
@@ -143,9 +140,9 @@ class AsyncInboundApi(AsyncBaseApi):
         url = self._url(endpoint)
         data: dict[str, Any] = {}
 
-        logger.info("Deleting inbound with ID: %s", inbound_id)
+        self.logger.info("Deleting inbound with ID: %s", inbound_id)
         await self._post(url, headers, data)
-        logger.info("Inbound deleted successfully.")
+        self.logger.info("Inbound deleted successfully.")
 
     async def update(self, inbound_id: int, inbound: Inbound) -> None:
         """This route is used to update an existing inbound identified by its ID.
@@ -175,10 +172,10 @@ class AsyncInboundApi(AsyncBaseApi):
 
         url = self._url(endpoint)
         data = inbound.to_json()
-        logger.info("Updating inbound: %s", inbound)
+        self.logger.info("Updating inbound: %s", inbound)
 
         await self._post(url, headers, data)
-        logger.info("Inbound updated successfully.")
+        self.logger.info("Inbound updated successfully.")
 
     async def reset_stats(self) -> None:
         """This route is used to reset the traffic statistics for all inbounds within the system.
@@ -199,10 +196,10 @@ class AsyncInboundApi(AsyncBaseApi):
 
         url = self._url(endpoint)
         data: dict[str, Any] = {}
-        logger.info("Resetting inbounds stats...")
+        self.logger.info("Resetting inbounds stats...")
 
         await self._post(url, headers, data)
-        logger.info("Inbounds stats reset successfully.")
+        self.logger.info("Inbounds stats reset successfully.")
 
     async def reset_client_stats(self, inbound_id: int) -> None:
         """This route is used to reset the traffic statistics for all clients associated with a
@@ -230,7 +227,7 @@ class AsyncInboundApi(AsyncBaseApi):
 
         url = self._url(endpoint)
         data: dict[str, Any] = {}
-        logger.info("Resetting inbound client stats for ID: %s", inbound_id)
+        self.logger.info("Resetting inbound client stats for ID: %s", inbound_id)
 
         await self._post(url, headers, data)
-        logger.info("Inbound client stats reset successfully.")
+        self.logger.info("Inbound client stats reset successfully.")

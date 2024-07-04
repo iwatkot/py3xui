@@ -1,31 +1,20 @@
-"""Logging module for the application."""
+"""This module contains dummy logging class if the logger was not set in API."""
 
-import logging
-import os
-import sys
-
-# region constants
-LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
-LOG_FORMATTER = "%(name)s | %(asctime)s | %(levelname)s | %(message)s"
-# endregion
+# pylint: disable=C0115, C0116
 
 
-class Logger(logging.Logger):
-    """Handles logging to the file and stdout with timestamps.
+class Logger:
+    def __init__(self, name: str):
+        pass
 
-    Arguments:
-        name (str): Logger name.
-        level (str): Log level.
-        log_dir (str): Log directory.
-    """
+    def debug(self, *args, **kwargs) -> None:
+        pass
 
-    def __init__(
-        self,
-        name: str,
-    ):
-        super().__init__(name)
-        self.setLevel(LOG_LEVEL)
-        self.stdout_handler = logging.StreamHandler(sys.stdout)
-        self.fmt = LOG_FORMATTER
-        self.stdout_handler.setFormatter(logging.Formatter(LOG_FORMATTER))
-        self.addHandler(self.stdout_handler)
+    def info(self, *args, **kwargs) -> None:
+        pass
+
+    def warning(self, *args, **kwargs) -> None:
+        pass
+
+    def error(self, *args, **kwargs) -> None:
+        pass
