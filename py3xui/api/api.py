@@ -75,12 +75,15 @@ class Api:
         self.database.session = value
 
     @classmethod
-    def from_env(cls) -> Api:
+    def from_env(cls, logger: Any | None = None) -> Api:
         """Creates an instance of the API from environment variables.
         Following environment variables should be set:
         - XUI_HOST: The XUI host URL.
         - XUI_USERNAME: The XUI username.
         - XUI_PASSWORD: The XUI password.
+        
+        Arguments:
+            logger (Any | None): The logger, if not set, a dummy logger is used.
 
         Returns:
             Api: The API instance.
@@ -96,7 +99,7 @@ class Api:
         host = env.xui_host()
         username = env.xui_username()
         password = env.xui_password()
-        return cls(host, username, password)
+        return cls(host, username, password, logger)
 
     def login(self) -> None:
         """Logs into the XUI API and sets the session cookie for the client, inbound, and

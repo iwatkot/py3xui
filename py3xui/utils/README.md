@@ -94,21 +94,5 @@ Get the XUI password from the environment using the following keys:
 
 # utils.logger
 
-Logging module for the application.
-
-<a id="utils.logger.Logger"></a>
-
-## Logger Objects
-
-```python
-class Logger(logging.Logger)
-```
-
-Handles logging to the file and stdout with timestamps.
-
-**Arguments**:
-
-- `name` _str_ - Logger name.
-- `level` _str_ - Log level.
-- `log_dir` _str_ - Log directory.
+This module contains dummy logging class if the logger was not set in API.
 
