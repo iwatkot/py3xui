@@ -10,8 +10,6 @@ import httpx
 from py3xui.api.api_base import ApiFields
 from py3xui.utils import Logger
 
-logger = Logger(__name__)
-
 
 class AsyncBaseApi:
     """Base class for the XUI API. Contains async common methods for making requests.
@@ -20,6 +18,7 @@ class AsyncBaseApi:
         host (str): The host of the XUI API.
         username (str): The username for the XUI API.
         password (str): The password for the XUI API.
+        logger (Any | None): The logger, if not set, a dummy logger is used.
 
     Attributes and Properties:
         host (str): The host of the XUI API.
@@ -40,12 +39,13 @@ class AsyncBaseApi:
 
     """
 
-    def __init__(self, host: str, username: str, password: str):
+    def __init__(self, host: str, username: str, password: str, logger: Any | None = None):
         self._host = host.rstrip("/")
         self._username = username
         self._password = password
         self._max_retries: int = 3
         self._session: str | None = None
+        self.logger = logger or Logger(__name__)
 
     @property
     def host(self) -> str:
@@ -135,7 +135,7 @@ class AsyncBaseApi:
             ValueError: If the invalid method is provided.
             httpx.RequestError: If the request fails.
             httpx.HTTPStatusError: If the maximum number of retries is exceeded."""
-        logger.debug("%s request to %s...", method, url)
+        self.logger.debug("%s request to %s...", method, url)
         for retry in range(1, self.max_retries + 1):
             try:
                 skip_check = kwargs.pop("skip_check", False)
@@ -155,7 +155,7 @@ class AsyncBaseApi:
             except (httpx.RequestError, httpx.TimeoutException) as e:
                 if retry == self.max_retries:
                     raise e
-                logger.warning(
+                self.logger.warning(
                     "Request to %s failed: %s, retry %s of %s", url, e, retry, self.max_retries
                 )
                 await asyncio.sleep(1 * (retry + 1))
@@ -173,13 +173,13 @@ class AsyncBaseApi:
 
         url = self._url(endpoint)
         data = {"username": self.username, "password": self.password}
-        logger.info("Logging in with username: %s", self.username)
+        self.logger.info("Logging in with username: %s", self.username)
 
         response = await self._post(url, headers, data, is_login=True)
         cookie: str | None = response.cookies.get("session")
         if not cookie:
             raise ValueError("No session cookie found, something wrong with the login...")
-        logger.info("Session cookie successfully retrieved for username: %s", self.username)
+        self.logger.info("Session cookie successfully retrieved for username: %s", self.username)
         self.session = cookie
 
     async def _check_response(self, response: httpx.Response) -> None:

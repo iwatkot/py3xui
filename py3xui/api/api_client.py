@@ -6,9 +6,6 @@ from typing import Any
 
 from py3xui.api.api_base import ApiFields, BaseApi
 from py3xui.client import Client
-from py3xui.utils import Logger
-
-logger = Logger(__name__)
 
 
 class ClientApi(BaseApi):
@@ -75,13 +72,13 @@ class ClientApi(BaseApi):
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
-        logger.info("Getting client stats for email: %s", email)
+        self.logger.info("Getting client stats for email: %s", email)
 
         response = self._get(url, headers)
 
         client_json = response.json().get(ApiFields.OBJ)
         if not client_json:
-            logger.warning("No client found for email: %s", email)
+            self.logger.warning("No client found for email: %s", email)
             return None
         return Client.model_validate(client_json)
 
@@ -110,7 +107,7 @@ class ClientApi(BaseApi):
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
-        logger.info("Getting client IPs for email: %s", email)
+        self.logger.info("Getting client IPs for email: %s", email)
 
         response = self._post(url, headers, {})
 
@@ -148,10 +145,10 @@ class ClientApi(BaseApi):
             ]
         }
         data = {"id": inbound_id, "settings": json.dumps(settings)}
-        logger.info("Adding %s clients to inbound with ID: %s", len(clients), inbound_id)
+        self.logger.info("Adding %s clients to inbound with ID: %s", len(clients), inbound_id)
 
         self._post(url, headers, data)
-        logger.info("Client added successfully.")
+        self.logger.info("Client added successfully.")
 
     def update(self, client_uuid: str, client: Client) -> None:
         """This route is used to update an existing client identified by its UUID within a specific
@@ -181,9 +178,9 @@ class ClientApi(BaseApi):
         settings = {"clients": [client.model_dump(by_alias=True, exclude_defaults=True)]}
         data = {"id": client.inbound_id, "settings": json.dumps(settings)}
 
-        logger.info("Updating client: %s", client)
+        self.logger.info("Updating client: %s", client)
         self._post(url, headers, data)
-        logger.info("Client updated successfully.")
+        self.logger.info("Client updated successfully.")
 
     def reset_ips(self, email: str) -> None:
         """This route is used to reset or clear the IP records associated with a specific client
@@ -208,10 +205,10 @@ class ClientApi(BaseApi):
 
         url = self._url(endpoint)
         data: dict[str, Any] = {}
-        logger.info("Resetting client IPs for email: %s", email)
+        self.logger.info("Resetting client IPs for email: %s", email)
 
         self._post(url, headers, data)
-        logger.info("Client IPs reset successfully.")
+        self.logger.info("Client IPs reset successfully.")
 
     def reset_stats(self, inbound_id: int, email: str) -> None:
         """This route is used to reset the traffic statistics for a specific client identified by
@@ -239,10 +236,10 @@ class ClientApi(BaseApi):
 
         url = self._url(endpoint)
         data: dict[str, Any] = {}
-        logger.info("Resetting client stats for inbound ID: %s, email: %s", inbound_id, email)
+        self.logger.info("Resetting client stats for inbound ID: %s, email: %s", inbound_id, email)
 
         self._post(url, headers, data)
-        logger.info("Client stats reset successfully.")
+        self.logger.info("Client stats reset successfully.")
 
     def delete(self, inbound_id: int, client_uuid: str) -> None:
         """This route is used to delete a client identified by its UUID within a specific inbound
@@ -271,10 +268,10 @@ class ClientApi(BaseApi):
 
         url = self._url(endpoint)
         data: dict[str, Any] = {}
-        logger.info("Deleting client with ID: %s", client_uuid)
+        self.logger.info("Deleting client with ID: %s", client_uuid)
 
         self._post(url, headers, data)
-        logger.info("Client deleted successfully.")
+        self.logger.info("Client deleted successfully.")
 
     def delete_depleted(self, inbound_id: int) -> None:
         """This route is used to delete all depleted clients associated with a specific inbound
@@ -303,10 +300,10 @@ class ClientApi(BaseApi):
 
         url = self._url(endpoint)
         data: dict[str, Any] = {}
-        logger.info("Deleting depleted clients for inbound ID: %s", inbound_id)
+        self.logger.info("Deleting depleted clients for inbound ID: %s", inbound_id)
 
         self._post(url, headers, data)
-        logger.info("Depleted clients deleted successfully.")
+        self.logger.info("Depleted clients deleted successfully.")
 
     def online(self) -> list[str]:
         """Returns a list of email addresses of online clients.
@@ -332,7 +329,7 @@ class ClientApi(BaseApi):
 
         url = self._url(endpoint)
         data: dict[str, Any] = {}
-        logger.info("Getting online clients")
+        self.logger.info("Getting online clients")
 
         response = self._post(url, headers, data)
         online = response.json().get(ApiFields.OBJ)
