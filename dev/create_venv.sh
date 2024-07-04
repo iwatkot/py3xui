@@ -22,7 +22,7 @@ $python_executable -m venv .venv && \
 source .venv/bin/activate && \
 
 # Installing requirements from requirements.txt.
-echo "Installing dev_requirements..." && \
-pip3 install -r dev_requirements.txt && \
+echo "Installing dev/requirements..." && \
+pip3 install -r dev/requirements.txt && \
 echo "Dev Requirements have been successfully installed, VENV ready." && \
 deactivate

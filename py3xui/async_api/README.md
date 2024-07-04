@@ -20,6 +20,7 @@ Access to the client, inbound, and database APIs is provided through this class.
 - `host` _str_ - The XUI host URL.
 - `username` _str_ - The XUI username.
 - `password` _str_ - The XUI password.
+- `logger` _Any | None_ - The logger, if not set, a dummy logger is used.
   
   Attributes and Properties:
 - `client` _AsyncClientApi_ - The client API.
@@ -75,7 +76,7 @@ The session cookie for the XUI API.
 
 ```python
 @classmethod
-def from_env(cls) -> AsyncApi
+def from_env(cls, logger: Any | None = None) -> AsyncApi
 ```
 
 Creates an instance of the API from environment variables.
@@ -83,6 +84,11 @@ Following environment variables should be set:
 - XUI_HOST: The XUI host URL.
 - XUI_USERNAME: The XUI username.
 - XUI_PASSWORD: The XUI password.
+
+**Arguments**:
+
+- `logger` _Any | None_ - The logger, if not set, a dummy logger is used.
+  
 
 **Returns**:
 
@@ -139,6 +145,7 @@ Base class for the XUI API. Contains async common methods for making requests.
 - `host` _str_ - The host of the XUI API.
 - `username` _str_ - The username for the XUI API.
 - `password` _str_ - The password for the XUI API.
+- `logger` _Any | None_ - The logger, if not set, a dummy logger is used.
   
   Attributes and Properties:
 - `host` _str_ - The host of the XUI API.
