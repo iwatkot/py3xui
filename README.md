@@ -76,6 +76,10 @@ api = AsyncApi.from_env()
 api = AsyncApi("http://your-3x-ui-host.com:2053", "your-username", "your-password")
 ```
 
+*️⃣ If you're using a custom URI Path, ensure that you've added it to the host, for example:<br>
+If your host is `http://your-3x-ui-host.com:2053` and the URI Path is `/test/`, then the host should be `http://your-3x-ui-host.com:2053/test/`.<br>
+Otherwise, all API requests will fail with a `404` error.
+
 ### Login
 No matter which API you're using or if was it created using environment variables or credentials, you'll need to call the `login` method to authenticate the user and save the cookie for future requests.
 ```python
