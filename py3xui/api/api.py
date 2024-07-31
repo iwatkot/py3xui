@@ -81,7 +81,7 @@ class Api:
         - XUI_HOST: The XUI host URL.
         - XUI_USERNAME: The XUI username.
         - XUI_PASSWORD: The XUI password.
-        
+
         Arguments:
             logger (Any | None): The logger, if not set, a dummy logger is used.
 

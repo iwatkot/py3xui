@@ -22,7 +22,7 @@ SESSION = "abc123"
 
 def test_login_success():
     with requests_mock.Mocker() as m:
-        m.post(f"{HOST}/login", json={ApiFields.SUCCESS: True}, cookies={"session": SESSION})
+        m.post(f"{HOST}/login", json={ApiFields.SUCCESS: True}, cookies={"3x-ui": SESSION})
         api = Api(HOST, "username", "password")
         api.login()
         assert api.client.session == SESSION, f"Expected {SESSION}, got {api.client.session}"
