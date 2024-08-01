@@ -128,7 +128,7 @@ class BaseApi:
         self.logger.info("Logging in with username: %s", self.username)
 
         response = self._post(url, headers, data, is_login=True)
-        cookie: str | None = response.cookies.get("session")
+        cookie: str | None = response.cookies.get("3x-ui")
         if not cookie:
             raise ValueError("No session cookie found, something wrong with the login...")
         self.logger.info("Session cookie successfully retrieved for username: %s", self.username)
@@ -185,7 +185,7 @@ class BaseApi:
         for retry in range(1, self.max_retries + 1):
             try:
                 skip_check = kwargs.pop("skip_check", False)
-                response = method(url, cookies={"session": self.session}, headers=headers, **kwargs)
+                response = method(url, cookies={"3x-ui": self.session}, headers=headers, **kwargs)
                 response.raise_for_status()
                 if skip_check:
                     return response

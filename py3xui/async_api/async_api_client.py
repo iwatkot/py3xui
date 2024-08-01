@@ -339,3 +339,44 @@ class AsyncClientApi(AsyncBaseApi):
         response = await self._post(url, headers, data)
         online = response.json().get(ApiFields.OBJ)
         return online or []
+
+    async def get_traffic_by_id(self, client_uuid: int) -> list[Client]:
+        """This route is used to retrieve information about a specific client based on their UUID.
+
+        NOTE: At the moment of writing this, the API documentation does not exist for this route.
+
+        Arguments:
+            client_uuid (int): The UUID of the client to retrieve.
+
+        Returns:
+            list[Client]: The list of clients.
+
+        Examples:
+
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+
+            clients = await api.client.get_traffic_by_id("239708ef-487e-4945-829d-ad79a0ce067e")
+            print(clients)
+            ```
+        """
+        endpoint = f"panel/api/inbounds/getClientTrafficsById/{client_uuid}"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        self.logger.info("Getting client stats for ID: %s", client_uuid)
+
+        response = await self._get(url, headers)
+        clients_json: list[dict[str, int | bool]] = response.json().get(ApiFields.OBJ)
+        clients = []
+        for client_json in clients_json:
+            try:
+                client = Client.model_validate(client_json)
+                clients.append(client)
+            except TypeError:
+                self.logger.error("Error parsing client: %s", client_json)
+                continue
+        return clients

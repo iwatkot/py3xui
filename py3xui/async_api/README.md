@@ -618,6 +618,41 @@ Returns a list of email addresses of online clients.
     print(res)
     ```
 
+<a id="async_api.async_api_client.AsyncClientApi.get_traffic_by_id"></a>
+
+#### get\_traffic\_by\_id
+
+```python
+async def get_traffic_by_id(client_uuid: int) -> list[Client]
+```
+
+This route is used to retrieve information about a specific client based on their UUID.
+
+NOTE: At the moment of writing this, the API documentation does not exist for this route.
+
+**Arguments**:
+
+- `client_uuid` _int_ - The UUID of the client to retrieve.
+  
+
+**Returns**:
+
+- `list[Client]` - The list of clients.
+  
+
+**Examples**:
+
+  
+    ```python
+    import py3xui
+
+    api = py3xui.AsyncApi.from_env()
+    await api.login()
+
+    clients = await api.client.get_traffic_by_id("239708ef-487e-4945-829d-ad79a0ce067e")
+    print(clients)
+    ```
+
 <a id="async_api.async_api_database"></a>
 
 # async\_api.async\_api\_database

@@ -139,7 +139,7 @@ class AsyncBaseApi:
         for retry in range(1, self.max_retries + 1):
             try:
                 skip_check = kwargs.pop("skip_check", False)
-                cookies = {"session": self.session} if self.session else {}
+                cookies = {"3x-ui": self.session} if self.session else {}
                 async with httpx.AsyncClient(cookies=cookies) as client:
                     if method == ApiFields.GET:
                         response = await client.get(url, headers=headers, **kwargs)
@@ -176,7 +176,7 @@ class AsyncBaseApi:
         self.logger.info("Logging in with username: %s", self.username)
 
         response = await self._post(url, headers, data, is_login=True)
-        cookie: str | None = response.cookies.get("session")
+        cookie: str | None = response.cookies.get("3x-ui")
         if not cookie:
             raise ValueError("No session cookie found, something wrong with the login...")
         self.logger.info("Session cookie successfully retrieved for username: %s", self.username)

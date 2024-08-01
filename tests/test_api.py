@@ -22,7 +22,7 @@ SESSION = "abc123"
 
 def test_login_success():
     with requests_mock.Mocker() as m:
-        m.post(f"{HOST}/login", json={ApiFields.SUCCESS: True}, cookies={"session": SESSION})
+        m.post(f"{HOST}/login", json={ApiFields.SUCCESS: True}, cookies={"3x-ui": SESSION})
         api = Api(HOST, "username", "password")
         api.login()
         assert api.client.session == SESSION, f"Expected {SESSION}, got {api.client.session}"
@@ -243,6 +243,43 @@ def test_client_online():
         api = Api(HOST, USERNAME, PASSWORD)
         api.session = SESSION
         api.client.online()
+
+
+def test_get_client_traffic_by_id():
+    response_example = {
+        "success": True,
+        "msg": "",
+        "obj": [
+            {
+                "id": 1,
+                "inboundId": 1,
+                "enable": True,
+                "email": "test",
+                "up": 170579,
+                "down": 8995344,
+                "expiryTime": 0,
+                "total": 0,
+                "reset": 0,
+            }
+        ],
+    }
+    with requests_mock.Mocker() as m:
+        m.get(
+            f"{HOST}/panel/api/inbounds/getClientTrafficsById/239708ef-487e-4945-829d-ad79a0ce067e",
+            json=response_example,
+        )
+        api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
+
+        clients = api.client.get_traffic_by_id("239708ef-487e-4945-829d-ad79a0ce067e")
+
+        assert len(clients) == 1, f"Expected 1, got {len(clients)}"
+
+        client = clients[0]
+
+        assert isinstance(client, Client), f"Expected Client, got {type(client)}"
+        assert client.email == "test", f"Expected test, got {client.email}"
+        assert client.id == 1, f"Expected 1, got {client.id}"
 
 
 # endregion
