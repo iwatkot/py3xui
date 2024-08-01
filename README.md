@@ -5,6 +5,7 @@ Sync and Async Object-oriented Python SDK for the 3x-ui API.
 
 <p align="center">
     <a href="#Overview">Overview</a> •
+    <a href="#Compatibility-table">Compatibility Table</a> •
     <a href="#Quick-Start">Quick Start</a> •
     <a href="#Examples">Examples</a> •
     <a href="#Bugs-and-Feature-Requests">Bugs and Feature Requests</a> •
@@ -33,6 +34,16 @@ Used dependencies:
 Supported Python versions:
 - 3.11
 - 3.12
+
+## Compatibility Table
+Since the 3x-ui app is under development, the SDK may not be compatible with all versions of the app. The table below shows the compatibility between the SDK and the 3x-ui app. Since the developer of SDK is not related to the 3x-ui app, the latest versions of the software are not guaranteed to be compatible with the SDK. It's recommended to use the specified versions of the software to avoid any issues.
+
+| py3xui Version | 3x-ui Version |
+|-------------|---------------|
+| 0.2.2       | >=2.3.9, <=2.3.11         |
+| 0.2.1       | >=2.3.7         |
+
+The SDK does not support older versions of the 3x-ui app.
 
 ## Quick Start
 You can use both synchronous and asynchronous methods to interact with the 3x-ui app. Both APIs have the same methods and return the same data, so it's up to you to choose which one to use.<br>
