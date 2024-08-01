@@ -1,6 +1,8 @@
 """This module contains the ClientApi class which provides methods to interact with the
 clients in the XUI API."""
 
+# pylint: disable=R0801
+
 import json
 from typing import Any
 
