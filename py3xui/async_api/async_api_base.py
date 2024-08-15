@@ -39,10 +39,11 @@ class AsyncBaseApi:
 
     """
 
-    def __init__(self, host: str, username: str, password: str, logger: Any | None = None):
+    def __init__(self, host: str, username: str, password: str, token: str = None, logger: Any | None = None):
         self._host = host.rstrip("/")
         self._username = username
         self._password = password
+        self._token = token
         self._max_retries: int = 3
         self._session: str | None = None
         self.logger = logger or Logger(__name__)
@@ -70,6 +71,14 @@ class AsyncBaseApi:
         Returns:
             str: The password for the XUI API."""
         return self._password
+    
+    @property
+    def token(self) -> str:
+        """The secret token for the XUI API.
+
+        Returns:
+            str: The secret token for the XUI API."""
+        return self.token
 
     @property
     def max_retries(self) -> int:
@@ -172,7 +181,11 @@ class AsyncBaseApi:
         headers: dict[str, str] = {}
 
         url = self._url(endpoint)
+
         data = {"username": self.username, "password": self.password}
+        if self.token != None:
+            data.update({"loginSecret": self.token})
+
         self.logger.info("Logging in with username: %s", self.username)
 
         response = await self._post(url, headers, data, is_login=True)

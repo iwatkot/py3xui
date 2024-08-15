@@ -17,6 +17,7 @@ class Api:
         host (str): The XUI host URL.
         username (str): The XUI username.
         password (str): The XUI password.
+        token (str): The XUI secret token.
         logger (Any | None): The logger, if not set, a dummy logger is used.
 
     Attributes and Properties:
@@ -37,11 +38,12 @@ class Api:
         os.environ["XUI_HOST"] = "https://xui.example.com"
         os.environ["XUI_USERNAME"] = "username"
         os.environ["XUI_PASSWORD"] = "password"
+        os.environ["XUI_TOKEN"] = "token"
 
         api = py3xui.Api.from_env()
 
         # Alternatively, you can provide the credentials directly.
-        api = py3xui.Api("https://xui.example.com", "username", "password")
+        api = py3xui.Api("https://xui.example.com", "username", "password", "token")
 
         api.login()
 
@@ -51,11 +53,11 @@ class Api:
         ```
     """
 
-    def __init__(self, host: str, username: str, password: str, logger: Any | None = None):
+    def __init__(self, host: str, username: str, password: str, token: str = None, logger: Any | None = None):
         self.logger = logger or Logger(__name__)
-        self.client = ClientApi(host, username, password, logger)
-        self.inbound = InboundApi(host, username, password, logger)
-        self.database = DatabaseApi(host, username, password, logger)
+        self.client = ClientApi(host, username, password, token, logger)
+        self.inbound = InboundApi(host, username, password, token, logger)
+        self.database = DatabaseApi(host, username, password, token, logger)
         self._session: str | None = None
 
     @property
@@ -81,6 +83,7 @@ class Api:
         - XUI_HOST: The XUI host URL.
         - XUI_USERNAME: The XUI username.
         - XUI_PASSWORD: The XUI password.
+        - XUI TOKEN: The XUI secret token.
 
         Arguments:
             logger (Any | None): The logger, if not set, a dummy logger is used.
@@ -99,7 +102,8 @@ class Api:
         host = env.xui_host()
         username = env.xui_username()
         password = env.xui_password()
-        return cls(host, username, password, logger)
+        token = env.xui_token()
+        return cls(host, username, password, token, logger)
 
     def login(self) -> None:
         """Logs into the XUI API and sets the session cookie for the client, inbound, and

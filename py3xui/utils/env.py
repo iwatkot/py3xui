@@ -73,3 +73,14 @@ def xui_password() -> str:
         keys=["XUI_PASSWORD"],
         postprocess_fn=lambda x: x,
     )
+
+def xui_token() -> str:
+    """Get the XUI secret token from the environment using the following keys:
+    - XUI_TOKEN
+
+    Raises:
+        ValueError: If none of the keys are found in the environment
+
+    Returns:
+        str | None: The XUI secret token or None
+    """

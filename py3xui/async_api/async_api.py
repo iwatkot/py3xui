@@ -17,6 +17,7 @@ class AsyncApi:
         host (str): The XUI host URL.
         username (str): The XUI username.
         password (str): The XUI password.
+        token (str): The XUI secret token.
         logger (Any | None): The logger, if not set, a dummy logger is used.
 
     Attributes and Properties:
@@ -51,11 +52,11 @@ class AsyncApi:
         ```
     """
 
-    def __init__(self, host: str, username: str, password: str, logger: Any | None = None):
+    def __init__(self, host: str, username: str, password: str, token: str = None, logger: Any | None = None):
         self.logger = logger or Logger(__name__)
-        self.client = AsyncClientApi(host, username, password, logger)
-        self.inbound = AsyncInboundApi(host, username, password, logger)
-        self.database = AsyncDatabaseApi(host, username, password, logger)
+        self.client = AsyncClientApi(host, username, password, token, logger)
+        self.inbound = AsyncInboundApi(host, username, password, token, logger)
+        self.database = AsyncDatabaseApi(host, username, password, token, logger)
         self._session: str | None = None
 
     @property
@@ -81,6 +82,7 @@ class AsyncApi:
         - XUI_HOST: The XUI host URL.
         - XUI_USERNAME: The XUI username.
         - XUI_PASSWORD: The XUI password.
+        - XUI_TOKEN: The XUI secret token.
         
         Arguments:
             logger (Any | None): The logger, if not set, a dummy logger is used.
@@ -99,7 +101,8 @@ class AsyncApi:
         host = env.xui_host()
         username = env.xui_username()
         password = env.xui_password()
-        return cls(host, username, password, logger)
+        token = env.xui_token()
+        return cls(host, username, password, token, logger)
 
     async def login(self) -> None:
         """Logs into the XUI API and sets the session cookie for the client, inbound, and

@@ -30,12 +30,14 @@ class BaseApi:
         host (str): The host of the XUI API.
         username (str): The username for the XUI API.
         password (str): The password for the XUI API.
+        token (str): The token for the XUI API.
         logger (Any | None): The logger, if not set, a dummy logger is used.
 
     Attributes and Properties:
         host (str): The host of the XUI API.
         username (str): The username for the XUI API.
         password (str): The password for the XUI API.
+        token (str): The secret token for the XUI API.
         max_retries (int): The maximum number of retries for a request.
         session (str): The session cookie for the XUI API.
 
@@ -51,10 +53,11 @@ class BaseApi:
 
     """
 
-    def __init__(self, host: str, username: str, password: str, logger: Any | None = None):
+    def __init__(self, host: str, username: str, password: str, token: str = None, logger: Any | None = None):
         self._host = host.rstrip("/")
         self._username = username
         self._password = password
+        self._token = token
         self._max_retries: int = 3
         self._session: str | None = None
         self.logger = logger or Logger(__name__)
@@ -82,6 +85,14 @@ class BaseApi:
         Returns:
             str: The password for the XUI API."""
         return self._password
+    
+    @property
+    def token(self) -> str:
+        """The secret token for the XUI API.
+
+        Returns:
+            str: The secret token for the XUI API."""
+        return self.token
 
     @property
     def max_retries(self) -> int:
@@ -124,7 +135,12 @@ class BaseApi:
         headers: dict[str, str] = {}
 
         url = self._url(endpoint)
+    
         data = {"username": self.username, "password": self.password}
+
+        if self.token != None:
+            data.update({"loginSecret": self.token})
+            
         self.logger.info("Logging in with username: %s", self.username)
 
         response = self._post(url, headers, data, is_login=True)

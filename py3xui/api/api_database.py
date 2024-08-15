@@ -11,6 +11,7 @@ class DatabaseApi(BaseApi):
         host (str): The XUI host URL.
         username (str): The XUI username.
         password (str): The XUI password.
+        token (str): The XUI secret token.
         session (requests.Session): The session object for the API.
         max_retries (int): The maximum number of retries for the API requests.
 
