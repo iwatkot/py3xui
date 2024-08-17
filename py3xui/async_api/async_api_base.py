@@ -18,12 +18,18 @@ class AsyncBaseApi:
         host (str): The host of the XUI API.
         username (str): The username for the XUI API.
         password (str): The password for the XUI API.
+        token (str): The token for the XUI API.
+        tls_verify (bool | str): Whether to verify the server's TLS certificate. 
+                                 Can be a boolean or a path to a certificate file.
         logger (Any | None): The logger, if not set, a dummy logger is used.
 
     Attributes and Properties:
         host (str): The host of the XUI API.
         username (str): The username for the XUI API.
         password (str): The password for the XUI API.
+        token (str): The token for the XUI API.
+        tls_verify (bool | str): Whether to verify the server's TLS certificate. 
+                                 Can be a boolean or a path to a certificate file.
         max_retries (int): The maximum number of retries for a request.
         session (str): The session cookie for the XUI API.
 
@@ -39,11 +45,12 @@ class AsyncBaseApi:
 
     """
 
-    def __init__(self, host: str, username: str, password: str, token: str = None, logger: Any | None = None):
+    def __init__(self, host: str, username: str, password: str, token: str = None, tls_verify: bool | str = True, logger: Any | None = None):
         self._host = host.rstrip("/")
         self._username = username
         self._password = password
         self._token = token
+        self._tls_verify = tls_verify
         self._max_retries: int = 3
         self._session: str | None = None
         self.logger = logger or Logger(__name__)
@@ -78,7 +85,17 @@ class AsyncBaseApi:
 
         Returns:
             str: The secret token for the XUI API."""
-        return self.token
+        return self._token
+    
+    @property
+    def tls_verify(self) -> bool | str:
+        """Whether to verify the server's TLS certificate. 
+           Can be a boolean or a path to a certificate file.
+
+        Returns:
+            bool: Whether to verify the TLS certificate for a request.
+            str: The path to a CA bundle to use for a request."""
+        return self._tls_verify
 
     @property
     def max_retries(self) -> int:
@@ -148,6 +165,7 @@ class AsyncBaseApi:
         for retry in range(1, self.max_retries + 1):
             try:
                 skip_check = kwargs.pop("skip_check", False)
+                kwargs.update({"verify": self.tls_verify })
                 cookies = {"3x-ui": self.session} if self.session else {}
                 async with httpx.AsyncClient(cookies=cookies) as client:
                     if method == ApiFields.GET:

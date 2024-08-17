@@ -18,6 +18,8 @@ class Api:
         username (str): The XUI username.
         password (str): The XUI password.
         token (str): The XUI secret token.
+        tls_verify (bool | str): Whether to verify the server's TLS certificate. 
+                                 Can be a boolean or a path to a certificate file.
         logger (Any | None): The logger, if not set, a dummy logger is used.
 
     Attributes and Properties:
@@ -53,11 +55,11 @@ class Api:
         ```
     """
 
-    def __init__(self, host: str, username: str, password: str, token: str = None, logger: Any | None = None):
+    def __init__(self, host: str, username: str, password: str, token: str = None, tls_verify: bool | str = True, logger: Any | None = None):
         self.logger = logger or Logger(__name__)
-        self.client = ClientApi(host, username, password, token, logger)
-        self.inbound = InboundApi(host, username, password, token, logger)
-        self.database = DatabaseApi(host, username, password, token, logger)
+        self.client = ClientApi(host, username, password, token, tls_verify, logger)
+        self.inbound = InboundApi(host, username, password, token, tls_verify, logger)
+        self.database = DatabaseApi(host, username, password, token, tls_verify, logger)
         self._session: str | None = None
 
     @property
@@ -83,7 +85,7 @@ class Api:
         - XUI_HOST: The XUI host URL.
         - XUI_USERNAME: The XUI username.
         - XUI_PASSWORD: The XUI password.
-        - XUI TOKEN: The XUI secret token.
+        - XUI_TOKEN: The XUI secret token.
 
         Arguments:
             logger (Any | None): The logger, if not set, a dummy logger is used.

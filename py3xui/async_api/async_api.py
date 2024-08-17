@@ -18,6 +18,8 @@ class AsyncApi:
         username (str): The XUI username.
         password (str): The XUI password.
         token (str): The XUI secret token.
+        tls_verify (bool | str): Whether to verify the server's TLS certificate. 
+                                 Can be a boolean or a path to a certificate file.
         logger (Any | None): The logger, if not set, a dummy logger is used.
 
     Attributes and Properties:
@@ -52,11 +54,11 @@ class AsyncApi:
         ```
     """
 
-    def __init__(self, host: str, username: str, password: str, token: str = None, logger: Any | None = None):
+    def __init__(self, host: str, username: str, password: str, token: str = None, tls_verify: bool | str = True, logger: Any | None = None):
         self.logger = logger or Logger(__name__)
-        self.client = AsyncClientApi(host, username, password, token, logger)
-        self.inbound = AsyncInboundApi(host, username, password, token, logger)
-        self.database = AsyncDatabaseApi(host, username, password, token, logger)
+        self.client = AsyncClientApi(host, username, password, token, tls_verify, logger)
+        self.inbound = AsyncInboundApi(host, username, password, token, tls_verify, logger)
+        self.database = AsyncDatabaseApi(host, username, password, token, tls_verify, logger)
         self._session: str | None = None
 
     @property
