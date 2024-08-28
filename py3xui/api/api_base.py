@@ -23,6 +23,7 @@ class ApiFields:
     POST = "POST"
 
 
+# pylint: disable=R0902
 class BaseApi:
     """Base class for the XUI API. Contains common methods for making requests.
 
@@ -31,7 +32,7 @@ class BaseApi:
         username (str): The username for the XUI API.
         password (str): The password for the XUI API.
         token (str): The token for the XUI API.
-        tls_verify (bool | str): Whether to verify the server's TLS certificate. 
+        tls_verify (bool | str): Whether to verify the server's TLS certificate.
                                  Can be a boolean or a path to a certificate file.
         logger (Any | None): The logger, if not set, a dummy logger is used.
 
@@ -40,7 +41,7 @@ class BaseApi:
         username (str): The username for the XUI API.
         password (str): The password for the XUI API.
         token (str): The secret token for the XUI API.
-        tls_verify (bool | str): Whether to verify the server's TLS certificate. 
+        tls_verify (bool | str): Whether to verify the server's TLS certificate.
                                  Can be a boolean or a path to a certificate file.
         max_retries (int): The maximum number of retries for a request.
         session (str): The session cookie for the XUI API.
@@ -57,7 +58,15 @@ class BaseApi:
 
     """
 
-    def __init__(self, host: str, username: str, password: str, token: str = None, tls_verify: bool | str = True, logger: Any | None = None):
+    def __init__(
+        self,
+        host: str,
+        username: str,
+        password: str,
+        token: str | None = None,
+        tls_verify: bool | str = True,
+        logger: Any | None = None,
+    ):  # pylint: disable=R0913
         self._host = host.rstrip("/")
         self._username = username
         self._password = password
@@ -90,18 +99,18 @@ class BaseApi:
         Returns:
             str: The password for the XUI API."""
         return self._password
-    
+
     @property
-    def token(self) -> str:
+    def token(self) -> str | None:
         """The secret token for the XUI API.
 
         Returns:
             str: The secret token for the XUI API."""
         return self._token
-    
+
     @property
     def tls_verify(self) -> bool | str:
-        """Whether to verify the server's TLS certificate. 
+        """Whether to verify the server's TLS certificate.
            Can be a boolean or a path to a certificate file.
 
         Returns:
@@ -150,12 +159,12 @@ class BaseApi:
         headers: dict[str, str] = {}
 
         url = self._url(endpoint)
-    
+
         data = {"username": self.username, "password": self.password}
 
-        if self.token != None:
+        if self.token is not None:
             data.update({"loginSecret": self.token})
-            
+
         self.logger.info("Logging in with username: %s", self.username)
 
         response = self._post(url, headers, data, is_login=True)
@@ -216,7 +225,7 @@ class BaseApi:
         for retry in range(1, self.max_retries + 1):
             try:
                 skip_check = kwargs.pop("skip_check", False)
-                kwargs.update({"verify": self.tls_verify })
+                kwargs.update({"verify": self.tls_verify})
                 response = method(url, cookies={"3x-ui": self.session}, headers=headers, **kwargs)
                 response.raise_for_status()
                 if skip_check:

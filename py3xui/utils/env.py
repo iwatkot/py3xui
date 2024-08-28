@@ -74,6 +74,7 @@ def xui_password() -> str:
         postprocess_fn=lambda x: x,
     )
 
+
 def xui_token() -> str:
     """Get the XUI secret token from the environment using the following keys:
     - XUI_TOKEN
@@ -84,3 +85,7 @@ def xui_token() -> str:
     Returns:
         str | None: The XUI secret token or None
     """
+    return parse_env(
+        keys=["XUI_TOKEN"],
+        postprocess_fn=lambda x: x,
+    )

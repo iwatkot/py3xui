@@ -18,7 +18,7 @@ class Api:
         username (str): The XUI username.
         password (str): The XUI password.
         token (str): The XUI secret token.
-        tls_verify (bool | str): Whether to verify the server's TLS certificate. 
+        tls_verify (bool | str): Whether to verify the server's TLS certificate.
                                  Can be a boolean or a path to a certificate file.
         logger (Any | None): The logger, if not set, a dummy logger is used.
 
@@ -55,7 +55,15 @@ class Api:
         ```
     """
 
-    def __init__(self, host: str, username: str, password: str, token: str = None, tls_verify: bool | str = True, logger: Any | None = None):
+    def __init__(
+        self,
+        host: str,
+        username: str,
+        password: str,
+        token: str | None = None,
+        tls_verify: bool | str = True,
+        logger: Any | None = None,
+    ):  # pylint: disable=R0913
         self.logger = logger or Logger(__name__)
         self.client = ClientApi(host, username, password, token, tls_verify, logger)
         self.inbound = InboundApi(host, username, password, token, tls_verify, logger)
@@ -105,7 +113,8 @@ class Api:
         username = env.xui_username()
         password = env.xui_password()
         token = env.xui_token()
-        return cls(host, username, password, token, logger)
+        tls_verify = bool(token)
+        return cls(host, username, password, token, tls_verify, logger=logger)
 
     def login(self) -> None:
         """Logs into the XUI API and sets the session cookie for the client, inbound, and

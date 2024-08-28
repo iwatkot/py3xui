@@ -11,6 +11,7 @@ from py3xui.api.api_base import ApiFields
 from py3xui.utils import Logger
 
 
+# pylint: disable=R0902
 class AsyncBaseApi:
     """Base class for the XUI API. Contains async common methods for making requests.
 
@@ -19,7 +20,7 @@ class AsyncBaseApi:
         username (str): The username for the XUI API.
         password (str): The password for the XUI API.
         token (str): The token for the XUI API.
-        tls_verify (bool | str): Whether to verify the server's TLS certificate. 
+        tls_verify (bool | str): Whether to verify the server's TLS certificate.
                                  Can be a boolean or a path to a certificate file.
         logger (Any | None): The logger, if not set, a dummy logger is used.
 
@@ -28,7 +29,7 @@ class AsyncBaseApi:
         username (str): The username for the XUI API.
         password (str): The password for the XUI API.
         token (str): The token for the XUI API.
-        tls_verify (bool | str): Whether to verify the server's TLS certificate. 
+        tls_verify (bool | str): Whether to verify the server's TLS certificate.
                                  Can be a boolean or a path to a certificate file.
         max_retries (int): The maximum number of retries for a request.
         session (str): The session cookie for the XUI API.
@@ -45,7 +46,15 @@ class AsyncBaseApi:
 
     """
 
-    def __init__(self, host: str, username: str, password: str, token: str = None, tls_verify: bool | str = True, logger: Any | None = None):
+    def __init__(
+        self,
+        host: str,
+        username: str,
+        password: str,
+        token: str | None = None,
+        tls_verify: bool | str = True,
+        logger: Any | None = None,
+    ):  # pylint: disable=R0913
         self._host = host.rstrip("/")
         self._username = username
         self._password = password
@@ -78,18 +87,18 @@ class AsyncBaseApi:
         Returns:
             str: The password for the XUI API."""
         return self._password
-    
+
     @property
-    def token(self) -> str:
+    def token(self) -> str | None:
         """The secret token for the XUI API.
 
         Returns:
             str: The secret token for the XUI API."""
         return self._token
-    
+
     @property
     def tls_verify(self) -> bool | str:
-        """Whether to verify the server's TLS certificate. 
+        """Whether to verify the server's TLS certificate.
            Can be a boolean or a path to a certificate file.
 
         Returns:
@@ -165,7 +174,7 @@ class AsyncBaseApi:
         for retry in range(1, self.max_retries + 1):
             try:
                 skip_check = kwargs.pop("skip_check", False)
-                kwargs.update({"verify": self.tls_verify })
+                kwargs.update({"verify": self.tls_verify})
                 cookies = {"3x-ui": self.session} if self.session else {}
                 async with httpx.AsyncClient(cookies=cookies) as client:
                     if method == ApiFields.GET:
@@ -201,7 +210,7 @@ class AsyncBaseApi:
         url = self._url(endpoint)
 
         data = {"username": self.username, "password": self.password}
-        if self.token != None:
+        if self.token is not None:
             data.update({"loginSecret": self.token})
 
         self.logger.info("Logging in with username: %s", self.username)
