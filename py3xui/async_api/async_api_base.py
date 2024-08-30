@@ -19,18 +19,18 @@ class AsyncBaseApi:
         host (str): The host of the XUI API.
         username (str): The username for the XUI API.
         password (str): The password for the XUI API.
-        token (str): The token for the XUI API.
-        tls_verify (bool | str): Whether to verify the server's TLS certificate.
-                                 Can be a boolean or a path to a certificate file.
+        token (str | None): The secret token for the XUI API.
+        use_tls_verify (bool): Whether to verify the server's TLS certificate.
+        selfsigned_certificate_path (str | None): The path to a self-signed certificate file.
         logger (Any | None): The logger, if not set, a dummy logger is used.
 
     Attributes and Properties:
         host (str): The host of the XUI API.
         username (str): The username for the XUI API.
         password (str): The password for the XUI API.
-        token (str): The token for the XUI API.
-        tls_verify (bool | str): Whether to verify the server's TLS certificate.
-                                 Can be a boolean or a path to a certificate file.
+        token (str | None): The secret token for the XUI API.
+        use_tls_verify (bool): Whether to verify the server's TLS certificate.
+        selfsigned_certificate_path (str | None): The path to a self-signed certificate file.
         max_retries (int): The maximum number of retries for a request.
         session (str): The session cookie for the XUI API.
 
@@ -52,14 +52,16 @@ class AsyncBaseApi:
         username: str,
         password: str,
         token: str | None = None,
-        tls_verify: bool | str = True,
+        use_tls_verify: bool = True,
+        selfsigned_certificate_path: str | None = None,
         logger: Any | None = None,
     ):  # pylint: disable=R0913
         self._host = host.rstrip("/")
         self._username = username
         self._password = password
         self._token = token
-        self._tls_verify = tls_verify
+        self._use_tls_verify = use_tls_verify
+        self._selfsigned_certificate_path = selfsigned_certificate_path
         self._max_retries: int = 3
         self._session: str | None = None
         self.logger = logger or Logger(__name__)
@@ -93,18 +95,24 @@ class AsyncBaseApi:
         """The secret token for the XUI API.
 
         Returns:
-            str: The secret token for the XUI API."""
+            str | None: The secret token for the XUI API."""
         return self._token
 
     @property
-    def tls_verify(self) -> bool | str:
+    def use_tls_verify(self) -> bool:
         """Whether to verify the server's TLS certificate.
-           Can be a boolean or a path to a certificate file.
 
         Returns:
-            bool: Whether to verify the TLS certificate for a request.
-            str: The path to a CA bundle to use for a request."""
-        return self._tls_verify
+            bool: Whether to verify the TLS certificate for a request."""
+        return self._use_tls_verify
+
+    @property
+    def selfsigned_certificate_path(self) -> str | None:
+        """The path to a self-signed certificate file.
+
+        Returns:
+            str | None: The path to a self-signed certificate file."""
+        return self._selfsigned_certificate_path
 
     @property
     def max_retries(self) -> int:
@@ -174,9 +182,15 @@ class AsyncBaseApi:
         for retry in range(1, self.max_retries + 1):
             try:
                 skip_check = kwargs.pop("skip_check", False)
-                kwargs.update({"verify": self.tls_verify})
+                verify: bool | str
+                if not self._use_tls_verify:
+                    verify = False
+                elif self._selfsigned_certificate_path:
+                    verify = self._selfsigned_certificate_path
+                else:
+                    verify = True
                 cookies = {"3x-ui": self.session} if self.session else {}
-                async with httpx.AsyncClient(cookies=cookies) as client:
+                async with httpx.AsyncClient(cookies=cookies, verify=verify) as client:
                     if method == ApiFields.GET:
                         response = await client.get(url, headers=headers, **kwargs)
                     elif method == ApiFields.POST:
@@ -208,11 +222,9 @@ class AsyncBaseApi:
         headers: dict[str, str] = {}
 
         url = self._url(endpoint)
-
         data = {"username": self.username, "password": self.password}
         if self.token is not None:
             data.update({"loginSecret": self.token})
-
         self.logger.info("Logging in with username: %s", self.username)
 
         response = await self._post(url, headers, data, is_login=True)

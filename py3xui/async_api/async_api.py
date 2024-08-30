@@ -17,9 +17,9 @@ class AsyncApi:
         host (str): The XUI host URL.
         username (str): The XUI username.
         password (str): The XUI password.
-        token (str): The XUI secret token.
-        tls_verify (bool | str): Whether to verify the server's TLS certificate.
-                                 Can be a boolean or a path to a certificate file.
+        token (str | None): The XUI secret token.
+        use_tls_verify (bool): Whether to verify the server's TLS certificate.
+        selfsigned_certificate_path (str | None): The path to a self-signed certificate file.
         logger (Any | None): The logger, if not set, a dummy logger is used.
 
     Attributes and Properties:
@@ -60,13 +60,20 @@ class AsyncApi:
         username: str,
         password: str,
         token: str | None = None,
-        tls_verify: bool | str = True,
+        use_tls_verify: bool = True,
+        selfsigned_certificate_path: str | None = None,
         logger: Any | None = None,
     ):  # pylint: disable=R0913
         self.logger = logger or Logger(__name__)
-        self.client = AsyncClientApi(host, username, password, token, tls_verify, logger)
-        self.inbound = AsyncInboundApi(host, username, password, token, tls_verify, logger)
-        self.database = AsyncDatabaseApi(host, username, password, token, tls_verify, logger)
+        self.client = AsyncClientApi(
+            host, username, password, token, use_tls_verify, selfsigned_certificate_path, logger
+        )
+        self.inbound = AsyncInboundApi(
+            host, username, password, token, use_tls_verify, selfsigned_certificate_path, logger
+        )
+        self.database = AsyncDatabaseApi(
+            host, username, password, token, use_tls_verify, selfsigned_certificate_path, logger
+        )
         self._session: str | None = None
 
     @property
@@ -86,7 +93,12 @@ class AsyncApi:
         self.database.session = value
 
     @classmethod
-    def from_env(cls, logger: Any | None = None) -> AsyncApi:
+    def from_env(
+        cls,
+        use_tls_verify: bool = True,
+        selfsigned_certificate_path: str | None = None,
+        logger: Any | None = None,
+    ) -> AsyncApi:
         """Creates an instance of the API from environment variables.
         Following environment variables should be set:
         - XUI_HOST: The XUI host URL.
@@ -95,6 +107,8 @@ class AsyncApi:
         - XUI_TOKEN: The XUI secret token.
 
         Arguments:
+            use_tls_verify (bool): Whether to verify the server's TLS certificate.
+            selfsigned_certificate_path (str | None): The path to a self-signed certificate file.
             logger (Any | None): The logger, if not set, a dummy logger is used.
 
         Returns:
@@ -112,8 +126,9 @@ class AsyncApi:
         username = env.xui_username()
         password = env.xui_password()
         token = env.xui_token()
-        tls_verify = bool(token)
-        return cls(host, username, password, token, tls_verify, logger=logger)
+        return cls(
+            host, username, password, token, use_tls_verify, selfsigned_certificate_path, logger
+        )
 
     async def login(self) -> None:
         """Logs into the XUI API and sets the session cookie for the client, inbound, and
