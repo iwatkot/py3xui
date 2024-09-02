@@ -1,3 +1,60 @@
+## TLS Verification Configuration
+
+The `custom_certificate_path` allows specifying a custom certificate file for TLS verification.
+When this path is provided and `use_tls_verify` is set to `True` (default), the API uses this
+certificate for TLS verification instead of the system's default CA bundle. If `use_tls_verify`
+is set to `False`, TLS verification is disabled, which can be useful for development environments.
+
+Warning: Always enable use_tls_verify in production to prevent security risks.
+
+### Parameters
+
+-   **`use_tls_verify` (bool)**: Controls whether the server's TLS certificate is verified. Default is `True`.
+-   **`custom_certificate_path` (str | None)**: Path to a custom certificate file for TLS verification.
+
+### Environment variables
+
+Set these parameters directly or via environment variables:
+
+-   `TLS_VERIFY`: "true" or "false" for enabling or disabling TLS verification.
+-   `TLS_CERT_PATH`: Path to your custom TLS certificate.
+
+### How They Work
+
+-   **`use_tls_verify` = True**: Uses the custom certificate from `custom_certificate_path` for TLS verification or the system's default CA bundle if no custom path is provided.
+-   **`use_tls_verify` = False**: Disables TLS verification. Not recommended for production as it increases security risks.
+
+### Examples
+
+#### Case 1: Using a Custom Certificate
+
+For servers with self-signed certificates:
+
+```python
+api = py3xui.AsyncApi(
+    "https://xui.example.com",
+    "username",
+    "password",
+    custom_certificate_path="/path/to/certificate.pem",
+    use_tls_verify=True
+)
+await api.login()
+```
+
+#### Case 2: Development Environment
+
+Temporarily disabling TLS verification for testing:
+
+```python
+api = py3xui.AsyncApi(
+    "https://xui.example.com",
+    "username",
+    "password",
+    use_tls_verify=False
+)
+await api.login()
+```
+
 <a id="api.api"></a>
 
 # api.api
@@ -15,23 +72,35 @@ class Api()
 This class provides a high-level interface to interact with the XUI API.
 Access to the client, inbound, and database APIs is provided through this class.
 
+The `custom_certificate_path` allows specifying a custom certificate file for TLS verification.
+When this path is provided and `use_tls_verify` is set to `True` (default), the API uses this
+certificate for TLS verification instead of the system's default CA bundle. If `use_tls_verify`
+is set to `False`, TLS verification is disabled, which can be useful for development environments.
+
+**Security Warning**: Never disable TLS verification (use_tls_verify set to False) in production.
+It significantly increases the risk of security threats like man-in-the-middle attacks.
+
 **Arguments**:
 
-- `host` _str_ - The XUI host URL.
-- `username` _str_ - The XUI username.
-- `password` _str_ - The XUI password.
-- `logger` _Any | None_ - The logger, if not set, a dummy logger is used.
-  
-  Attributes and Properties:
-- `client` _ClientApi_ - The client API.
-- `inbound` _InboundApi_ - The inbound API.
-- `database` _DatabaseApi_ - The database API.
-- `session` _str_ - The session cookie for the XUI API.
-  
-  Public Methods:
-- `login` - Logs into the XUI API.
-- `from_env` - Creates an instance of the API from environment variables.
-  
+-   `host` _str_ - The XUI host URL.
+-   `username` _str_ - The XUI username.
+-   `password` _str_ - The XUI password.
+-   `token` _str | None_ - The XUI secret token.
+-   `use_tls_verify` _bool_ - Whether to verify the server TLS certificate.
+-   `custom_certificate_path` _str | None_ - Path to a custom certificate file.
+-   `logger` _Any | None_ - The logger, if not set, a dummy logger is used.
+
+    Attributes and Properties:
+
+-   `client` _ClientApi_ - The client API.
+-   `inbound` _InboundApi_ - The inbound API.
+-   `database` _DatabaseApi_ - The database API.
+-   `session` _str_ - The session cookie for the XUI API.
+
+    Public Methods:
+
+-   `login` - Logs into the XUI API.
+-   `from_env` - Creates an instance of the API from environment variables.
 
 **Examples**:
 
@@ -42,11 +111,12 @@ Access to the client, inbound, and database APIs is provided through this class.
     os.environ["XUI_HOST"] = "https://xui.example.com"
     os.environ["XUI_USERNAME"] = "username"
     os.environ["XUI_PASSWORD"] = "password"
+    os.environ["XUI_TOKEN"] = "token"
 
     api = py3xui.Api.from_env()
 
     # Alternatively, you can provide the credentials directly.
-    api = py3xui.Api("https://xui.example.com", "username", "password")
+    api = py3xui.Api("https://xui.example.com", "username", "password", "token")
 
     api.login()
 
@@ -68,40 +138,51 @@ The session cookie for the XUI API.
 
 **Returns**:
 
-- `str` - The session cookie for the XUI API.
+-   `str` - The session cookie for the XUI API.
 
 <a id="api.api.Api.from_env"></a>
 
-#### from\_env
+#### from_env
 
 ```python
 @classmethod
-def from_env(cls, logger: Any | None = None) -> Api
+def from_env(cls,
+             use_tls_verify: bool | None = None,
+             custom_certificate_path: str | None = None,
+             logger: Any | None = None) -> Api
 ```
 
-Creates an instance of the API from environment variables.
+Creates an instance of the API from environment variables. Optional parameters
+for SSL/TLS verification can be passed directly or read from environment variables.
+
 Following environment variables should be set:
-- XUI_HOST: The XUI host URL.
-- XUI_USERNAME: The XUI username.
-- XUI_PASSWORD: The XUI password.
+
+-   XUI_HOST: The XUI host URL.
+-   XUI_USERNAME: The XUI username.
+-   XUI_PASSWORD: The XUI password.
+-   XUI_TOKEN: The XUI secret token (Optional).
+-   TLS_VERIFY: Whether to verify the server TLS certificate (Optional).
+-   TLS_CERT_PATH: Path to a custom certificate file (Optional).
 
 **Arguments**:
 
-- `logger` _Any | None_ - The logger, if not set, a dummy logger is used.
-  
+-   `use_tls_verify` _bool | None_ - Whether to verify the server TLS certificate.
+    If not provided, it will try to read from environment variable.
+-   `custom_certificate_path` _str | None_ - The path to a custom certificate file.
+    If not provided, it will try to read from environment variable.
+-   `logger` _Any | None_ - The logger, if not set, a dummy logger is used.
 
 **Returns**:
 
-- `Api` - The API instance.
-  
+-   `Api` - The API instance.
 
 **Examples**:
 
     ```python
     import py3xui
 
-    api = py3xui.Api.from_env()
-    api.login()
+    api = py3xui.AsyncApi.from_env()
+    await api.login()
     ```
 
 <a id="api.api.Api.login"></a>
@@ -126,7 +207,7 @@ database APIs.
 
 <a id="api.api_base"></a>
 
-# api.api\_base
+# api.api_base
 
 This module contains the base class for the XUI API.
 
@@ -152,27 +233,36 @@ Base class for the XUI API. Contains common methods for making requests.
 
 **Arguments**:
 
-- `host` _str_ - The host of the XUI API.
-- `username` _str_ - The username for the XUI API.
-- `password` _str_ - The password for the XUI API.
-- `logger` _Any | None_ - The logger, if not set, a dummy logger is used.
-  
-  Attributes and Properties:
-- `host` _str_ - The host of the XUI API.
-- `username` _str_ - The username for the XUI API.
-- `password` _str_ - The password for the XUI API.
-- `max_retries` _int_ - The maximum number of retries for a request.
-- `session` _str_ - The session cookie for the XUI API.
-  
-  Public Methods:
-- `login` - Logs into the XUI API.
-  
-  Private Methods:
-- `_check_response` - Checks the response from the XUI API.
-- `_url` - Returns the URL for the XUI API.
-- `_request_with_retry` - Makes a request to the XUI API with retries.
-- `_post` - Makes a POST request to the XUI API.
-- `_get` - Makes a GET request to the XUI API.
+-   `host` _str_ - The host of the XUI API.
+-   `username` _str_ - The username for the XUI API.
+-   `password` _str_ - The password for the XUI API.
+-   `token` _str | None_ - The secret token for the XUI API.
+-   `use_tls_verify` _bool_ - Whether to verify the server TLS certificate.
+-   `custom_certificate_path` _str | None_ - Path to a custom certificate file.
+-   `logger` _Any | None_ - The logger, if not set, a dummy logger is used.
+
+    Attributes and Properties:
+
+-   `host` _str_ - The host of the XUI API.
+-   `username` _str_ - The username for the XUI API.
+-   `password` _str_ - The password for the XUI API.
+-   `token` _str | None_ - The secret token for the XUI API.
+-   `use_tls_verify` _bool_ - Whether to verify the server TLS certificate.
+-   `custom_certificate_path` _str | None_ - Path to a custom certificate file.
+-   `max_retries` _int_ - The maximum number of retries for a request.
+-   `session` _str_ - The session cookie for the XUI API.
+
+    Public Methods:
+
+-   `login` - Logs into the XUI API.
+
+    Private Methods:
+
+-   `_check_response` - Checks the response from the XUI API.
+-   `_url` - Returns the URL for the XUI API.
+-   `_request_with_retry` - Makes a request to the XUI API with retries.
+-   `_post` - Makes a POST request to the XUI API.
+-   `_get` - Makes a GET request to the XUI API.
 
 <a id="api.api_base.BaseApi.host"></a>
 
@@ -187,7 +277,7 @@ The host of the XUI API.
 
 **Returns**:
 
-- `str` - The host of the XUI API.
+-   `str` - The host of the XUI API.
 
 <a id="api.api_base.BaseApi.username"></a>
 
@@ -202,7 +292,7 @@ The username for the XUI API.
 
 **Returns**:
 
-- `str` - The username for the XUI API.
+-   `str` - The username for the XUI API.
 
 <a id="api.api_base.BaseApi.password"></a>
 
@@ -217,11 +307,56 @@ The password for the XUI API.
 
 **Returns**:
 
-- `str` - The password for the XUI API.
+-   `str` - The password for the XUI API.
+
+<a id="api.api_base.BaseApi.token"></a>
+
+#### token
+
+```python
+@property
+def token() -> str | None
+```
+
+The secret token for the XUI API.
+
+**Returns**:
+
+str | None: The secret token for the XUI API.
+
+<a id="api.api_base.BaseApi.use_tls_verify"></a>
+
+#### use_tls_verify
+
+```python
+@property
+def use_tls_verify() -> bool
+```
+
+Whether to verify the server TLS certificate.
+
+**Returns**:
+
+-   `bool` - Whether to verify the TLS certificate for a request.
+
+<a id="api.api_base.BaseApi.custom_certificate_path"></a>
+
+#### custom_certificate_path
+
+```python
+@property
+def custom_certificate_path() -> str | None
+```
+
+The path to a custom certificate file.
+
+**Returns**:
+
+str | None: The path to a custom certificate file.
 
 <a id="api.api_base.BaseApi.max_retries"></a>
 
-#### max\_retries
+#### max_retries
 
 ```python
 @property
@@ -232,11 +367,11 @@ The maximum number of retries for a request.
 
 **Returns**:
 
-- `int` - The maximum number of retries for a request.
+-   `int` - The maximum number of retries for a request.
 
 <a id="api.api_base.BaseApi.max_retries"></a>
 
-#### max\_retries
+#### max_retries
 
 ```python
 @max_retries.setter
@@ -247,7 +382,7 @@ Sets the maximum number of retries for a request.
 
 **Arguments**:
 
-- `value` _int_ - The maximum number of retries for a request.
+-   `value` _int_ - The maximum number of retries for a request.
 
 <a id="api.api_base.BaseApi.session"></a>
 
@@ -262,7 +397,7 @@ The session cookie for the XUI API.
 
 **Returns**:
 
-  str | None: The session cookie for the XUI API.
+str | None: The session cookie for the XUI API.
 
 <a id="api.api_base.BaseApi.session"></a>
 
@@ -277,7 +412,7 @@ Sets the session cookie for the XUI API.
 
 **Arguments**:
 
-- `value` _str | None_ - The session cookie for the XUI API.
+-   `value` _str | None_ - The session cookie for the XUI API.
 
 <a id="api.api_base.BaseApi.login"></a>
 
@@ -291,11 +426,11 @@ Logs into the XUI API and sets the session cookie if successful.
 
 **Raises**:
 
-- `ValueError` - If the login is unsuccessful.
+-   `ValueError` - If the login is unsuccessful.
 
 <a id="api.api_client"></a>
 
-# api.api\_client
+# api.api_client
 
 This module contains the ClientApi class which provides methods to interact with the
 clients in the XUI API.
@@ -314,6 +449,9 @@ Attributes and Properties:
 host (str): The XUI host URL.
 username (str): The XUI username.
 password (str): The XUI password.
+token (str | None): The XUI secret token.
+use_tls_verify (bool): Whether to verify the server TLS certificate.
+custom_certificate_path (str | None): Path to a custom certificate file.
 session (requests.Session): The session object for the API.
 max_retries (int): The maximum number of retries for the API requests.
 
@@ -346,7 +484,7 @@ online: Retrieves online clients.
 
 <a id="api.api_client.ClientApi.get_by_email"></a>
 
-#### get\_by\_email
+#### get_by_email
 
 ```python
 def get_by_email(email: str) -> Client | None
@@ -360,13 +498,11 @@ related to the client.
 
 **Arguments**:
 
-- `email` _str_ - The email of the client to retrieve.
-  
+-   `email` _str_ - The email of the client to retrieve.
 
 **Returns**:
 
-  Client | None: The client object if found, otherwise None.
-  
+Client | None: The client object if found, otherwise None.
 
 **Examples**:
 
@@ -380,7 +516,7 @@ related to the client.
 
 <a id="api.api_client.ClientApi.get_ips"></a>
 
-#### get\_ips
+#### get_ips
 
 ```python
 def get_ips(email: str) -> list[str]
@@ -393,13 +529,11 @@ identified by their email.
 
 **Arguments**:
 
-- `email` _str_ - The email of the client to retrieve.
-  
+-   `email` _str_ - The email of the client to retrieve.
 
 **Returns**:
 
-- `list[str]` - The list of IP records associated with the client.
-  
+-   `list[str]` - The list of IP records associated with the client.
 
 **Examples**:
 
@@ -425,9 +559,8 @@ This route is used to add a new clients to a specific inbound identified by its 
 
 **Arguments**:
 
-- `inbound_id` _int_ - The ID of the inbound to add the clients to.
-- `clients` _list[Client]_ - The list of clients to add.
-  
+-   `inbound_id` _int_ - The ID of the inbound to add the clients to.
+-   `clients` _list[Client]_ - The list of clients to add.
 
 **Examples**:
 
@@ -457,9 +590,8 @@ inbound.
 
 **Arguments**:
 
-- `client_uuid` _str_ - The UUID of the client to update.
-- `client` _Client_ - The client object with updated information.
-  
+-   `client_uuid` _str_ - The UUID of the client to update.
+-   `client` _Client_ - The client object with updated information.
 
 **Examples**:
 
@@ -475,7 +607,7 @@ inbound.
 
 <a id="api.api_client.ClientApi.reset_ips"></a>
 
-#### reset\_ips
+#### reset_ips
 
 ```python
 def reset_ips(email: str) -> None
@@ -488,8 +620,7 @@ identified by their email address.
 
 **Arguments**:
 
-- `email` _str_ - The email of the client to reset the IPs for.
-  
+-   `email` _str_ - The email of the client to reset the IPs for.
 
 **Examples**:
 
@@ -503,22 +634,21 @@ identified by their email address.
 
 <a id="api.api_client.ClientApi.reset_stats"></a>
 
-#### reset\_stats
+#### reset_stats
 
 ```python
 def reset_stats(inbound_id: int, email: str) -> None
 ```
 
 This route is used to reset the traffic statistics for a specific client identified by
-their email address  within a particular inbound identified by its ID.
+their email address within a particular inbound identified by its ID.
 
 [Source documentation](https://documenter.getpostman.com/view/16802678/2s9YkgD5jm#52081826-8e06-4dc1-9bad-8a95f1cd8a96)
 
 **Arguments**:
 
-- `inbound_id` _int_ - The ID of the inbound to reset the client stats.
-- `email` _str_ - The email of the client to reset the stats for.
-  
+-   `inbound_id` _int_ - The ID of the inbound to reset the client stats.
+-   `email` _str_ - The email of the client to reset the stats for.
 
 **Examples**:
 
@@ -547,9 +677,8 @@ identified by its ID.
 
 **Arguments**:
 
-- `inbound_id` _int_ - The ID of the inbound to delete the client from.
-- `client_uuid` _str_ - The UUID of the client to delete.
-  
+-   `inbound_id` _int_ - The ID of the inbound to delete the client from.
+-   `client_uuid` _str_ - The UUID of the client to delete.
 
 **Examples**:
 
@@ -566,7 +695,7 @@ identified by its ID.
 
 <a id="api.api_client.ClientApi.delete_depleted"></a>
 
-#### delete\_depleted
+#### delete_depleted
 
 ```python
 def delete_depleted(inbound_id: int) -> None
@@ -579,12 +708,10 @@ identified by its ID.
 
 **Arguments**:
 
-- `inbound_id` _int_ - The ID of the inbound to delete the depleted clients from.
-  
+-   `inbound_id` _int_ - The ID of the inbound to delete the depleted clients from.
 
 **Examples**:
 
-  
     ```python
     import py3xui
 
@@ -610,8 +737,7 @@ Returns a list of email addresses of online clients.
 
 **Returns**:
 
-- `list[str]` - The list of email addresses of online clients.
-  
+-   `list[str]` - The list of email addresses of online clients.
 
 **Examples**:
 
@@ -626,7 +752,7 @@ Returns a list of email addresses of online clients.
 
 <a id="api.api_client.ClientApi.get_traffic_by_id"></a>
 
-#### get\_traffic\_by\_id
+#### get_traffic_by_id
 
 ```python
 def get_traffic_by_id(client_uuid: int) -> list[Client]
@@ -638,17 +764,14 @@ NOTE: At the moment of writing this, the API documentation does not exist for th
 
 **Arguments**:
 
-- `client_uuid` _int_ - The UUID of the client to retrieve.
-  
+-   `client_uuid` _int_ - The UUID of the client to retrieve.
 
 **Returns**:
 
-- `list[Client]` - The list of clients.
-  
+-   `list[Client]` - The list of clients.
 
 **Examples**:
 
-  
     ```python
     import py3xui
 
@@ -661,7 +784,7 @@ NOTE: At the moment of writing this, the API documentation does not exist for th
 
 <a id="api.api_database"></a>
 
-# api.api\_database
+# api.api_database
 
 This module contains the DatabaseApi class, which is responsible handling database operations
 in the XUI API.
@@ -680,6 +803,9 @@ Attributes and Properties:
 host (str): The XUI host URL.
 username (str): The XUI username.
 password (str): The XUI password.
+token (str | None): The XUI secret token.
+use_tls_verify (bool): Whether to verify the server TLS certificate.
+custom_certificate_path (str | None): Path to a custom certificate file.
 session (requests.Session): The session object for the API.
 max_retries (int): The maximum number of retries for the API requests.
 
@@ -723,7 +849,7 @@ the presence of admin IDs specified in the settings before sending the backup.
 
 <a id="api.api_inbound"></a>
 
-# api.api\_inbound
+# api.api_inbound
 
 This module contains the InboundApi class for handling inbounds in the XUI API.
 
@@ -741,6 +867,9 @@ Attributes and Properties:
 host (str): The XUI host URL.
 username (str): The XUI username.
 password (str): The XUI password.
+token (str | None): The XUI secret token.
+use_tls_verify (bool): Whether to verify the server TLS certificate.
+custom_certificate_path (str | None): Path to a custom certificate file.
 session (requests.Session): The session object for the API.
 max_retries (int): The maximum number of retries for the API requests.
 
@@ -765,7 +894,7 @@ reset_client_stats: Resets the statistics of a specific inbound.
 
 <a id="api.api_inbound.InboundApi.get_list"></a>
 
-#### get\_list
+#### get_list
 
 ```python
 def get_list() -> list[Inbound]
@@ -778,8 +907,7 @@ their associated client options and statistics.
 
 **Returns**:
 
-- `list[Inbound]` - A list of inbounds.
-  
+-   `list[Inbound]` - A list of inbounds.
 
 **Examples**:
 
@@ -806,8 +934,7 @@ This route is used to add a new inbound configuration.
 
 **Arguments**:
 
-- `inbound` _Inbound_ - The inbound object to add.
-  
+-   `inbound` _Inbound_ - The inbound object to add.
 
 **Examples**:
 
@@ -854,12 +981,10 @@ This route is used to delete an inbound identified by its ID.
 
 **Arguments**:
 
-- `inbound_id` _int_ - The ID of the inbound to delete.
-  
+-   `inbound_id` _int_ - The ID of the inbound to delete.
 
 **Examples**:
 
-  
     ```python
     import py3xui
 
@@ -885,9 +1010,8 @@ This route is used to update an existing inbound identified by its ID.
 
 **Arguments**:
 
-- `inbound_id` _int_ - The ID of the inbound to update.
-- `inbound` _Inbound_ - The inbound object to update.
-  
+-   `inbound_id` _int_ - The ID of the inbound to update.
+-   `inbound` _Inbound_ - The inbound object to update.
 
 **Examples**:
 
@@ -906,7 +1030,7 @@ This route is used to update an existing inbound identified by its ID.
 
 <a id="api.api_inbound.InboundApi.reset_stats"></a>
 
-#### reset\_stats
+#### reset_stats
 
 ```python
 def reset_stats() -> None
@@ -928,7 +1052,7 @@ This route is used to reset the traffic statistics for all inbounds within the s
 
 <a id="api.api_inbound.InboundApi.reset_client_stats"></a>
 
-#### reset\_client\_stats
+#### reset_client_stats
 
 ```python
 def reset_client_stats(inbound_id: int) -> None
@@ -941,8 +1065,7 @@ specific inbound identified by its ID.
 
 **Arguments**:
 
-- `inbound_id` _int_ - The ID of the inbound to reset the client stats.
-  
+-   `inbound_id` _int_ - The ID of the inbound to reset the client stats.
 
 **Examples**:
 
@@ -956,4 +1079,3 @@ specific inbound identified by its ID.
 
     api.inbound.reset_client_stats(inbound.id)
     ```
-

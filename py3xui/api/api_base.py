@@ -32,8 +32,8 @@ class BaseApi:
         username (str): The username for the XUI API.
         password (str): The password for the XUI API.
         token (str | None): The secret token for the XUI API.
-        use_tls_verify (bool): Whether to verify the server's TLS certificate.
-        selfsigned_certificate_path (str | None): The path to a self-signed certificate file.
+        use_tls_verify (bool): Whether to verify the server TLS certificate.
+        custom_certificate_path (str | None): Path to a custom certificate file.
         logger (Any | None): The logger, if not set, a dummy logger is used.
 
     Attributes and Properties:
@@ -41,8 +41,8 @@ class BaseApi:
         username (str): The username for the XUI API.
         password (str): The password for the XUI API.
         token (str | None): The secret token for the XUI API.
-        use_tls_verify (bool): Whether to verify the server's TLS certificate.
-        selfsigned_certificate_path (str | None): The path to a self-signed certificate file.
+        use_tls_verify (bool): Whether to verify the server TLS certificate.
+        custom_certificate_path (str | None): Path to a custom certificate file.
         max_retries (int): The maximum number of retries for a request.
         session (str): The session cookie for the XUI API.
 
@@ -65,7 +65,7 @@ class BaseApi:
         password: str,
         token: str | None = None,
         use_tls_verify: bool = True,
-        selfsigned_certificate_path: str | None = None,
+        custom_certificate_path: str | None = None,
         logger: Any | None = None,
     ):  # pylint: disable=R0913
         self._host = host.rstrip("/")
@@ -73,7 +73,7 @@ class BaseApi:
         self._password = password
         self._token = token
         self._use_tls_verify = use_tls_verify
-        self._selfsigned_certificate_path = selfsigned_certificate_path
+        self._custom_certificate_path = custom_certificate_path
         self._max_retries: int = 3
         self._session: str | None = None
         self.logger = logger or Logger(__name__)
@@ -112,19 +112,19 @@ class BaseApi:
 
     @property
     def use_tls_verify(self) -> bool:
-        """Whether to verify the server's TLS certificate.
+        """Whether to verify the server TLS certificate.
 
         Returns:
             bool: Whether to verify the TLS certificate for a request."""
         return self._use_tls_verify
 
     @property
-    def selfsigned_certificate_path(self) -> str | None:
-        """The path to a self-signed certificate file.
+    def custom_certificate_path(self) -> str | None:
+        """The path to a custom certificate file.
 
         Returns:
-            str | None: The path to a self-signed certificate file."""
-        return self._selfsigned_certificate_path
+            str | None: The path to a custom certificate file."""
+        return self._custom_certificate_path
 
     @property
     def max_retries(self) -> int:
@@ -230,13 +230,27 @@ class BaseApi:
         for retry in range(1, self.max_retries + 1):
             try:
                 skip_check = kwargs.pop("skip_check", False)
+
+                # 'verify' is a variable used to control the verification of the server TLS certificate.
+                # When set to True, it instructs the requests library to verify the server certificate against
+                # a list of trusted CAs (Certificate Authorities). If it points to a string path, that path is
+                # used to load a custom CA certificate file for verification, which is useful for environments
+                # with custom certificates. Setting 'verify' to False disables TLS certificate verification,
+                # which should be used with caution as it exposes the connection to security risks like
+                # man-in-the-middle attacks. This variable ensures that the client can establish a secure and
+                # trusted connection with the server.
                 verify: bool | str
                 if not self._use_tls_verify:
+                    # If TLS verification is disabled, 'verify' is set to False
                     verify = False
-                elif self._selfsigned_certificate_path:
-                    verify = self._selfsigned_certificate_path
+                elif self._custom_certificate_path:
+                    # If a path to a custom certificate is provided, it will be used
+                    # to verify the TLS connection instead of the default CA bundle.
+                    verify = self._custom_certificate_path
                 else:
+                    # Otherwise, the default CA bundle will be used for verification.
                     verify = True
+
                 kwargs.update({"verify": verify})
                 response = method(url, cookies={"3x-ui": self.session}, headers=headers, **kwargs)
                 response.raise_for_status()

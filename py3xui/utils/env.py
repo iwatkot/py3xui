@@ -1,22 +1,22 @@
 """This module contains utility functions for parsing environment variables."""
 
 import os
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
 
 def parse_env(
-    keys: list[str], postprocess_fn: Callable[[str], Any], required: bool = True
-) -> Optional[Any]:
+    keys: list[str], postprocess_fn: Callable[[str], Any], raise_if_not_found: bool = True
+) -> Any:
     """Parse the environment for the first key that is found and return the value after
     postprocessing it.
 
     Arguments:
         keys (list[str]): The keys to search for in the environment.
         postprocess_fn (Callable[[str], Any]): The postprocessing function to apply to the value.
-        required (bool): Whether the environment variable is required. Defaults to True.
+        raise_if_not_found (bool): Whether to raise an error if the environment variable is not found. Defaults to True.
 
     Raises:
-        ValueError: If none of the keys are found in the environment and required is True.
+        ValueError: If none of the keys are found in the environment and raise_if_not_found is True.
 
     Returns:
         Any | None: The postprocessed value or None.
@@ -24,7 +24,7 @@ def parse_env(
     for k in keys:
         if k in os.environ:
             return postprocess_fn(os.environ[k])
-    if required:
+    if raise_if_not_found:
         raise ValueError(f"None of the keys {keys} were found in the environment.")
     return None
 
@@ -42,7 +42,7 @@ def xui_host() -> str:
     return parse_env(
         keys=["XUI_HOST"],
         postprocess_fn=lambda x: x,
-    )  # type: ignore[return-value]
+    )
 
 
 def xui_username() -> str:
@@ -58,7 +58,7 @@ def xui_username() -> str:
     return parse_env(
         keys=["XUI_USERNAME"],
         postprocess_fn=lambda x: x,
-    )  # type: ignore[return-value]
+    )
 
 
 def xui_password() -> str:
@@ -74,7 +74,7 @@ def xui_password() -> str:
     return parse_env(
         keys=["XUI_PASSWORD"],
         postprocess_fn=lambda x: x,
-    )  # type: ignore[return-value]
+    )
 
 
 def xui_token() -> str | None:
@@ -87,5 +87,33 @@ def xui_token() -> str | None:
     return parse_env(
         keys=["XUI_TOKEN"],
         postprocess_fn=lambda x: x,
-        required=False,
+        raise_if_not_found=False,
+    )
+
+
+def tls_verify() -> bool | None:
+    """Get the TLS verification setting from the environment using the following keys:
+    - TLS_VERIFY
+
+    Returns:
+        bool | None: True if verification is required, False otherwise, or None if not set.
+    """
+    return parse_env(
+        keys=["TLS_VERIFY"],
+        postprocess_fn=lambda x: x.lower() in ["true", "1", "yes"],  # string to boolean
+        raise_if_not_found=False,
+    )
+
+
+def tls_cert_path() -> str | None:
+    """Get the path to the TLS certificate from the environment using the following keys:
+    - TLS_CERT_PATH
+
+    Returns:
+        str | None: The path to the TLS certificate file, or None if not set.
+    """
+    return parse_env(
+        keys=["TLS_CERT_PATH"],
+        postprocess_fn=lambda x: x,
+        raise_if_not_found=False,
     )

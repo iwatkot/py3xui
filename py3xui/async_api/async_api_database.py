@@ -12,8 +12,8 @@ class AsyncDatabaseApi(AsyncBaseApi):
         username (str): The XUI username.
         password (str): The XUI password.
         token (str | None): The XUI secret token.
-        use_tls_verify (bool): Whether to verify the server's TLS certificate.
-        selfsigned_certificate_path (str | None): The path to a self-signed certificate file.
+        use_tls_verify (bool): Whether to verify the server TLS certificate.
+        custom_certificate_path (str | None): Path to a custom certificate file.
         session (requests.Session): The session object for the API.
         max_retries (int): The maximum number of retries for the API requests.
 
