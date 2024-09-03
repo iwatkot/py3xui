@@ -40,7 +40,7 @@ Since the 3x-ui app is under development, the SDK may not be compatible with all
 
 | py3xui Version | 3x-ui Version |
 |-------------|---------------|
-| 0.2.2       | >=2.3.9, <=2.3.11         |
+| >=0.2.2       | >=2.3.9, <=2.3.11         |
 | 0.2.1       | >=2.3.7         |
 
 The SDK does not support older versions of the 3x-ui app.
