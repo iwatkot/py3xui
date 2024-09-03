@@ -11,6 +11,7 @@ from py3xui.api.api_base import ApiFields
 from py3xui.utils import Logger
 
 
+# pylint: disable=R0902
 class AsyncBaseApi:
     """Base class for the XUI API. Contains async common methods for making requests.
 
@@ -18,12 +19,18 @@ class AsyncBaseApi:
         host (str): The host of the XUI API.
         username (str): The username for the XUI API.
         password (str): The password for the XUI API.
+        token (str | None): The secret token for the XUI API.
+        use_tls_verify (bool): Whether to verify the server TLS certificate.
+        custom_certificate_path (str | None): Path to a custom certificate file.
         logger (Any | None): The logger, if not set, a dummy logger is used.
 
     Attributes and Properties:
         host (str): The host of the XUI API.
         username (str): The username for the XUI API.
         password (str): The password for the XUI API.
+        token (str | None): The secret token for the XUI API.
+        use_tls_verify (bool): Whether to verify the server TLS certificate.
+        custom_certificate_path (str | None): Path to a custom certificate file.
         max_retries (int): The maximum number of retries for a request.
         session (str): The session cookie for the XUI API.
 
@@ -39,10 +46,22 @@ class AsyncBaseApi:
 
     """
 
-    def __init__(self, host: str, username: str, password: str, logger: Any | None = None):
+    def __init__(
+        self,
+        host: str,
+        username: str,
+        password: str,
+        token: str | None = None,
+        use_tls_verify: bool = True,
+        custom_certificate_path: str | None = None,
+        logger: Any | None = None,
+    ):  # pylint: disable=R0913
         self._host = host.rstrip("/")
         self._username = username
         self._password = password
+        self._token = token
+        self._use_tls_verify = use_tls_verify
+        self._custom_certificate_path = custom_certificate_path
         self._max_retries: int = 3
         self._session: str | None = None
         self.logger = logger or Logger(__name__)
@@ -70,6 +89,30 @@ class AsyncBaseApi:
         Returns:
             str: The password for the XUI API."""
         return self._password
+
+    @property
+    def token(self) -> str | None:
+        """The secret token for the XUI API.
+
+        Returns:
+            str | None: The secret token for the XUI API."""
+        return self._token
+
+    @property
+    def use_tls_verify(self) -> bool:
+        """Whether to verify the server TLS certificate.
+
+        Returns:
+            bool: Whether to verify the TLS certificate for a request."""
+        return self._use_tls_verify
+
+    @property
+    def custom_certificate_path(self) -> str | None:
+        """The path to a custom certificate file.
+
+        Returns:
+            str | None: The path to a custom certificate file."""
+        return self._custom_certificate_path
 
     @property
     def max_retries(self) -> int:
@@ -139,8 +182,30 @@ class AsyncBaseApi:
         for retry in range(1, self.max_retries + 1):
             try:
                 skip_check = kwargs.pop("skip_check", False)
+
+                # 'verify' is a variable controlling the server TLS certificate verification.
+                # When set to True, it commands the requests library to verify the server's
+                # certificate against a list of trusted CAs (Certificate Authorities). If it
+                # points to a string path, that path is used to load a custom CA certificate
+                # file for verification, which is beneficial for environments using custom
+                # certificates. Setting 'verify' to False disables TLS certificate verification,
+                # a practice that should be used with caution as it exposes the connection to
+                # security risks like man-in-the-middle attacks. This setting ensures the client
+                # can establish a secure and trusted connection with the server.
+                verify: bool | str
+                if not self._use_tls_verify:
+                    # If TLS verification is disabled, 'verify' is set to False
+                    verify = False
+                elif self._custom_certificate_path:
+                    # If a path to a custom certificate is provided, it will be used
+                    # to verify the TLS connection instead of the default CA bundle.
+                    verify = self._custom_certificate_path
+                else:
+                    # Otherwise, the default CA bundle will be used for verification.
+                    verify = True
+
                 cookies = {"3x-ui": self.session} if self.session else {}
-                async with httpx.AsyncClient(cookies=cookies) as client:
+                async with httpx.AsyncClient(cookies=cookies, verify=verify) as client:
                     if method == ApiFields.GET:
                         response = await client.get(url, headers=headers, **kwargs)
                     elif method == ApiFields.POST:
@@ -173,6 +238,8 @@ class AsyncBaseApi:
 
         url = self._url(endpoint)
         data = {"username": self.username, "password": self.password}
+        if self.token is not None:
+            data.update({"loginSecret": self.token})
         self.logger.info("Logging in with username: %s", self.username)
 
         response = await self._post(url, headers, data, is_login=True)
