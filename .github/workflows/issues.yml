@@ -20,17 +20,17 @@ jobs:
             Please, first check our [FAQ](https://github.com/iwatkot/py3xui/discussions/categories/faq) section in discussions to see if your question has already been answered.<br>
             You can also use Discussion if you have any questions or suggestions, while the Issues section is for bug reports and feature requests.<br>
 
-            If you want to proceed with the issue, please provide the following information:
-            - Description of the issue
-            - Expected behavior
-            - Actual behavior
-            - Steps to reproduce the issue
-            - Python version
-            - OS
-            - py3xui version
-            - 3x-UI version
-            - Code snippet or a minimal example to reproduce the issue (if applicable)
-            - JSON representation of the request to the API (if applicable)
+            If you want to proceed with the issue, please provide the following information:<br>
+            - Description of the issue<br>
+            - Expected behavior<br>
+            - Actual behavior<br>
+            - Steps to reproduce the issue<br>
+            - Python version<br>
+            - OS<br>
+            - py3xui version<br>
+            - 3x-UI version<br>
+            - Code snippet or a minimal example to reproduce the issue (if applicable)<br>
+            - JSON representation of the request to the API (if applicable)<br>
 
-            
+
             Thank you!
