@@ -91,6 +91,30 @@ api = AsyncApi("http://your-3x-ui-host.com:2053", "your-username", "your-passwor
 If your host is `http://your-3x-ui-host.com:2053` and the URI Path is `/test/`, then the host should be `http://your-3x-ui-host.com:2053/test/`.<br>
 Otherwise, all API requests will fail with a `404` error.
 
+*️⃣ If you're using a secret token, which is set in in the 3x-ui panel, you'll also add it, otherwise all API request will fail.<br>
+Same as for other credentials, you can use an environment variable to store the token:
+```python
+...
+os.environ["XUI_TOKEN"] = "your-token"
+
+api = Api.from_env()
+```
+
+Or pass it directly, when creating an instance:
+```python
+api = Api("http://your-3x-ui-host.com:2053", "your-username", "your-password", "your-token")
+```
+
+### Using TLS and custom certificates
+To be filled by @snoups.<br>
+
+#### Case 1: Disabling TLS verification
+...
+
+### Case 2: Using custom certificates
+...
+
+
 ### Login
 No matter which API you're using or if was it created using environment variables or credentials, you'll need to call the `login` method to authenticate the user and save the cookie for future requests.
 ```python
