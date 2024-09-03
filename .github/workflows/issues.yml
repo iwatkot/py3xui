@@ -16,8 +16,8 @@ jobs:
       uses: actions/github-script@v6
       with:
         script: |
-          const { github, context } = require('@actions/github');
-          github.rest.issues.createComment({
+          const { context } = require('@actions/github');
+          context.github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.repo,
@@ -30,14 +30,5 @@ jobs:
                 - Description of the issue
                 - Expected behavior
                 - Actual behavior
-                - Steps to reproduce the issue
-                - Python version
-                - OS
-                - py3xui version
-                - 3x-UI version
-                - Code snippet or a minimal example to reproduce the issue (if applicable)
-                - JSON representation of the request to the API (if applicable)
-
-                Thank you!
-                `
+            `
           });
