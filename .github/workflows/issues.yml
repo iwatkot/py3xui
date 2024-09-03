@@ -1,5 +1,3 @@
-name: Issue FAQ
-
 on:
   issues:
     types: [opened]
