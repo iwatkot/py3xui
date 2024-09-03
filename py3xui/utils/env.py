@@ -13,7 +13,8 @@ def parse_env(
     Arguments:
         keys (list[str]): The keys to search for in the environment.
         postprocess_fn (Callable[[str], Any]): The postprocessing function to apply to the value.
-        raise_if_not_found (bool): Whether to raise an error if the environment variable is not found. Defaults to True.
+        raise_if_not_found (bool): Whether to raise an error if the environment
+            variable is not found. Defaults to True.
 
     Raises:
         ValueError: If none of the keys are found in the environment and raise_if_not_found is True.

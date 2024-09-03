@@ -231,14 +231,15 @@ class BaseApi:
             try:
                 skip_check = kwargs.pop("skip_check", False)
 
-                # 'verify' is a variable used to control the verification of the server TLS certificate.
-                # When set to True, it instructs the requests library to verify the server certificate against
-                # a list of trusted CAs (Certificate Authorities). If it points to a string path, that path is
-                # used to load a custom CA certificate file for verification, which is useful for environments
-                # with custom certificates. Setting 'verify' to False disables TLS certificate verification,
-                # which should be used with caution as it exposes the connection to security risks like
-                # man-in-the-middle attacks. This variable ensures that the client can establish a secure and
-                # trusted connection with the server.
+                # 'verify' is a variable controlling the server TLS certificate verification.
+                # When set to True, it commands the requests library to verify the server's
+                # certificate against a list of trusted CAs (Certificate Authorities). If it
+                # points to a string path, that path is used to load a custom CA certificate
+                # file for verification, which is beneficial for environments using custom
+                # certificates. Setting 'verify' to False disables TLS certificate verification,
+                # a practice that should be used with caution as it exposes the connection to
+                # security risks like man-in-the-middle attacks. This setting ensures the client
+                # can establish a secure and trusted connection with the server.
                 verify: bool | str
                 if not self._use_tls_verify:
                     # If TLS verification is disabled, 'verify' is set to False

@@ -15,10 +15,11 @@ class Api:
 
     The `custom_certificate_path` allows specifying a custom certificate file for TLS verification.
     When this path is provided and `use_tls_verify` is set to `True` (default), the API uses this
-    certificate for TLS verification instead of the system's default CA bundle. If `use_tls_verify`
-    is set to `False`, TLS verification is disabled, which can be useful for development environments.
+    certificate for TLS verification instead of the system's default CA bundle.
+    If `use_tls_verify` is set to `False`, TLS verification is disabled,
+    which can be useful for development environments.
 
-    **Security Warning**: Never disable TLS verification (use_tls_verify set to False) in production.
+    **Security Warning**: Never disable TLS verification (use_tls_verify = False) in production.
     It significantly increases the risk of security threats like man-in-the-middle attacks.
 
     Arguments:
