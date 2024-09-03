@@ -1,32 +1,33 @@
+name: Issue FAQ
 on:
   issues:
-    types: [opened]
-
+    types:
+      - opened
 jobs:
-  add_comment:
+  add-comment:
     runs-on: ubuntu-latest
-
+    permissions:
+      issues: write
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-
-    - name: Add comment to new issue
-      uses: actions/github-script@v6
-      with:
-        script: |
-          const { context } = require('@actions/github');
-          context.github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: ` 
-                Thank you for opening an issue!
-                Please, first check our [FAQ](https://github.com/iwatkot/py3xui/discussions/categories/faq) section in discussions to see if your question has already been answered.
-                You can also use Discussion if you have any questions or suggestions, while the Issues section is for bug reports and feature requests.
-
-                If you want to proceed with the issue, please provide the following information:
-                - Description of the issue
-                - Expected behavior
-                - Actual behavior
-            `
-          });
+      - name: Add comment
+        run: gh issue comment "$NUMBER" --body "$BODY"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          NUMBER: ${{ github.event.issue.number }}
+          BODY: >
+            Thank you for opening an issue!
+            Please, first check our [FAQ](https://github.com/iwatkot/py3xui/discussions/categories/faq) section in discussions to see if your question has already been answered.
+            You can also use Discussion if you have any questions or suggestions, while the Issues section is for bug reports and feature requests.
+            If you want to proceed with the issue, please provide the following information:
+            - Description of the issue
+            - Expected behavior
+            - Actual behavior
+            - Steps to reproduce the issue
+            - Python version
+            - OS
+            - py3xui version
+            - 3x-UI version
+            - Code snippet or a minimal example to reproduce the issue (if applicable)
+            - JSON representation of the request to the API (if applicable)
+            Thank you!
