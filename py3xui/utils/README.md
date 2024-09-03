@@ -21,7 +21,8 @@ postprocessing it.
 
 - `keys` _list[str]_ - The keys to search for in the environment.
 - `postprocess_fn` _Callable[[str], Any]_ - The postprocessing function to apply to the value.
-- `raise_if_not_found` _bool_ - Whether to raise an error if the environment variable is not found. Defaults to True.
+- `raise_if_not_found` _bool_ - Whether to raise an error if the environment
+  variable is not found. Defaults to True.
   
 
 **Raises**:
