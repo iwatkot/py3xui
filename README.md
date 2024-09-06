@@ -91,6 +91,42 @@ api = AsyncApi("http://your-3x-ui-host.com:2053", "your-username", "your-passwor
 If your host is `http://your-3x-ui-host.com:2053` and the URI Path is `/test/`, then the host should be `http://your-3x-ui-host.com:2053/test/`.<br>
 Otherwise, all API requests will fail with a `404` error.
 
+*️⃣ If you're using a secret token, which is set in in the 3x-ui panel, you'll also add it, otherwise all API request will fail.<br>
+Same as for other credentials, you can use an environment variable to store the token:
+```python
+...
+os.environ["XUI_TOKEN"] = "your-token"
+
+api = Api.from_env()
+```
+
+Or pass it directly, when creating an instance:
+```python
+api = Api("http://your-3x-ui-host.com:2053", "your-username", "your-password", "your-token")
+```
+
+### Using TLS and custom certificates
+Interacting with server over HTTPS requires careful management of TLS verification to ensure secure communications. This SDK provides options for setting TLS configurations, which include specifying custom certificates for increased trust or disabling TLS verification when necessary.
+
+#### Case 1: Disabling TLS verification
+For development, you can disable TLS verification. This is not recommended for production due to the increased risk of security threats like man-in-the-middle attacks.
+```python
+api = Api("http://your-3x-ui-host.com:2053", "your-username", "your-password", use_tls_verify=False)
+```
+❗ Warning: Never disable TLS verification in production.
+
+#### Case 2: Using сustom сertificates
+If you are interacting with a server that uses a self-signed certificate or one not recognized by the standard CA bundle, you can specify a custom certificate path:
+```python
+api = Api(
+    "http://your-3x-ui-host.com:2053",
+    "your-username",
+    "your-password",
+    custom_certificate_path="/path/to/your/certificate.pem",
+)
+```
+This allows you to maintain TLS verification by providing a trusted certificate explicitly.
+
 ### Login
 No matter which API you're using or if was it created using environment variables or credentials, you'll need to call the `login` method to authenticate the user and save the cookie for future requests.
 ```python
