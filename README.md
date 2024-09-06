@@ -106,14 +106,26 @@ api = Api("http://your-3x-ui-host.com:2053", "your-username", "your-password", "
 ```
 
 ### Using TLS and custom certificates
-To be filled by @snoups.<br>
+Interacting with server over HTTPS requires careful management of TLS verification to ensure secure communications. This SDK provides options for setting TLS configurations, which include specifying custom certificates for increased trust or disabling TLS verification when necessary.
 
 #### Case 1: Disabling TLS verification
-...
+For development, you can disable TLS verification. This is not recommended for production due to the increased risk of security threats like man-in-the-middle attacks.
+```python
+api = Api("http://your-3x-ui-host.com:2053", "your-username", "your-password", use_tls_verify=False)
+```
+❗ Warning: Never disable TLS verification in production.
 
-### Case 2: Using custom certificates
-...
-
+#### Case 2: Using сustom сertificates
+If you are interacting with a server that uses a self-signed certificate or one not recognized by the standard CA bundle, you can specify a custom certificate path:
+```python
+api = Api(
+    "http://your-3x-ui-host.com:2053",
+    "your-username",
+    "your-password",
+    custom_certificate_path="/path/to/your/certificate.pem",
+)
+```
+This allows you to maintain TLS verification by providing a trusted certificate explicitly.
 
 ### Login
 No matter which API you're using or if was it created using environment variables or credentials, you'll need to call the `login` method to authenticate the user and save the cookie for future requests.
