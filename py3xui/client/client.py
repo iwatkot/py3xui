@@ -47,7 +47,7 @@ class Client(BaseModel):
         tg_id (str): The Telegram ID of the client. Optional.
         total_gb (int): The total amount of data transferred by the client in GB. Optional.
     """
-""""""
+
     email: str
     enable: bool
     id: int | str
