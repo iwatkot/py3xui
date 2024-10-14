@@ -1,6 +1,6 @@
 """This module contains the Client class which represents a client in the XUI API."""
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 # pylint: disable=too-few-public-methods
@@ -67,3 +67,7 @@ class Client(BaseModel):
     sub_id: str = Field(default="", alias=ClientFields.SUB_ID)  # type: ignore
     tg_id: int | str | None = Field(default="", alias=ClientFields.TG_ID)  # type: ignore
     total_gb: int = Field(default=0, alias=ClientFields.TOTAL_GB)  # type: ignore
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
