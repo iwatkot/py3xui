@@ -65,5 +65,5 @@ class Client(BaseModel):
     flow: str = ""
     limit_ip: int = Field(default=0, alias=ClientFields.LIMIT_IP)  # type: ignore
     sub_id: str = Field(default="", alias=ClientFields.SUB_ID)  # type: ignore
-    tg_id: str = Field(default="", alias=ClientFields.TG_ID)  # type: ignore
+    tg_id: int | str | None = Field(default="", alias=ClientFields.TG_ID)  # type: ignore
     total_gb: int = Field(default=0, alias=ClientFields.TOTAL_GB)  # type: ignore
