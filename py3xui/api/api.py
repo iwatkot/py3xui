@@ -73,7 +73,7 @@ class Api:
         use_tls_verify: bool = True,
         custom_certificate_path: str | None = None,
         logger: Any | None = None,
-    ):  # pylint: disable=R0913
+    ):  # pylint: disable=R0913, R0917
         self.logger = logger or Logger(__name__)
         self.client = ClientApi(
             host, username, password, token, use_tls_verify, custom_certificate_path, logger

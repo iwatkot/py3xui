@@ -67,7 +67,7 @@ class BaseApi:
         use_tls_verify: bool = True,
         custom_certificate_path: str | None = None,
         logger: Any | None = None,
-    ):  # pylint: disable=R0913
+    ):  # pylint: disable=R0913, R0917
         self._host = host.rstrip("/")
         self._username = username
         self._password = password
