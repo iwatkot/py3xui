@@ -9,6 +9,7 @@ class ClientFields:
 
     EMAIL = "email"
     ENABLE = "enable"
+    PASSWORD = "password"
 
     ID = "id"
     INBOUND_ID = "inboundId"
@@ -50,8 +51,9 @@ class Client(BaseModel):
 
     email: str
     enable: bool
-    id: int | str
+    password: str = Field(default="", alias=ClientFields.PASSWORD)  # type: ignore
 
+    id: int | str
     inbound_id: int | None = Field(default=None, alias=ClientFields.INBOUND_ID)  # type: ignore
 
     up: int = 0
