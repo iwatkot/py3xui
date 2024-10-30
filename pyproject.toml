@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "py3xui"
-version = "0.2.5"
+version = "0.2.6"
 description = "Sync and Async Object-oriented Python SDK for the 3x-ui app."
 authors = [{name = "iwatkot", email = "iwatkot@gmail.com"}]
 license = {text = "MIT License"}
