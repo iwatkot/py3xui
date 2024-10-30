@@ -53,7 +53,7 @@ class Client(BaseModel):
     enable: bool
     id: int | str | None = Field(default=None)
     password: str = Field(default="", alias=ClientFields.PASSWORD)  # type: ignore
-      
+
     inbound_id: int | None = Field(default=None, alias=ClientFields.INBOUND_ID)  # type: ignore
 
     up: int = 0
