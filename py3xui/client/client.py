@@ -35,6 +35,7 @@ class Client(BaseModel):
     Attributes:
         email (str): The email of the client. Required.
         enable (bool): Whether the client is enabled. Required.
+        password (str): The password of the client. Optional.
         id (int | str): The ID of the client. Required.
         inbound_id (int | None): The ID of the inbound connection. Optional.
         up (int): The upload speed of the client. Optional.
@@ -52,7 +53,7 @@ class Client(BaseModel):
     email: str
     enable: bool
     id: int | str | None = Field(default=None)
-    password: str = Field(default="", alias=ClientFields.PASSWORD)  # type: ignore
+    password: str = Field(default="")  # type: ignore
 
     inbound_id: int | None = Field(default=None, alias=ClientFields.INBOUND_ID)  # type: ignore
 
