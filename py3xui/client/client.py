@@ -23,6 +23,7 @@ class ClientFields:
     RESET = "reset"
 
     FLOW = "flow"
+    METHOD = "method"
     LIMIT_IP = "limitIp"
     SUB_ID = "subId"
     TG_ID = "tgId"
@@ -35,6 +36,7 @@ class Client(BaseModel):
     Attributes:
         email (str): The email of the client. Required.
         enable (bool): Whether the client is enabled. Required.
+        password (str): The password of the client. Optional.
         id (int | str): The ID of the client. Required.
         inbound_id (int | None): The ID of the inbound connection. Optional.
         up (int): The upload speed of the client. Optional.
@@ -43,6 +45,7 @@ class Client(BaseModel):
         total (int): The total amount of data transferred by the client. Optional.
         reset (int): The time at which the client's data was last reset. Optional.
         flow (str): The flow of the client. Optional.
+        method (str): The method (encryption cipher) used by the client. Optional.
         limit_ip (int): The limit of IPs for the client. Optional.
         sub_id (str): The sub ID of the client. Optional.
         tg_id (str): The Telegram ID of the client. Optional.
@@ -52,7 +55,7 @@ class Client(BaseModel):
     email: str
     enable: bool
     id: int | str | None = Field(default=None)
-    password: str = Field(default="", alias=ClientFields.PASSWORD)  # type: ignore
+    password: str = Field(default="")  # type: ignore
 
     inbound_id: int | None = Field(default=None, alias=ClientFields.INBOUND_ID)  # type: ignore
 
@@ -65,6 +68,7 @@ class Client(BaseModel):
     reset: int = 0
 
     flow: str = ""
+    method: str = ""
     limit_ip: int = Field(default=0, alias=ClientFields.LIMIT_IP)  # type: ignore
     sub_id: str = Field(default="", alias=ClientFields.SUB_ID)  # type: ignore
     tg_id: int | str | None = Field(default="", alias=ClientFields.TG_ID)  # type: ignore
