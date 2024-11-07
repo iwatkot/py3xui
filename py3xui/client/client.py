@@ -23,6 +23,7 @@ class ClientFields:
     RESET = "reset"
 
     FLOW = "flow"
+    METHOD = "method"
     LIMIT_IP = "limitIp"
     SUB_ID = "subId"
     TG_ID = "tgId"
@@ -44,6 +45,7 @@ class Client(BaseModel):
         total (int): The total amount of data transferred by the client. Optional.
         reset (int): The time at which the client's data was last reset. Optional.
         flow (str): The flow of the client. Optional.
+        method (str): The method (encryption cipher) used by the client. Optional.
         limit_ip (int): The limit of IPs for the client. Optional.
         sub_id (str): The sub ID of the client. Optional.
         tg_id (str): The Telegram ID of the client. Optional.
@@ -66,6 +68,7 @@ class Client(BaseModel):
     reset: int = 0
 
     flow: str = ""
+    method: str = ""
     limit_ip: int = Field(default=0, alias=ClientFields.LIMIT_IP)  # type: ignore
     sub_id: str = Field(default="", alias=ClientFields.SUB_ID)  # type: ignore
     tg_id: int | str | None = Field(default="", alias=ClientFields.TG_ID)  # type: ignore
