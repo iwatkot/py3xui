@@ -12,6 +12,7 @@ class StreamSettingsFields:
     SECURITY = "security"
     NETWORK = "network"
     TCP_SETTINGS = "tcpSettings"
+    KCP_SETTINGS = "kcpSettings"
 
     EXTERNAL_PROXY = "externalProxy"
 
@@ -35,7 +36,12 @@ class StreamSettings(JsonStringModel):
 
     security: str
     network: str
-    tcp_settings: dict = Field(alias=StreamSettingsFields.TCP_SETTINGS)  # type: ignore
+    tcp_settings: dict = Field(  # type: ignore
+        default={}, alias=StreamSettingsFields.TCP_SETTINGS
+    )
+    kcp_settings: dict = Field(  # type: ignore
+        default={}, alias=StreamSettingsFields.KCP_SETTINGS
+    )
 
     external_proxy: list = Field(  # type: ignore
         default=[], alias=StreamSettingsFields.EXTERNAL_PROXY
