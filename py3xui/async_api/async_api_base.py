@@ -8,7 +8,7 @@ from typing import Any
 import httpx
 
 from py3xui.api.api_base import ApiFields
-from py3xui.utils import Logger
+from py3xui.utils import COOKIE_NAMES, Logger
 
 
 # pylint: disable=R0902
@@ -243,11 +243,25 @@ class AsyncBaseApi:
         self.logger.info("Logging in with username: %s", self.username)
 
         response = await self._post(url, headers, data, is_login=True)
-        cookie: str | None = response.cookies.get("3x-ui")
+        cookie = await self._get_cookie(response)
         if not cookie:
             raise ValueError("No session cookie found, something wrong with the login...")
         self.logger.info("Session cookie successfully retrieved for username: %s", self.username)
         self.session = cookie
+
+    async def _get_cookie(self, response: httpx.Response) -> str | None:
+        """Returns the session cookie from the response.
+
+        Arguments:
+            response (httpx.Response): The response from the XUI API.
+
+        Returns:
+            str: The session cookie from the response or None if not found."""
+        for cookie_name in COOKIE_NAMES:
+            cookie = response.cookies.get(cookie_name)
+            if cookie:
+                return cookie
+        return None
 
     async def _check_response(self, response: httpx.Response) -> None:
         """Checks the response from the XUI API using the success field.
