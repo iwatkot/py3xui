@@ -72,9 +72,9 @@ class Inbound(BaseModel):
     total: int = 0
 
     expiry_time: int = Field(default=0, alias=InboundFields.EXPIRY_TIME)  # type: ignore
-    client_stats: list[Client] | None = Field(
+    client_stats: list[Client] | None = Field(  # type: ignore
         default=[], alias=InboundFields.CLIENT_STATS
-    )  # type: ignore
+    )
 
     tag: str = ""
 
