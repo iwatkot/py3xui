@@ -70,6 +70,46 @@ class AsyncInboundApi(AsyncBaseApi):
         inbounds = [Inbound.model_validate(data) for data in inbounds_json]
         return inbounds
 
+    async def get_by_id(self, inbound_id: int) -> Inbound:
+        """This route is used to retrieve statistics and details for a specific inbound connection
+        identified by specified ID. This includes information about the inbound itself, its
+        statistics, and the clients connected to it.
+        If the inbound is not found, the method will raise an exception.
+
+        [Source documentation](https://www.postman.com/hsanaei/3x-ui/request/uu7wm1k/inbound)
+
+        Arguments:
+            inbound_id (int): The ID of the inbound to retrieve.
+
+        Returns:
+            Inbound | None: The inbound object if found, otherwise None.
+
+        Examples:
+
+            ```python
+
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+
+            await api.login()
+
+            inbound_id = 1
+
+            inbound = await api.inbound.get_by_id(inbound_id)
+        """
+        endpoint = f"panel/api/inbounds/get/{inbound_id}"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        self.logger.info("Getting inbound by ID: %s", inbound_id)
+
+        response = await self._get(url, headers)
+
+        inbound_json = response.json().get(ApiFields.OBJ)
+        inbound = Inbound.model_validate(inbound_json)
+        return inbound
+
     async def add(self, inbound: Inbound) -> None:
         """This route is used to add a new inbound configuration.
 

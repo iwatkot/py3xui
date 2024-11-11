@@ -28,6 +28,7 @@ Represents a client in the XUI API.
 
 - `email` _str_ - The email of the client. Required.
 - `enable` _bool_ - Whether the client is enabled. Required.
+- `password` _str_ - The password of the client. Optional.
 - `id` _int | str_ - The ID of the client. Required.
 - `inbound_id` _int | None_ - The ID of the inbound connection. Optional.
 - `up` _int_ - The upload speed of the client. Optional.
@@ -36,10 +37,17 @@ Represents a client in the XUI API.
 - `total` _int_ - The total amount of data transferred by the client. Optional.
 - `reset` _int_ - The time at which the client's data was last reset. Optional.
 - `flow` _str_ - The flow of the client. Optional.
+- `method` _str_ - The method (encryption cipher) used by the client. Optional.
 - `limit_ip` _int_ - The limit of IPs for the client. Optional.
 - `sub_id` _str_ - The sub ID of the client. Optional.
 - `tg_id` _str_ - The Telegram ID of the client. Optional.
 - `total_gb` _int_ - The total amount of data transferred by the client in GB. Optional.
+
+<a id="client.client.Client.password"></a>
+
+#### password
+
+type: ignore
 
 <a id="client.client.Client.inbound_id"></a>
 

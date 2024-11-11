@@ -90,12 +90,6 @@ type: ignore
 
 type: ignore
 
-<a id="inbound.inbound.Inbound.client_stats"></a>
-
-#### client\_stats
-
-type: ignore
-
 <a id="inbound.inbound.Inbound.to_json"></a>
 
 #### to\_json
@@ -229,12 +223,6 @@ Represents the stream settings for an inbound.
 - `reality_settings` _dict_ - The reality settings for the inbound connection. Optional.
 - `xtls_settings` _dict_ - The xTLS settings for the inbound connection. Optional.
 - `tls_settings` _dict_ - The TLS settings for the inbound connection. Optional.
-
-<a id="inbound.stream_settings.StreamSettings.tcp_settings"></a>
-
-#### tcp\_settings
-
-type: ignore
 
 <a id="inbound.stream_settings.StreamSettings.tls_settings"></a>
 

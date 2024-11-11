@@ -872,6 +872,46 @@ their associated client options and statistics.
     inbounds: list[py3xui.Inbound] = await api.inbound.get_list()
     ```
 
+<a id="async_api.async_api_inbound.AsyncInboundApi.get_by_id"></a>
+
+#### get\_by\_id
+
+```python
+async def get_by_id(inbound_id: int) -> Inbound
+```
+
+This route is used to retrieve statistics and details for a specific inbound connection
+identified by specified ID. This includes information about the inbound itself, its
+statistics, and the clients connected to it.
+If the inbound is not found, the method will raise an exception.
+
+[Source documentation](https://www.postman.com/hsanaei/3x-ui/request/uu7wm1k/inbound)
+
+**Arguments**:
+
+- `inbound_id` _int_ - The ID of the inbound to retrieve.
+  
+
+**Returns**:
+
+  Inbound | None: The inbound object if found, otherwise None.
+  
+
+**Examples**:
+
+  
+    ```python
+
+    import py3xui
+
+    api = py3xui.AsyncApi.from_env()
+
+    await api.login()
+
+    inbound_id = 1
+
+    inbound = await api.inbound.get_by_id(inbound_id)
+
 <a id="async_api.async_api_inbound.AsyncInboundApi.add"></a>
 
 #### add
