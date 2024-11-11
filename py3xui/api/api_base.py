@@ -7,7 +7,7 @@ from typing import Any, Callable
 
 import requests
 
-from py3xui.utils import Logger
+from py3xui.utils import COOKIE_NAMES, Logger
 
 
 # pylint: disable=too-few-public-methods
@@ -173,11 +173,26 @@ class BaseApi:
         self.logger.info("Logging in with username: %s", self.username)
 
         response = self._post(url, headers, data, is_login=True)
-        cookie: str | None = response.cookies.get("3x-ui")
+
+        cookie = self._get_cookie(response)
         if not cookie:
             raise ValueError("No session cookie found, something wrong with the login...")
         self.logger.info("Session cookie successfully retrieved for username: %s", self.username)
         self.session = cookie
+
+    def _get_cookie(self, response: requests.Response) -> str | None:
+        """Returns the session cookie from the response.
+
+        Arguments:
+            response (requests.Response): The response from the XUI API.
+
+        Returns:
+            str: The session cookie from the response or None if not found."""
+        for cookie_name in COOKIE_NAMES:
+            cookie = response.cookies.get(cookie_name)
+            if cookie:
+                return cookie
+        return None
 
     def _check_response(self, response: requests.Response) -> None:
         """Checks the response from the XUI API using the success field.
