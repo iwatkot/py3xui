@@ -34,7 +34,7 @@ Supported Python versions:
 - 3.11
 - 3.12
 
-Since the 3x-ui app is under development, the SDK may not be compatible with all versions of the app. Since the developer of SDK is not related to the 3x-ui app, the latest versions of the software are not guaranteed to be compatible with the SDK. <br>
+Since the 3x-ui app is under development, the SDK may not be compatible with all versions of the app. The developer of SDK is not related to the 3x-ui app, therefore the latest versions of the software are not guaranteed to be compatible with the SDK. <br>
 The SDK does not support versions of the 3x-ui older than `2.3.7`.
 
 ## Quick Start
