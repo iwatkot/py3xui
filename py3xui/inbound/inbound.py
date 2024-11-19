@@ -59,7 +59,9 @@ class Inbound(BaseModel):
     port: int
     protocol: str
     settings: Settings
-    stream_settings: StreamSettings | str = Field(default="", alias=InboundFields.STREAM_SETTINGS)  # type: ignore
+    stream_settings: StreamSettings | str = Field(
+        default="", alias=InboundFields.STREAM_SETTINGS
+    )  # type: ignore
     sniffing: Sniffing
 
     listen: str = ""
@@ -108,11 +110,11 @@ class Inbound(BaseModel):
         )
 
         # Handle stream_settings which can be either StreamSettings or str
-        if isinstance(self.stream_settings, str):
-            result[InboundFields.STREAM_SETTINGS] = self.stream_settings
-        else:
+        if isinstance(self.stream_settings, StreamSettings):
             result[InboundFields.STREAM_SETTINGS] = self.stream_settings.model_dump_json(
                 by_alias=True
             )
+        else:
+            result[InboundFields.STREAM_SETTINGS] = self.stream_settings
 
         return result
