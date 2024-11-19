@@ -59,9 +59,9 @@ class Inbound(BaseModel):
     port: int
     protocol: str
     settings: Settings
-    stream_settings: StreamSettings | str = Field(
+    stream_settings: StreamSettings | str = Field(  # type: ignore
         default="", alias=InboundFields.STREAM_SETTINGS
-    )  # type: ignore
+    )
     sniffing: Sniffing
 
     listen: str = ""
