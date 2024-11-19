@@ -63,8 +63,9 @@ def test_get_inbounds():
         inbound = inbounds[0]
         assert isinstance(inbound, Inbound), f"Expected Inbound, got {type(inbound)}"
         assert isinstance(
-            inbound.stream_settings, StreamSettings
-        ), f"Expected StreamSettings, got {type(inbound.stream_settings)}"
+            inbound.stream_settings, (StreamSettings, str)
+        ), f"Expected StreamSettings or str, got {type(inbound.stream_settings)}"
+
         assert isinstance(
             inbound.sniffing, Sniffing
         ), f"Expected Sniffing, got {type(inbound.sniffing)}"

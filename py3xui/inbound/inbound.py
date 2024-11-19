@@ -42,7 +42,7 @@ class Inbound(BaseModel):
         port (int): The port number for the inbound connection. Required.
         protocol (str): The protocol for the inbound connection. Required.
         settings (Settings): The settings for the inbound connection. Required.
-        stream_settings (StreamSettings): The stream settings for the inbound connection. Required.
+        stream_settings (StreamSettings): The stream settings for the inbound connection. Optional.
         sniffing (Sniffing): The sniffing settings for the inbound connection. Required.
         listen (str): The listen address for the inbound connection. Optional.
         remark (str): The remark for the inbound connection. Optional.
@@ -59,7 +59,9 @@ class Inbound(BaseModel):
     port: int
     protocol: str
     settings: Settings
-    stream_settings: StreamSettings = Field(alias=InboundFields.STREAM_SETTINGS)  # type: ignore
+    stream_settings: StreamSettings | str = Field(  # type: ignore
+        default="", alias=InboundFields.STREAM_SETTINGS
+    )
     sniffing: Sniffing
 
     listen: str = ""
@@ -103,11 +105,16 @@ class Inbound(BaseModel):
         result.update(
             {
                 InboundFields.SETTINGS: self.settings.model_dump_json(by_alias=True),
-                InboundFields.STREAM_SETTINGS: self.stream_settings.model_dump_json(  # pylint: disable=no-member
-                    by_alias=True
-                ),
                 InboundFields.SNIFFING: self.sniffing.model_dump_json(by_alias=True),
             }
         )
+
+        # Handle stream_settings which can be either StreamSettings or str
+        if isinstance(self.stream_settings, StreamSettings):
+            result[InboundFields.STREAM_SETTINGS] = self.stream_settings.model_dump_json(
+                by_alias=True
+            )
+        else:
+            result[InboundFields.STREAM_SETTINGS] = self.stream_settings
 
         return result
