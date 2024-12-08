@@ -65,7 +65,7 @@ class Client(BaseModel):
     expiry_time: int = Field(default=0, alias=ClientFields.EXPIRY_TIME)  # type: ignore
 
     total: int = 0
-    reset: int = 0
+    reset: int | None = None
 
     flow: str = ""
     method: str = ""
