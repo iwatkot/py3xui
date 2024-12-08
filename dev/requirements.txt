@@ -3,10 +3,10 @@ mypy
 pytest
 pytest-cov
 pytest-asyncio
+pytest-httpx
 python-dotenv
 requests-mock
 types-requests
-respx
 pylint
 pydoc-markdown
 
