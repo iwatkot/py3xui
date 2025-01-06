@@ -5,7 +5,12 @@ from __future__ import annotations
 
 from typing import Any
 
-from py3xui.async_api import AsyncClientApi, AsyncDatabaseApi, AsyncInboundApi
+from py3xui.async_api import (
+    AsyncClientApi,
+    AsyncDatabaseApi,
+    AsyncInboundApi,
+    AsyncServerApi,
+)
 from py3xui.utils import Logger, env
 
 
@@ -84,6 +89,9 @@ class AsyncApi:
         self.database = AsyncDatabaseApi(
             host, username, password, token, use_tls_verify, custom_certificate_path, logger
         )
+        self.server = AsyncServerApi(
+            host, username, password, token, use_tls_verify, custom_certificate_path, logger
+        )
         self._session: str | None = None
 
     @property
@@ -101,6 +109,7 @@ class AsyncApi:
         self.client.session = value
         self.inbound.session = value
         self.database.session = value
+        self.server.session = value
 
     @classmethod
     def from_env(
@@ -170,4 +179,5 @@ class AsyncApi:
         self._session = self.client.session
         self.inbound.session = self._session
         self.database.session = self._session
+        self.server.session = self._session
         self.logger.info("Logged in successfully.")

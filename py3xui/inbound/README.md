@@ -66,7 +66,7 @@ Represents an inbound connection in the XUI API.
 - `port` _int_ - The port number for the inbound connection. Required.
 - `protocol` _str_ - The protocol for the inbound connection. Required.
 - `settings` _Settings_ - The settings for the inbound connection. Required.
-- `stream_settings` _StreamSettings_ - The stream settings for the inbound connection. Required.
+- `stream_settings` _StreamSettings_ - The stream settings for the inbound connection. Optional.
 - `sniffing` _Sniffing_ - The sniffing settings for the inbound connection. Required.
 - `listen` _str_ - The listen address for the inbound connection. Optional.
 - `remark` _str_ - The remark for the inbound connection. Optional.
@@ -78,17 +78,35 @@ Represents an inbound connection in the XUI API.
 - `client_stats` _list[Client]_ - The client stats for the inbound connection. Optional.
 - `tag` _str_ - The tag for the inbound connection. Optional.
 
-<a id="inbound.inbound.Inbound.stream_settings"></a>
-
-#### stream\_settings
-
-type: ignore
-
 <a id="inbound.inbound.Inbound.expiry_time"></a>
 
 #### expiry\_time
 
 type: ignore
+
+<a id="inbound.inbound.Inbound.validate_stream_settings"></a>
+
+#### validate\_stream\_settings
+
+```python
+@field_validator("stream_settings")
+def validate_stream_settings(
+        cls, value: StreamSettings | str) -> StreamSettings | str
+```
+
+Validates the stream settings field taking into account that it can be either a
+dictionary with the StreamSettings model, JSON string or an empty string.
+If the value is a string, it will try to parse it as JSON and create a StreamSettings,
+otherwise it will return the value as is (empty string).
+
+**Arguments**:
+
+- `value` _StreamSettings | str_ - The value to validate.
+  
+
+**Returns**:
+
+  StreamSettings | str: The validated value.
 
 <a id="inbound.inbound.Inbound.to_json"></a>
 
