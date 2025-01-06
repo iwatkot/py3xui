@@ -1083,3 +1083,71 @@ specific inbound identified by its ID.
     api.inbound.reset_client_stats(inbound.id)
     ```
 
+<a id="api.api_server"></a>
+
+# api.api\_server
+
+This module contains the ServerApi class for handling server in the XUI API.
+
+<a id="api.api_server.ServerApi"></a>
+
+## ServerApi Objects
+
+```python
+class ServerApi(BaseApi)
+```
+
+This class provides methods to interact with the server in the XUI API.
+
+Attributes and Properties:
+host (str): The XUI host URL.
+username (str): The XUI username.
+password (str): The XUI password.
+token (str | None): The XUI secret token.
+use_tls_verify (bool): Whether to verify the server TLS certificate.
+custom_certificate_path (str | None): Path to a custom certificate file.
+session (requests.Session): The session object for the API.
+max_retries (int): The maximum number of retries for the API requests.
+
+Public Methods:
+get_db: Retrieves a database backup file and saves it to a specified path.
+
+**Examples**:
+
+    ```python
+    import py3xui
+
+    api = py3xui.Api.from_env()
+    api.login()
+
+    db_save_path = "db_backup.db"
+    api.server.get_db(db_save_path)
+    ```
+
+<a id="api.api_server.ServerApi.get_db"></a>
+
+#### get\_db
+
+```python
+def get_db(save_path: str) -> None
+```
+
+This route is used to retrieve a database backup file and save it to a specified path.
+
+**Arguments**:
+
+- `save_path` _str_ - The path to save the database backup file.
+  
+
+**Examples**:
+
+    ```python
+    import py3xui
+
+    api = py3xui.Api.from_env()
+    api.login()
+
+    db_save_path = "db_backup.db"
+    api.server.get_db(db_save_path)
+    ```
+
