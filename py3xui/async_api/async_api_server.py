@@ -50,7 +50,7 @@ class AsyncServerApi(AsyncBaseApi):
             ```
         """
         endpoint = "server/getDb"
-        headers = {"Accept": "application/json"}
+        headers = {"Accept": "application/octet-stream"}
         url = self._url(endpoint)
         self.logger.info("Getting DB backup...")
 

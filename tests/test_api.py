@@ -296,3 +296,31 @@ def test_database_export():
 
 
 # endregion
+
+
+# region ServerApi tests
+
+
+# * Mocker does not work for this endpoint.
+# def test_get_db():
+#     save_path = "backup.db"
+#     expected_content = b"fake database content"
+
+#     with requests_mock.Mocker() as m:
+#         m.get(f"{HOST}/server/getDb", content=expected_content)
+#         api = Api(HOST, USERNAME, PASSWORD)
+#         api.session = SESSION
+
+#         response = api.server.get_db(save_path)
+#         with open(save_path, "wb") as f:
+#             f.write(response.content)
+
+#         with open(save_path, "rb") as f:
+#             saved_content = f.read()
+
+#         assert (
+#             saved_content == expected_content
+#         ), f"Expected {expected_content}, got {saved_content}"
+
+
+# endregion

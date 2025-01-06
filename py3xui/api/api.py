@@ -104,6 +104,7 @@ class Api:
         self.client.session = value
         self.inbound.session = value
         self.database.session = value
+        self.server.session = value
 
     @classmethod
     def from_env(
