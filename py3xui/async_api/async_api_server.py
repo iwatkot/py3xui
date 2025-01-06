@@ -32,6 +32,7 @@ class AsyncServerApi(AsyncBaseApi):
         ```
     """
 
+    # pylint: disable=R0801
     async def get_db(self, save_path: str) -> None:
         """This route is used to retrieve a database backup file and save it to a specified path.
 
