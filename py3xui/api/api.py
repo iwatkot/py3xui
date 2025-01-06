@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from py3xui.api import ClientApi, DatabaseApi, InboundApi
+from py3xui.api import ClientApi, DatabaseApi, InboundApi, ServerApi
 from py3xui.utils import Logger, env
 
 
@@ -82,6 +82,9 @@ class Api:
             host, username, password, token, use_tls_verify, custom_certificate_path, logger
         )
         self.database = DatabaseApi(
+            host, username, password, token, use_tls_verify, custom_certificate_path, logger
+        )
+        self.server = ServerApi(
             host, username, password, token, use_tls_verify, custom_certificate_path, logger
         )
         self._session: str | None = None
@@ -170,4 +173,5 @@ class Api:
         self._session = self.client.session
         self.inbound.session = self._session
         self.database.session = self._session
+        self.server.session = self._session
         self.logger.info("Logged in successfully.")
