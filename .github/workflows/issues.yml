@@ -1,4 +1,5 @@
-name: Issue FAQ
+name: Answer issues
+
 on:
   issues:
     types:
@@ -9,15 +10,34 @@ jobs:
     permissions:
       issues: write
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Check issue body
+        id: check_body
+        run: |
+          if echo "${{ github.event.issue.body }}" | grep -q ".client.update"; then
+            echo "close_issue=true" >> $GITHUB_ENV
+          else
+            echo "close_issue=false" >> $GITHUB_ENV
+          fi
+
+      - name: Close issue if condition met
+        if: env.close_issue == 'true'
+        run: gh issue close ${{ github.event.issue.number }} --comment "This issue is being closed automatically because it contains a question that exists in FAQ. Check the [demo.py](https://github.com/iwatkot/py3xui/blob/main/demo.py) file for an example. If you believe this is a mistake, please reopen the issue."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Add comment
-        run: gh issue comment "$NUMBER" --body "$BODY"
+        if: env.close_issue == 'false'
+        run: gh issue comment "${{ github.event.issue.number }}" --body "$BODY"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
           NUMBER: ${{ github.event.issue.number }}
           BODY: >
             Thank you for opening an issue!<br>
-            Please, first check our [FAQ](https://github.com/iwatkot/py3xui/discussions/categories/faq) section in discussions to see if your question has already been answered.<br>
+            Please, first check our [FAQ](https://github.com/iwatkot/py3xui/discussions/categories/faq?discussions_q=) section in discussions to see if your question has already been answered.<br>
             You can also use Discussion if you have any questions or suggestions, while the Issues section is for bug reports and feature requests.<br>
 
             If you want to proceed with the issue, please provide the following information:<br>
