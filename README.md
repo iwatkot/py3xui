@@ -140,6 +140,56 @@ You'll find detailed docs with usage examples for both APIs and for used models 
 
 In this section, you'll find some examples of how to use the SDK. In the examples, we'll use the synchronous API, but you can use the asynchronous API in the same way, just remember to use `await` before calling the methods.<br>
 
+### Set the traffic limit for the client
+ℹ️ You'll also find this example in the [demo.py](demo.py) file.
+
+```python
+from py3xui import Api
+
+# 1️⃣ Create an instance of the API class.
+host = "**************************"
+username = "**********"
+password = "**********"
+api = Api(host, username, password)
+
+# 2️⃣ Login to the API.
+api.login()
+
+user_email = "iwatkot"  # ⬅️ Your user email here.
+inbound_id = 4  # ⬅️ Your inbound ID here.
+
+# 3️⃣ Get the inbound.
+inbound = api.inbound.get_by_id(inbound_id)
+print(f"Inbound has {len(inbound.settings.clients)} clients")
+
+# 4️⃣ Find the needed client in the inbound.
+client = None
+for c in inbound.settings.clients:
+    if c.email == user_email:
+        client = c
+        break
+
+if client:
+    print(f"Found client with ID: {client.id}")  # ⬅️ The actual Client UUID.
+else:
+    raise ValueError(f"Client with email {user_email} not found")
+
+cliend_uuid = client.id
+
+# 5️⃣ Get the client by email.
+client_by_email = api.client.get_by_email(user_email)
+print(f"Client by email has ID: {client_by_email.id}")  # ⬅️ The numeric ID here.
+
+# 6️⃣ Update the client with needed parameters.
+client_by_email.total_gb = 1000 * 1024 * 1024  # ⬅️ Your value here.
+
+# 7️⃣ Update the client ID so it will be UUID, not numeric.
+client_by_email.id = cliend_uuid
+
+# 8️⃣ Update the client.
+api.client.update(client_by_email.id, client_by_email)
+```
+
 ### Get inbounds list
 ```python
 from py3xui import Api, Inbound
