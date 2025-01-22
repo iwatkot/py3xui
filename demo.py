@@ -53,3 +53,59 @@ api.client.update(client_by_email.id, client_by_email)
 
 # We are done!  🎉
 # In this example we set the maximum traffic for the user with email "iwatkot" to 1GB.
+
+
+# In this example we'll create a connection string which can be used to add a new profile
+# to the VPN application.
+
+from py3xui import Inbound
+
+XUI_EXTERNAL_IP = "**********"  # ⬅️ Your external IP here or domain name.
+MAIN_REMARK = "gmfvbot"  # ⬅️ It can be any string.
+SERVER_PORT = 443  # ⬅️ Your server port here.
+
+
+def get_connection_string(inbound: Inbound, user_uuid: str, user_email: int) -> str:
+    """Prepare a connection string for the given inbound, user UUID and telegram ID.
+
+    Arguments:
+        inbound (Inbound): The inbound object.
+        user_uuid (str): The UUID of the user.
+        user_email (int): The email of the user.
+
+    Returns:
+        str: The connection string.
+    """
+    public_key = inbound.stream_settings.reality_settings.get("settings").get("publicKey")
+    website_name = inbound.stream_settings.reality_settings.get("serverNames")[0]
+    short_id = inbound.stream_settings.reality_settings.get("shortIds")[0]
+
+    connection_string = (
+        f"vless://{user_uuid}@{XUI_EXTERNAL_IP}:{SERVER_PORT}"
+        f"?type=tcp&security=reality&pbk={public_key}&fp=firefox&sni={website_name}"
+        f"&sid={short_id}&spx=%2F#{MAIN_REMARK}-{user_email}"
+    )
+
+    return connection_string
+
+
+# Now, if you want to crate a QR code image from the connection string, you can use the
+# qrcode library.
+# Remember to install it first with `pip install qrcode`.
+
+import os
+
+import qrcode
+
+# 1️⃣ Obtain the connection string.
+user_email = "iwatkot"  # ⬅️ Your user email here.
+connection_string = get_connection_string(inbound, "**********", user_email)
+
+# 2️⃣ Create the QR code.
+img = qrcode.make(connection_string)
+
+# 3️⃣ Save the QR code to the file.
+qrcode_path = os.path.join("qrcodes", f"{user_email}.png")
+img.save(qrcode_path)
+
+# Now you can use the `qrcode_path` to send the QR code to the user.

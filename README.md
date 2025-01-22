@@ -190,6 +190,67 @@ client_by_email.id = cliend_uuid
 api.client.update(client_by_email.id, client_by_email)
 ```
 
+### Create a connection string and QR code
+When you need to provide the user with a connection string that can be used in a software to create a new connection profile and/or a QR code, you can use the following example.
+
+```python
+from py3xui import Inbound
+
+XUI_EXTERNAL_IP = "**********"  # ⬅️ Your external IP here or domain name.
+MAIN_REMARK = "gmfvbot"  # ⬅️ It can be any string.
+SERVER_PORT = 443  # ⬅️ Your server port here.
+
+
+def get_connection_string(inbound: Inbound, user_uuid: str, user_email: int) -> str:
+    """Prepare a connection string for the given inbound, user UUID and telegram ID.
+
+    Arguments:
+        inbound (Inbound): The inbound object.
+        user_uuid (str): The UUID of the user.
+        user_email (int): The email of the user.
+
+    Returns:
+        str: The connection string.
+    """
+    public_key = inbound.stream_settings.reality_settings.get("settings").get("publicKey")
+    website_name = inbound.stream_settings.reality_settings.get("serverNames")[0]
+    short_id = inbound.stream_settings.reality_settings.get("shortIds")[0]
+
+    connection_string = (
+        f"vless://{user_uuid}@{XUI_EXTERNAL_IP}:{SERVER_PORT}"
+        f"?type=tcp&security=reality&pbk={public_key}&fp=firefox&sni={website_name}"
+        f"&sid={short_id}&spx=%2F#{MAIN_REMARK}-{user_email}"
+    )
+
+    return connection_string
+```
+
+And how, when you have the connection string, you can use the `qrcode` library to generate a QR code:
+
+```bash
+pip install qrcode
+```
+
+```python
+import os
+
+import qrcode
+
+# 1️⃣ Obtain the connection string.
+user_email = "iwatkot"  # ⬅️ Your user email here.
+connection_string = get_connection_string(inbound, "**********", user_email)
+
+# 2️⃣ Create the QR code.
+img = qrcode.make(connection_string)
+
+# 3️⃣ Save the QR code to the file.
+qrcode_path = os.path.join("qrcodes", f"{user_email}.png")
+img.save(qrcode_path)
+
+# Now you can use the `qrcode_path` to send the QR code to the user.
+```
+
+
 ### Get inbounds list
 ```python
 from py3xui import Api, Inbound
