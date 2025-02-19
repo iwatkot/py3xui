@@ -3,7 +3,7 @@ from py3xui import Api
 # In this short example we will update the client's traffic limit.
 # Due to the way API returns the data, we need to get the needed inbound to
 # obtain the actual UUID of the client.
-# Becaue other endpoints return the numeric ID of the client in the given inbound,
+# Because other endpoints return the numeric ID of the client in the given inbound,
 # not the UUID.
 # In the same way it can be implemented for AsyncApi, the methods are called
 # exactly the same way, and has the same signatures.
@@ -89,7 +89,7 @@ def get_connection_string(inbound: Inbound, user_uuid: str, user_email: int) -> 
     return connection_string
 
 
-# Now, if you want to crate a QR code image from the connection string, you can use the
+# Now, if you want to create a QR code image from the connection string, you can use the
 # qrcode library.
 # Remember to install it first with `pip install qrcode`.
 
@@ -109,3 +109,19 @@ qrcode_path = os.path.join("qrcodes", f"{user_email}.png")
 img.save(qrcode_path)
 
 # Now you can use the `qrcode_path` to send the QR code to the user.
+
+# This example demonstrates how to get server status and create a database backup
+
+# 9️⃣ Get server status
+server_status = api.server.get_status()
+print(f"CPU Load: {server_status.cpu}%")
+print(f"Memory Usage: {server_status.mem.current}/{server_status.mem.total} bytes")
+print(f"Uptime: {server_status.uptime} seconds")
+
+# 🔟 Create database backup
+"""The get_db() method retrieves a database backup file and saves it locally.
+The backup contains all XUI panel data including users, inbounds and settings.
+"""
+db_backup_path = "backup.db"
+api.server.get_db(db_backup_path)
+print(f"Database backup saved to {db_backup_path}")
