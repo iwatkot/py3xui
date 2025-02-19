@@ -385,3 +385,97 @@ async def test_database_export(httpx_mock: HTTPXMock):
 
 
 # # endregion
+
+# region ServerApi tests
+
+@pytest.mark.asyncio
+async def test_get_server_status(httpx_mock: HTTPXMock):
+    """
+    Test for checking server status retrieval
+    """
+    response_example = {
+        "success": True,
+        "obj": {
+            "cpu": 2.1,
+            "mem": {
+                "current": 1024,
+                "total": 8192
+            },
+            "load": {
+                "1": 1.5,
+                "5": 1.2,
+                "15": 1.0
+            },
+            "network": {
+                "in": 1024,
+                "out": 2048
+            },
+            "uptime": "2h30m"
+        }
+    }
+
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/server/status",
+        json=response_example,
+        status_code=200,
+    )
+
+    api = AsyncApi(HOST, USERNAME, PASSWORD)
+    api.session = SESSION
+    status = await api.server.get_status()
+
+    assert httpx_mock.get_request(), "Mocked request was not called"
+    assert status.cpu == 2.1, f"Expected CPU 2.1, got {status.cpu}"
+    assert status.mem.current == 1024, f"Expected current memory usage 1024, got {status.mem.current}"
+    assert status.mem.total == 8192, f"Expected total memory 8192, got {status.mem.total}"
+
+
+@pytest.mark.asyncio
+async def test_get_db(httpx_mock: HTTPXMock, tmp_path):
+    """
+    Test for checking database backup retrieval
+    """
+    db_content = b"fake database content"
+    save_path = tmp_path / "backup.db"
+
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{HOST}/panel/api/server/getDb",
+        content=db_content,
+        status_code=200,
+    )
+
+    api = AsyncApi(HOST, USERNAME, PASSWORD)
+    api.session = SESSION
+    await api.server.get_db(str(save_path))
+
+    assert httpx_mock.get_request(), "Mocked request was not called"
+    assert save_path.exists(), "Backup file was not created"
+    assert save_path.read_bytes() == db_content, "Backup file content does not match"
+
+
+@pytest.mark.asyncio
+async def test_get_db_failed(httpx_mock: HTTPXMock, tmp_path):
+    """
+    Test for checking error handling during database backup retrieval
+    """
+    save_path = tmp_path / "backup.db"
+
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{HOST}/panel/api/server/getDb",
+        json={"success": False, "msg": "Failed to get DB backup"},
+        status_code=500,
+    )
+
+    api = AsyncApi(HOST, USERNAME, PASSWORD)
+    api.session = SESSION
+
+    with pytest.raises(Exception):
+        await api.server.get_db(str(save_path))
+
+    assert httpx_mock.get_request(), "Mocked request was not called"
+    assert not save_path.exists(), "Backup file should not have been created"
+
+# endregion

@@ -300,27 +300,74 @@ def test_database_export():
 
 # region ServerApi tests
 
+def test_get_status():
+    """
+    Test for get_status() method of ServerApi class
+    """
+    response_example = {
+        "success": True,
+        "msg": "",
+        "obj": {
+            "cpu": 5.2,
+            "mem": {
+                "current": 1024000,
+                "total": 8192000
+            }
+        }
+    }
 
-# * Mocker does not work for this endpoint.
-# def test_get_db():
-#     save_path = "backup.db"
-#     expected_content = b"fake database content"
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/server/status", json=response_example)
+        api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
+        
+        status = api.server.get_status()
+        
+        assert status.cpu == 5.2, f"Expected CPU 5.2%, got {status.cpu}%"
+        assert status.mem.current == 1024000, f"Expected current memory 1024000, got {status.mem.current}"
+        assert status.mem.total == 8192000, f"Expected total memory 8192000, got {status.mem.total}"
 
-#     with requests_mock.Mocker() as m:
-#         m.get(f"{HOST}/server/getDb", content=expected_content)
-#         api = Api(HOST, USERNAME, PASSWORD)
-#         api.session = SESSION
+def test_get_db():
+    """
+    Test for get_db() method of ServerApi class
+    """
+    test_content = b"test database content"
+    save_path = "test_backup.db"
 
-#         response = api.server.get_db(save_path)
-#         with open(save_path, "wb") as f:
-#             f.write(response.content)
+    with requests_mock.Mocker() as m:
+        m.get(
+            f"{HOST}/server/getDb",
+            content=test_content,
+            headers={"Content-Type": "application/octet-stream"}
+        )
+        api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
+        
+        api.server.get_db(save_path)
+        
+        # Check saved file contents
+        with open(save_path, "rb") as f:
+            saved_content = f.read()
+        assert saved_content == test_content, f"Expected {test_content}, got {saved_content}"
+        
+        # Remove test file
+        import os
+        os.remove(save_path)
 
-#         with open(save_path, "rb") as f:
-#             saved_content = f.read()
-
-#         assert (
-#             saved_content == expected_content
-#         ), f"Expected {expected_content}, got {saved_content}"
-
+def test_get_db_failed():
+    """
+    Test error handling when getting DB backup fails
+    """
+    with requests_mock.Mocker() as m:
+        m.get(
+            f"{HOST}/server/getDb",
+            status_code=500,
+            text="Internal Server Error"
+        )
+        api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
+        
+        with pytest.raises(requests_mock.exceptions.HTTPError):
+            api.server.get_db("failed_backup.db")
 
 # endregion
