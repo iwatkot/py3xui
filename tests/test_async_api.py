@@ -393,44 +393,11 @@ async def test_get_server_status(httpx_mock: HTTPXMock):
     """
     Test for checking server status retrieval
     """
-    response_example = {
-        "success": True,
-        "msg": "",
-        "obj": {
-            "cpu": 5.2,
-            "mem": {
-                "current": 1024000,
-                "total": 8192000
-            },
-            "cpuCores": 4,
-            "logicalPro": 8,
-            "cpuSpeedMhz": 2400,
-            "swap": {"total": 2048000, "current": 512000},
-            "disk": {"total": 256000000, "current": 128000000},
-            "xray": {
-                "state": "running",
-                "version": "1.8.1",
-                "errorMsg": ""
-            },
-            "uptime": 345600,
-            "loads": [1.5, 1.2, 1.0],
-            "tcpCount": 125,
-            "udpCount": 50,
-            "netIO": {"up": 1024000, "down": 2048000},
-            "netTraffic": {"sent": 5120000, "recv": 10240000},
-            "publicIP": {"ipv4": "1.2.3.4", "ipv6": "2001:db8::1"},
-            "appStats": {
-                "status": "running",
-                "threads": 4,
-                "mem": 102400,
-                "uptime": 86400
-            }
-        }
-    }
+    response_example = json.load(open(os.path.join(RESPONSES_DIR, "get_server_status.json")))
 
     httpx_mock.add_response(
         method="POST",
-        url=f"{HOST}/panel/api/server/status",
+        url=f"{HOST}/server/status",
         json=response_example,
         status_code=200,
     )
@@ -440,9 +407,9 @@ async def test_get_server_status(httpx_mock: HTTPXMock):
     status = await api.server.get_status()
 
     assert httpx_mock.get_request(), "Mocked request was not called"
-    assert status.cpu == 2.1, f"Expected CPU 2.1, got {status.cpu}"
-    assert status.mem.current == 1024, f"Expected current memory usage 1024, got {status.mem.current}"
-    assert status.mem.total == 8192, f"Expected total memory 8192, got {status.mem.total}"
+    assert status.cpu == 5.2, f"Expected CPU 5.2, got {status.cpu}"
+    assert status.mem.current == 1024000, f"Expected current memory usage 1024, got {status.mem.current}"
+    assert status.mem.total == 8192000, f"Expected total memory 8192, got {status.mem.total}"
 
 
 @pytest.mark.asyncio
@@ -455,7 +422,7 @@ async def test_get_db(httpx_mock: HTTPXMock, tmp_path):
 
     httpx_mock.add_response(
         method="GET",
-        url=f"{HOST}/panel/api/server/getDb",
+        url=f"{HOST}/server/getDb",
         content=db_content,
         status_code=200,
     )
@@ -478,7 +445,7 @@ async def test_get_db_failed(httpx_mock: HTTPXMock, tmp_path):
 
     httpx_mock.add_response(
         method="GET",
-        url=f"{HOST}/panel/api/server/getDb",
+        url=f"{HOST}/server/getDb",
         json={"success": False, "msg": "Failed to get DB backup"},
         status_code=500,
     )

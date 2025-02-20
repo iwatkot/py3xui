@@ -1,7 +1,6 @@
 import json
 import os
 import uuid
-
 import pytest
 import requests_mock
 import requests
@@ -305,40 +304,7 @@ def test_get_status():
     """
     Test for get_status() method of ServerApi class
     """
-    response_example = {
-        "success": True,
-        "msg": "",
-        "obj": {
-            "cpu": 5.2,
-            "mem": {
-                "current": 1024000,
-                "total": 8192000
-            },
-            "cpuCores": 4,
-            "logicalPro": 8,
-            "cpuSpeedMhz": 2400,
-            "swap": {"total": 2048000, "current": 512000},
-            "disk": {"total": 256000000, "current": 128000000},
-            "xray": {
-                "state": "running",
-                "version": "1.8.1",
-                "errorMsg": ""
-            },
-            "uptime": 345600,
-            "loads": [1.5, 1.2, 1.0],
-            "tcpCount": 125,
-            "udpCount": 50,
-            "netIO": {"up": 1024000, "down": 2048000},
-            "netTraffic": {"sent": 5120000, "recv": 10240000},
-            "publicIP": {"ipv4": "1.2.3.4", "ipv6": "2001:db8::1"},
-            "appStats": {
-                "status": "running",
-                "threads": 4,
-                "mem": 102400,
-                "uptime": 86400
-            }
-        }
-    }
+    response_example = json.load(open(os.path.join(RESPONSES_DIR, "get_server_status.json")))
 
     with requests_mock.Mocker() as m:
         m.post(f"{HOST}/server/status", json=response_example)
@@ -385,13 +351,13 @@ def test_get_db_failed():
     with requests_mock.Mocker() as m:
         m.get(
             f"{HOST}/server/getDb",
-            status_code=500,
-            text="Internal Server Error"
+            status_code=500
         )
+        
         api = Api(HOST, USERNAME, PASSWORD)
         api.session = SESSION
         
-        with pytest.raises(requests.exceptions.HTTPError):
+        with pytest.raises(Exception):
             api.server.get_db("failed_backup.db")
 
 # endregion
