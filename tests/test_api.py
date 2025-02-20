@@ -3,7 +3,6 @@ import os
 import uuid
 import pytest
 import requests_mock
-import requests
 
 from py3xui import Api, Client, Inbound
 from py3xui.api.api_base import ApiFields
@@ -16,9 +15,6 @@ PASSWORD = "admin"
 SESSION = "abc123"
 EMAIL = "alhtim2x"
 SESSION = "abc123"
-
-# region BaseApi tests
-
 
 def test_login_success():
     with requests_mock.Mocker() as m:
@@ -46,9 +42,6 @@ def test_from_env():
     assert api.inbound.username == USERNAME, f"Expected {USERNAME}, got {api.username}"
     assert api.inbound.password == PASSWORD, f"Expected {PASSWORD}, got {api.password}"
 
-
-# endregion
-# region InboundApi tests
 
 
 def test_get_inbounds():
@@ -133,9 +126,6 @@ def test_update_inbound():
         api.session = SESSION
         api.inbound.update(1, _prepare_inbound())
 
-
-# endregion
-# region ClientApi tests
 
 
 def test_get_client():
@@ -247,23 +237,7 @@ def test_client_online():
 
 
 def test_get_client_traffic_by_id():
-    response_example = {
-        "success": True,
-        "msg": "",
-        "obj": [
-            {
-                "id": 1,
-                "inboundId": 1,
-                "enable": True,
-                "email": "test",
-                "up": 170579,
-                "down": 8995344,
-                "expiryTime": 0,
-                "total": 0,
-                "reset": 0,
-            }
-        ],
-    }
+    response_example = json.load(open(os.path.join(RESPONSES_DIR, "get_client_traffic_by_id.json")))
     with requests_mock.Mocker() as m:
         m.get(
             f"{HOST}/panel/api/inbounds/getClientTrafficsById/239708ef-487e-4945-829d-ad79a0ce067e",
@@ -283,9 +257,6 @@ def test_get_client_traffic_by_id():
         assert client.id == 1, f"Expected 1, got {client.id}"
 
 
-# endregion
-# region DatabaseApi tests
-
 
 def test_database_export():
     with requests_mock.Mocker() as m:
@@ -294,11 +265,6 @@ def test_database_export():
         api.session = SESSION
         api.database.export()
 
-
-# endregion
-
-
-# region ServerApi tests
 
 def test_get_status():
     """

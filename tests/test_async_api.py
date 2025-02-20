@@ -6,6 +6,7 @@ import pytest
 from pytest_httpx import HTTPXMock
 
 from py3xui import AsyncApi, Client, Inbound
+from py3xui.api.api_base import ApiFields
 from py3xui.inbound import Settings, Sniffing, StreamSettings
 
 RESPONSES_DIR = "tests/responses"
@@ -44,7 +45,7 @@ async def test_get_client(httpx_mock: HTTPXMock):
 
 @pytest.mark.asyncio
 async def test_get_ips(httpx_mock: HTTPXMock):
-    response_example = {"success": True, "msg": "", "obj": "No IP Record"}
+    response_example = {ApiFields.SUCCESS: True, ApiFields.MSG: "", ApiFields.OBJ: ApiFields.NO_IP_RECORD}
 
     httpx_mock.add_response(
         method="POST",
@@ -63,7 +64,7 @@ async def test_get_ips(httpx_mock: HTTPXMock):
 @pytest.mark.asyncio
 async def test_add_clients(httpx_mock: HTTPXMock):
     client = Client(id=str(uuid.uuid4()), email="test", enable=True)
-    response_example = {"success": True}
+    response_example = {ApiFields.SUCCESS: True}
 
     httpx_mock.add_response(
         method="POST",
@@ -82,7 +83,7 @@ async def test_add_clients(httpx_mock: HTTPXMock):
 @pytest.mark.asyncio
 async def test_update_client(httpx_mock: HTTPXMock):
     client = Client(id=str(uuid.uuid4()), email="test", enable=True)
-    response_example = {"success": True}
+    response_example = {ApiFields.SUCCESS: True}
 
     httpx_mock.add_response(
         method="POST",
@@ -100,7 +101,7 @@ async def test_update_client(httpx_mock: HTTPXMock):
 
 @pytest.mark.asyncio
 async def test_reset_client_ips(httpx_mock: HTTPXMock):
-    response_example = {"success": True}
+    response_example = {ApiFields.SUCCESS: True}
 
     httpx_mock.add_response(
         method="POST",
@@ -118,7 +119,7 @@ async def test_reset_client_ips(httpx_mock: HTTPXMock):
 
 @pytest.mark.asyncio
 async def test_reset_client_stats(httpx_mock: HTTPXMock):
-    response_example = {"success": True}
+    response_example = {ApiFields.SUCCESS: True}
 
     httpx_mock.add_response(
         method="POST",
@@ -136,7 +137,7 @@ async def test_reset_client_stats(httpx_mock: HTTPXMock):
 
 @pytest.mark.asyncio
 async def test_delete_client(httpx_mock: HTTPXMock):
-    response_example = {"success": True}
+    response_example = {ApiFields.SUCCESS: True}
 
     httpx_mock.add_response(
         method="POST",
@@ -154,7 +155,7 @@ async def test_delete_client(httpx_mock: HTTPXMock):
 
 @pytest.mark.asyncio
 async def test_delete_depleted_clients(httpx_mock: HTTPXMock):
-    response_example = {"success": True}
+    response_example = {ApiFields.SUCCESS: True}
 
     httpx_mock.add_response(
         method="POST",
@@ -172,7 +173,7 @@ async def test_delete_depleted_clients(httpx_mock: HTTPXMock):
 
 @pytest.mark.asyncio
 async def test_client_online(httpx_mock: HTTPXMock):
-    response_example = {"success": True}
+    response_example = {ApiFields.SUCCESS: True}
 
     httpx_mock.add_response(
         method="POST",
@@ -190,23 +191,7 @@ async def test_client_online(httpx_mock: HTTPXMock):
 
 @pytest.mark.asyncio
 async def test_get_client_traffic_by_id(httpx_mock: HTTPXMock):
-    response_example = {
-        "success": True,
-        "msg": "",
-        "obj": [
-            {
-                "id": 1,
-                "inboundId": 1,
-                "enable": True,
-                "email": "test",
-                "up": 170579,
-                "down": 8995344,
-                "expiryTime": 0,
-                "total": 0,
-                "reset": 0,
-            }
-        ],
-    }
+    response_example = json.load(open(os.path.join(RESPONSES_DIR, "get_client_traffic_by_id.json")))
 
     httpx_mock.add_response(
         method="GET",
@@ -228,10 +213,6 @@ async def test_get_client_traffic_by_id(httpx_mock: HTTPXMock):
     assert isinstance(client, Client), f"Expected Client, got {type(client)}"
     assert client.email == "test", f"Expected test, got {client.email}"
     assert client.id == 1, f"Expected 1, got {client.id}"
-
-
-# # endregion
-# # region InboundApi tests
 
 
 def _prepare_inbound() -> Inbound:
@@ -291,7 +272,7 @@ async def test_get_inbounds(httpx_mock: HTTPXMock):
 
 @pytest.mark.asyncio
 async def test_add_inbound(httpx_mock: HTTPXMock):
-    response_example = {"success": True}
+    response_example = {ApiFields.SUCCESS: True}
 
     httpx_mock.add_response(
         method="POST",
@@ -309,7 +290,7 @@ async def test_add_inbound(httpx_mock: HTTPXMock):
 
 @pytest.mark.asyncio
 async def test_delete_inbound_success(httpx_mock: HTTPXMock):
-    response_example = {"success": True}
+    response_example = {ApiFields.SUCCESS: True}
 
     httpx_mock.add_response(
         method="POST",
@@ -327,7 +308,7 @@ async def test_delete_inbound_success(httpx_mock: HTTPXMock):
 
 @pytest.mark.asyncio
 async def test_delete_inbound_failed(httpx_mock: HTTPXMock):
-    response_example = {"success": False, "msg": "Delete Failed: record not found"}
+    response_example = {ApiFields.SUCCESS: False, ApiFields.MSG: "Delete Failed: record not found"}
 
     httpx_mock.add_response(
         method="POST",
@@ -346,7 +327,7 @@ async def test_delete_inbound_failed(httpx_mock: HTTPXMock):
 
 @pytest.mark.asyncio
 async def test_update_inbound(httpx_mock: HTTPXMock):
-    response_example = {"success": True}
+    response_example = {ApiFields.SUCCESS: True}
 
     httpx_mock.add_response(
         method="POST",
@@ -362,13 +343,9 @@ async def test_update_inbound(httpx_mock: HTTPXMock):
     assert httpx_mock.get_request(), "Mocked request was not called"
 
 
-# # endregion
-# # region DatabaseApi tests
-
-
 @pytest.mark.asyncio
 async def test_database_export(httpx_mock: HTTPXMock):
-    response_example = {"success": True}
+    response_example = {ApiFields.SUCCESS: True}
 
     httpx_mock.add_response(
         method="GET",
@@ -383,10 +360,6 @@ async def test_database_export(httpx_mock: HTTPXMock):
 
     assert httpx_mock.get_request(), "Mocked request was not called"
 
-
-# # endregion
-
-# region ServerApi tests
 
 @pytest.mark.asyncio
 async def test_get_server_status(httpx_mock: HTTPXMock):
@@ -446,7 +419,7 @@ async def test_get_db_failed(httpx_mock: HTTPXMock, tmp_path):
     httpx_mock.add_response(
         method="GET",
         url=f"{HOST}/server/getDb",
-        json={"success": False, "msg": "Failed to get DB backup"},
+        json={ApiFields.SUCCESS: False, ApiFields.MSG: "Failed to get DB backup"},
         status_code=500,
     )
 
@@ -458,5 +431,3 @@ async def test_get_db_failed(httpx_mock: HTTPXMock, tmp_path):
 
     assert httpx_mock.get_request(), "Mocked request was not called"
     assert not save_path.exists(), "Backup file should not have been created"
-
-# endregion
