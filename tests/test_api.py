@@ -4,6 +4,7 @@ import uuid
 
 import pytest
 import requests_mock
+import requests
 
 from py3xui import Api, Client, Inbound
 from py3xui.api.api_base import ApiFields
@@ -312,6 +313,29 @@ def test_get_status():
             "mem": {
                 "current": 1024000,
                 "total": 8192000
+            },
+            "cpuCores": 4,
+            "logicalPro": 8,
+            "cpuSpeedMhz": 2400,
+            "swap": {"total": 2048000, "current": 512000},
+            "disk": {"total": 256000000, "current": 128000000},
+            "xray": {
+                "state": "running",
+                "version": "1.8.1",
+                "errorMsg": ""
+            },
+            "uptime": 345600,
+            "loads": [1.5, 1.2, 1.0],
+            "tcpCount": 125,
+            "udpCount": 50,
+            "netIO": {"up": 1024000, "down": 2048000},
+            "netTraffic": {"sent": 5120000, "recv": 10240000},
+            "publicIP": {"ipv4": "1.2.3.4", "ipv6": "2001:db8::1"},
+            "appStats": {
+                "status": "running",
+                "threads": 4,
+                "mem": 102400,
+                "uptime": 86400
             }
         }
     }
@@ -367,7 +391,7 @@ def test_get_db_failed():
         api = Api(HOST, USERNAME, PASSWORD)
         api.session = SESSION
         
-        with pytest.raises(requests_mock.exceptions.HTTPError):
+        with pytest.raises(requests.exceptions.HTTPError):
             api.server.get_db("failed_backup.db")
 
 # endregion
