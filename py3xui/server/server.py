@@ -3,6 +3,7 @@
 from pydantic import BaseModel, ConfigDict, Field
 
 
+# pylint: disable=too-few-public-methods
 class ServerFields:
     """Stores fields returned by XUI API for parsing."""
 
@@ -10,31 +11,33 @@ class ServerFields:
     CPU_CORES = "cpuCores"
     LOGICAL_PRO = "logicalPro"
     CPU_SPEED_MHZ = "cpuSpeedMhz"
-    
+
     MEM_CURRENT = "current"
     MEM_TOTAL = "total"
-    
+
     XRAY_STATE = "state"
     XRAY_ERROR_MSG = "errorMsg"
     XRAY_VERSION = "version"
-    
+
     UPTIME = "uptime"
     LOADS = "loads"
     TCP_COUNT = "tcpCount"
     UDP_COUNT = "udpCount"
-    
+    NET_IO = "netIO"
+    NET_TRAFFIC = "netTraffic"
     NET_IO_UP = "up"
     NET_IO_DOWN = "down"
-    
+
     NET_TRAFFIC_SENT = "sent"
     NET_TRAFFIC_RECV = "recv"
-    
     PUBLIC_IP_V4 = "ipv4"
     PUBLIC_IP_V6 = "ipv6"
-    
     APP_THREADS = "threads"
     APP_MEM = "mem"
     APP_UPTIME = "uptime"
+
+    APP_STATS = "appStats"
+    PUBLIC_IP = "publicIP"
 
 
 class MemoryInfo(BaseModel):
@@ -57,7 +60,7 @@ class XRayInfo(BaseModel):
         version (str): XRay version
     """
     state: str
-    error_msg: str = Field(alias=ServerFields.XRAY_ERROR_MSG)
+    error_msg: str = Field(alias=ServerFields.XRAY_ERROR_MSG) # type: ignore
     version: str
 
 
@@ -129,26 +132,22 @@ class Server(BaseModel):
         app_stats (AppStats): Application statistics
     """
 
-    cpu: float
-    cpu_cores: int = Field(alias=ServerFields.CPU_CORES)
-    logical_pro: int = Field(alias=ServerFields.LOGICAL_PRO)
-    cpu_speed_mhz: float = Field(alias=ServerFields.CPU_SPEED_MHZ)
-    
+    cpu: float = Field(alias=ServerFields.CPU) # type: ignore
+    cpu_cores: int = Field(alias=ServerFields.CPU_CORES) # type: ignore
+    logical_pro: int = Field(alias=ServerFields.LOGICAL_PRO) # type: ignore
+    cpu_speed_mhz: float = Field(alias=ServerFields.CPU_SPEED_MHZ) # type: ignore
     mem: MemoryInfo
     swap: MemoryInfo
     disk: MemoryInfo
-    
     xray: XRayInfo
     uptime: int
     loads: list[float]
-    
-    tcp_count: int = Field(alias=ServerFields.TCP_COUNT)
-    udp_count: int = Field(alias=ServerFields.UDP_COUNT)
-    
-    net_io: NetworkIO
-    net_traffic: NetworkTraffic
-    public_ip: PublicIP = Field(alias="publicIP")
-    app_stats: AppStats = Field(alias="appStats")
+    tcp_count: int = Field(alias=ServerFields.TCP_COUNT) # type: ignore
+    udp_count: int = Field(alias=ServerFields.UDP_COUNT) # type: ignore
+    net_io: NetworkIO = Field(alias=ServerFields.NET_IO) # type: ignore
+    net_traffic: NetworkTraffic = Field(alias=ServerFields.NET_TRAFFIC) # type: ignore
+    public_ip: PublicIP = Field(alias=ServerFields.PUBLIC_IP) # type: ignore
+    app_stats: AppStats = Field(alias=ServerFields.APP_STATS) # type: ignore
 
     model_config = ConfigDict(
         populate_by_name=True,

@@ -9,16 +9,18 @@ from py3xui import Api
 # exactly the same way, and has the same signatures.
 
 # 1️⃣ Create an instance of the API class.
-host = "**************************"
+host = "**********"
 username = "**********"
 password = "**********"
+
+email = "iwatkot"
+
 api = Api(host, username, password)
 
 # 2️⃣ Login to the API.
 api.login()
 
-user_email = "iwatkot"  # ⬅️ Your user email here.
-inbound_id = 4  # ⬅️ Your inbound ID here.
+inbound_id = 1  # ⬅️ Your inbound ID here.
 
 # 3️⃣ Get the inbound.
 inbound = api.inbound.get_by_id(inbound_id)
@@ -27,19 +29,19 @@ print(f"Inbound has {len(inbound.settings.clients)} clients")
 # 4️⃣ Find the needed client in the inbound.
 client = None
 for c in inbound.settings.clients:
-    if c.email == user_email:
+    if c.email == email:
         client = c
         break
 
 if client:
     print(f"Found client with ID: {client.id}")  # ⬅️ The actual Client UUID.
 else:
-    raise ValueError(f"Client with email {user_email} not found")
+    raise ValueError(f"Client with email {email} not found")
 
 cliend_uuid = client.id
 
 # 5️⃣ Get the client by email.
-client_by_email = api.client.get_by_email(user_email)
+client_by_email = api.client.get_by_email(email)
 print(f"Client by email has ID: {client_by_email.id}")  # ⬅️ The numeric ID here.
 
 # 6️⃣ Update the client with needed parameters.
@@ -97,15 +99,17 @@ import os
 
 import qrcode
 
-# 1️⃣ Obtain the connection string.
-user_email = "iwatkot"  # ⬅️ Your user email here.
-connection_string = get_connection_string(inbound, "**********", user_email)
+# 1️⃣ Obtain the connection string.   
+connection_string = get_connection_string(inbound, "**********", email)
 
 # 2️⃣ Create the QR code.
 img = qrcode.make(connection_string)
 
 # 3️⃣ Save the QR code to the file.
-qrcode_path = os.path.join("qrcodes", f"{user_email}.png")
+qrcode_path = os.path.join("qrcodes", f"{email}.png")
+# Check if qrcodes directory exists and create it if not
+if not os.path.exists("qrcodes"):
+    os.makedirs("qrcodes")
 img.save(qrcode_path)
 
 # Now you can use the `qrcode_path` to send the QR code to the user.

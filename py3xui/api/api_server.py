@@ -1,6 +1,8 @@
 """This module contains the ServerApi class for handling server in the XUI API."""
 
-from py3xui.api.api_base import BaseApi
+from typing import Any
+
+from py3xui.api.api_base import ApiFields, BaseApi
 from py3xui.server.server import Server
 
 
@@ -84,13 +86,14 @@ class ServerApi(BaseApi):
             ```
         """
         endpoint = "server/status"
+        headers = {"Accept": "application/json"}
+        data: dict[str, Any] = {}
         url = self._url(endpoint)
         self.logger.info("Getting server status...")
-        
-        response = self._post(url)
-        
-        if response.status_code == 200:
-            return Server.model_validate(response.json())
-        else:
-            self.logger.error(f"Failed to get server status: {response.text}")
-            response.raise_for_status()
+
+        response = self._post(url, headers, data)
+        server_json = response.json().get(ApiFields.OBJ)
+        print(f"Server status: {server_json}")
+        self.logger.info(f"Server status: {server_json}")
+        server = Server.model_validate(server_json)
+        return server
