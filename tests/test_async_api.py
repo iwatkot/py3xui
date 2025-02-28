@@ -6,6 +6,7 @@ import pytest
 from pytest_httpx import HTTPXMock
 
 from py3xui import AsyncApi, Client, Inbound
+from py3xui.api.api_base import ApiFields
 from py3xui.inbound import Settings, Sniffing, StreamSettings
 
 RESPONSES_DIR = "tests/responses"
@@ -44,7 +45,7 @@ async def test_get_client(httpx_mock: HTTPXMock):
 
 @pytest.mark.asyncio
 async def test_get_ips(httpx_mock: HTTPXMock):
-    response_example = {"success": True, "msg": "", "obj": "No IP Record"}
+    response_example = {ApiFields.SUCCESS: True, ApiFields.MSG: "", ApiFields.OBJ: ApiFields.NO_IP_RECORD}
 
     httpx_mock.add_response(
         method="POST",
@@ -63,7 +64,7 @@ async def test_get_ips(httpx_mock: HTTPXMock):
 @pytest.mark.asyncio
 async def test_add_clients(httpx_mock: HTTPXMock):
     client = Client(id=str(uuid.uuid4()), email="test", enable=True)
-    response_example = {"success": True}
+    response_example = {ApiFields.SUCCESS: True}
 
     httpx_mock.add_response(
         method="POST",
@@ -82,7 +83,7 @@ async def test_add_clients(httpx_mock: HTTPXMock):
 @pytest.mark.asyncio
 async def test_update_client(httpx_mock: HTTPXMock):
     client = Client(id=str(uuid.uuid4()), email="test", enable=True)
-    response_example = {"success": True}
+    response_example = {ApiFields.SUCCESS: True}
 
     httpx_mock.add_response(
         method="POST",
@@ -100,7 +101,7 @@ async def test_update_client(httpx_mock: HTTPXMock):
 
 @pytest.mark.asyncio
 async def test_reset_client_ips(httpx_mock: HTTPXMock):
-    response_example = {"success": True}
+    response_example = {ApiFields.SUCCESS: True}
 
     httpx_mock.add_response(
         method="POST",
@@ -118,7 +119,7 @@ async def test_reset_client_ips(httpx_mock: HTTPXMock):
 
 @pytest.mark.asyncio
 async def test_reset_client_stats(httpx_mock: HTTPXMock):
-    response_example = {"success": True}
+    response_example = {ApiFields.SUCCESS: True}
 
     httpx_mock.add_response(
         method="POST",
@@ -136,7 +137,7 @@ async def test_reset_client_stats(httpx_mock: HTTPXMock):
 
 @pytest.mark.asyncio
 async def test_delete_client(httpx_mock: HTTPXMock):
-    response_example = {"success": True}
+    response_example = {ApiFields.SUCCESS: True}
 
     httpx_mock.add_response(
         method="POST",
@@ -154,7 +155,7 @@ async def test_delete_client(httpx_mock: HTTPXMock):
 
 @pytest.mark.asyncio
 async def test_delete_depleted_clients(httpx_mock: HTTPXMock):
-    response_example = {"success": True}
+    response_example = {ApiFields.SUCCESS: True}
 
     httpx_mock.add_response(
         method="POST",
@@ -172,7 +173,7 @@ async def test_delete_depleted_clients(httpx_mock: HTTPXMock):
 
 @pytest.mark.asyncio
 async def test_client_online(httpx_mock: HTTPXMock):
-    response_example = {"success": True}
+    response_example = {ApiFields.SUCCESS: True}
 
     httpx_mock.add_response(
         method="POST",
@@ -190,23 +191,7 @@ async def test_client_online(httpx_mock: HTTPXMock):
 
 @pytest.mark.asyncio
 async def test_get_client_traffic_by_id(httpx_mock: HTTPXMock):
-    response_example = {
-        "success": True,
-        "msg": "",
-        "obj": [
-            {
-                "id": 1,
-                "inboundId": 1,
-                "enable": True,
-                "email": "test",
-                "up": 170579,
-                "down": 8995344,
-                "expiryTime": 0,
-                "total": 0,
-                "reset": 0,
-            }
-        ],
-    }
+    response_example = json.load(open(os.path.join(RESPONSES_DIR, "get_client_traffic_by_id.json")))
 
     httpx_mock.add_response(
         method="GET",
@@ -228,10 +213,6 @@ async def test_get_client_traffic_by_id(httpx_mock: HTTPXMock):
     assert isinstance(client, Client), f"Expected Client, got {type(client)}"
     assert client.email == "test", f"Expected test, got {client.email}"
     assert client.id == 1, f"Expected 1, got {client.id}"
-
-
-# # endregion
-# # region InboundApi tests
 
 
 def _prepare_inbound() -> Inbound:
@@ -291,7 +272,7 @@ async def test_get_inbounds(httpx_mock: HTTPXMock):
 
 @pytest.mark.asyncio
 async def test_add_inbound(httpx_mock: HTTPXMock):
-    response_example = {"success": True}
+    response_example = {ApiFields.SUCCESS: True}
 
     httpx_mock.add_response(
         method="POST",
@@ -309,7 +290,7 @@ async def test_add_inbound(httpx_mock: HTTPXMock):
 
 @pytest.mark.asyncio
 async def test_delete_inbound_success(httpx_mock: HTTPXMock):
-    response_example = {"success": True}
+    response_example = {ApiFields.SUCCESS: True}
 
     httpx_mock.add_response(
         method="POST",
@@ -327,7 +308,7 @@ async def test_delete_inbound_success(httpx_mock: HTTPXMock):
 
 @pytest.mark.asyncio
 async def test_delete_inbound_failed(httpx_mock: HTTPXMock):
-    response_example = {"success": False, "msg": "Delete Failed: record not found"}
+    response_example = {ApiFields.SUCCESS: False, ApiFields.MSG: "Delete Failed: record not found"}
 
     httpx_mock.add_response(
         method="POST",
@@ -346,7 +327,7 @@ async def test_delete_inbound_failed(httpx_mock: HTTPXMock):
 
 @pytest.mark.asyncio
 async def test_update_inbound(httpx_mock: HTTPXMock):
-    response_example = {"success": True}
+    response_example = {ApiFields.SUCCESS: True}
 
     httpx_mock.add_response(
         method="POST",
@@ -362,13 +343,9 @@ async def test_update_inbound(httpx_mock: HTTPXMock):
     assert httpx_mock.get_request(), "Mocked request was not called"
 
 
-# # endregion
-# # region DatabaseApi tests
-
-
 @pytest.mark.asyncio
 async def test_database_export(httpx_mock: HTTPXMock):
-    response_example = {"success": True}
+    response_example = {ApiFields.SUCCESS: True}
 
     httpx_mock.add_response(
         method="GET",
@@ -384,4 +361,73 @@ async def test_database_export(httpx_mock: HTTPXMock):
     assert httpx_mock.get_request(), "Mocked request was not called"
 
 
-# # endregion
+@pytest.mark.asyncio
+async def test_get_server_status(httpx_mock: HTTPXMock):
+    """
+    Test for checking server status retrieval
+    """
+    response_example = json.load(open(os.path.join(RESPONSES_DIR, "get_server_status.json")))
+
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/server/status",
+        json=response_example,
+        status_code=200,
+    )
+
+    api = AsyncApi(HOST, USERNAME, PASSWORD)
+    api.session = SESSION
+    status = await api.server.get_status()
+
+    assert httpx_mock.get_request(), "Mocked request was not called"
+    assert status.cpu == 5.2, f"Expected CPU 5.2, got {status.cpu}"
+    assert status.mem.current == 1024000, f"Expected current memory usage 1024, got {status.mem.current}"
+    assert status.mem.total == 8192000, f"Expected total memory 8192, got {status.mem.total}"
+
+
+@pytest.mark.asyncio
+async def test_get_db(httpx_mock: HTTPXMock, tmp_path):
+    """
+    Test for checking database backup retrieval
+    """
+    db_content = b"fake database content"
+    save_path = tmp_path / "backup.db"
+
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{HOST}/server/getDb",
+        content=db_content,
+        status_code=200,
+    )
+
+    api = AsyncApi(HOST, USERNAME, PASSWORD)
+    api.session = SESSION
+    await api.server.get_db(str(save_path))
+
+    assert httpx_mock.get_request(), "Mocked request was not called"
+    assert save_path.exists(), "Backup file was not created"
+    assert save_path.read_bytes() == db_content, "Backup file content does not match"
+
+
+@pytest.mark.asyncio
+async def test_get_db_failed(httpx_mock: HTTPXMock, tmp_path):
+    """
+    Test for checking error handling during database backup retrieval
+    """
+    save_path = tmp_path / "backup.db"
+
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{HOST}/server/getDb",
+        json={ApiFields.SUCCESS: False, ApiFields.MSG: "Failed to get DB backup"},
+        status_code=500,
+    )
+
+    api = AsyncApi(HOST, USERNAME, PASSWORD)
+    api.session = SESSION
+
+    with pytest.raises(Exception):
+        await api.server.get_db(str(save_path))
+
+    assert httpx_mock.get_request(), "Mocked request was not called"
+    assert not save_path.exists(), "Backup file should not have been created"

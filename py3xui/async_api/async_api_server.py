@@ -1,6 +1,10 @@
 """This module contains the ServerApi class for handling server in the XUI API."""
 
+from typing import Any
+
+from py3xui.api.api_base import ApiFields
 from py3xui.async_api.async_api_base import AsyncBaseApi
+from py3xui.server.server import Server
 
 
 class AsyncServerApi(AsyncBaseApi):
@@ -19,6 +23,7 @@ class AsyncServerApi(AsyncBaseApi):
 
     Public Methods:
         get_db: Retrieves a database backup file and saves it to a specified path.
+        get_status: Retrieves the current server status.
 
     Examples:
         ```python
@@ -27,6 +32,12 @@ class AsyncServerApi(AsyncBaseApi):
         api = py3xui.AsyncApi.from_env()
         await api.login()
 
+        # Get server status
+        status = await api.server.get_status()
+        print(f"CPU Load: {status.cpu}%")
+        print(f"Memory Used: {status.mem.current}/{status.mem.total} bytes")
+        
+        # Get DB backup
         db_save_path = "db_backup.db"
         await api.server.get_db(db_save_path)
         ```
@@ -64,3 +75,34 @@ class AsyncServerApi(AsyncBaseApi):
         else:
             self.logger.error(f"Failed to get DB backup: {response.text}")
             response.raise_for_status()
+
+    async def get_status(self) -> Server:
+        """Retrieves the current server status.
+        
+        Returns:
+            Server: An object containing server status information
+            
+        Examples:
+            ```python
+            import py3xui
+            
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+            
+            status = await api.server.get_status()
+            print(f"CPU Load: {status.cpu}%")
+            print(f"Memory Used: {status.mem.current}/{status.mem.total} bytes")
+            ```
+        """
+        endpoint = "server/status"
+        headers = {"Accept": "application/json"}
+        data: dict[str, Any] = {}
+
+        url = self._url(endpoint)
+        self.logger.info("Getting server status...")
+
+        response = await self._post(url, headers, data)
+        server_json = response.json().get(ApiFields.OBJ)
+        self.logger.info(f"Server status: {server_json}")
+        server = Server.model_validate(server_json)
+        return server

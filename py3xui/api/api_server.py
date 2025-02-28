@@ -1,6 +1,9 @@
 """This module contains the ServerApi class for handling server in the XUI API."""
 
-from py3xui.api.api_base import BaseApi
+from typing import Any
+
+from py3xui.api.api_base import ApiFields, BaseApi
+from py3xui.server.server import Server
 
 
 class ServerApi(BaseApi):
@@ -18,6 +21,7 @@ class ServerApi(BaseApi):
 
     Public Methods:
         get_db: Retrieves a database backup file and saves it to a specified path.
+        get_status: Retrieves the current status of the server.
 
     Examples:
         ```python
@@ -62,3 +66,34 @@ class ServerApi(BaseApi):
         else:
             self.logger.error(f"Failed to get DB backup: {response.text}")
             response.raise_for_status()
+
+    def get_status(self) -> Server:
+        """Gets the current server status.
+        
+        Returns:
+            Server: Object containing server status information
+            
+        Examples:
+            ```python
+            import py3xui
+            
+            api = py3xui.Api.from_env()
+            api.login()
+            
+            status = api.server.get_status()
+            print(f"CPU Load: {status.cpu}%")
+            print(f"Memory Used: {status.mem.current}/{status.mem.total} bytes")
+            ```
+        """
+        endpoint = "server/status"
+        headers = {"Accept": "application/json"}
+        data: dict[str, Any] = {}
+        url = self._url(endpoint)
+        self.logger.info("Getting server status...")
+
+        response = self._post(url, headers, data)
+        server_json = response.json().get(ApiFields.OBJ)
+        print(f"Server status: {server_json}")
+        self.logger.info(f"Server status: {server_json}")
+        server = Server.model_validate(server_json)
+        return server

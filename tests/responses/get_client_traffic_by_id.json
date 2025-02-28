@@ -1,0 +1,17 @@
+{
+        "success": true,
+        "msg": "",
+        "obj": [
+            {
+                "id": 1,
+                "inboundId": 1,
+                "enable": true,
+                "email": "test",
+                "up": 170579,
+                "down": 8995344,
+                "expiryTime": 0,
+                "total": 0,
+                "reset": 0
+            }
+        ]
+    }

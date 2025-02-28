@@ -1,7 +1,6 @@
 import json
 import os
 import uuid
-
 import pytest
 import requests_mock
 
@@ -16,9 +15,6 @@ PASSWORD = "admin"
 SESSION = "abc123"
 EMAIL = "alhtim2x"
 SESSION = "abc123"
-
-# region BaseApi tests
-
 
 def test_login_success():
     with requests_mock.Mocker() as m:
@@ -46,9 +42,6 @@ def test_from_env():
     assert api.inbound.username == USERNAME, f"Expected {USERNAME}, got {api.username}"
     assert api.inbound.password == PASSWORD, f"Expected {PASSWORD}, got {api.password}"
 
-
-# endregion
-# region InboundApi tests
 
 
 def test_get_inbounds():
@@ -133,9 +126,6 @@ def test_update_inbound():
         api.session = SESSION
         api.inbound.update(1, _prepare_inbound())
 
-
-# endregion
-# region ClientApi tests
 
 
 def test_get_client():
@@ -247,23 +237,7 @@ def test_client_online():
 
 
 def test_get_client_traffic_by_id():
-    response_example = {
-        "success": True,
-        "msg": "",
-        "obj": [
-            {
-                "id": 1,
-                "inboundId": 1,
-                "enable": True,
-                "email": "test",
-                "up": 170579,
-                "down": 8995344,
-                "expiryTime": 0,
-                "total": 0,
-                "reset": 0,
-            }
-        ],
-    }
+    response_example = json.load(open(os.path.join(RESPONSES_DIR, "get_client_traffic_by_id.json")))
     with requests_mock.Mocker() as m:
         m.get(
             f"{HOST}/panel/api/inbounds/getClientTrafficsById/239708ef-487e-4945-829d-ad79a0ce067e",
@@ -283,9 +257,6 @@ def test_get_client_traffic_by_id():
         assert client.id == 1, f"Expected 1, got {client.id}"
 
 
-# endregion
-# region DatabaseApi tests
-
 
 def test_database_export():
     with requests_mock.Mocker() as m:
@@ -295,32 +266,64 @@ def test_database_export():
         api.database.export()
 
 
-# endregion
+def test_get_status():
+    """
+    Test for get_status() method of ServerApi class
+    """
+    response_example = json.load(open(os.path.join(RESPONSES_DIR, "get_server_status.json")))
 
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/server/status", json=response_example)
+        api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
+        
+        status = api.server.get_status()
+        
+        assert status.cpu == 5.2, f"Expected CPU 5.2%, got {status.cpu}%"
+        assert status.mem.current == 1024000, f"Expected current memory 1024000, got {status.mem.current}"
+        assert status.mem.total == 8192000, f"Expected total memory 8192000, got {status.mem.total}"
 
-# region ServerApi tests
+def test_get_db():
+    """
+    Test for get_db() method of ServerApi class
+    """
+    test_content = b"test database content"
+    save_path = "test_backup.db"
 
+    with requests_mock.Mocker() as m:
+        m.get(
+            f"{HOST}/server/getDb",
+            content=test_content,
+            headers={"Content-Type": "application/octet-stream"}
+        )
+        api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
+        
+        api.server.get_db(save_path)
+        
+        # Check saved file contents
+        with open(save_path, "rb") as f:
+            saved_content = f.read()
+        assert saved_content == test_content, f"Expected {test_content}, got {saved_content}"
+        
+        # Remove test file
+        import os
+        os.remove(save_path)
 
-# * Mocker does not work for this endpoint.
-# def test_get_db():
-#     save_path = "backup.db"
-#     expected_content = b"fake database content"
-
-#     with requests_mock.Mocker() as m:
-#         m.get(f"{HOST}/server/getDb", content=expected_content)
-#         api = Api(HOST, USERNAME, PASSWORD)
-#         api.session = SESSION
-
-#         response = api.server.get_db(save_path)
-#         with open(save_path, "wb") as f:
-#             f.write(response.content)
-
-#         with open(save_path, "rb") as f:
-#             saved_content = f.read()
-
-#         assert (
-#             saved_content == expected_content
-#         ), f"Expected {expected_content}, got {saved_content}"
-
+def test_get_db_failed():
+    """
+    Test error handling when getting DB backup fails
+    """
+    with requests_mock.Mocker() as m:
+        m.get(
+            f"{HOST}/server/getDb",
+            status_code=500
+        )
+        
+        api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
+        
+        with pytest.raises(Exception):
+            api.server.get_db("failed_backup.db")
 
 # endregion
