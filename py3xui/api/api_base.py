@@ -240,7 +240,7 @@ class BaseApi:
         Raises:
             requests.exceptions.RequestException: If the request fails.
             requests.exceptions.RetryError: If the maximum number of retries is exceeded."""
-        self.logger.debug("{method} request to {url}...".format(method=method.__name__.upper(), url=url))
+        self.logger.debug(f"{method.__name__.upper()} request to {url}...")
         for retry in range(1, self.max_retries + 1):
             try:
                 skip_check = kwargs.pop("skip_check", False)
