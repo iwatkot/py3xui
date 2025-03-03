@@ -77,13 +77,13 @@ class ClientApi(BaseApi):
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
-        self.logger.info("Getting client stats for email: %s", email)
+        self.logger.info(f"Getting client stats for email: {email}")
 
         response = self._get(url, headers)
 
         client_json = response.json().get(ApiFields.OBJ)
         if not client_json:
-            self.logger.warning("No client found for email: %s", email)
+            self.logger.warning(f"No client found for email: {email}")
             return None
         return Client.model_validate(client_json)
 
@@ -112,7 +112,7 @@ class ClientApi(BaseApi):
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
-        self.logger.info("Getting client IPs for email: %s", email)
+        self.logger.info(f"Getting client IPs for email: {email}")
 
         response = self._post(url, headers, {})
 
@@ -150,7 +150,7 @@ class ClientApi(BaseApi):
             ]
         }
         data = {"id": inbound_id, "settings": json.dumps(settings)}
-        self.logger.info("Adding %s clients to inbound with ID: %s", len(clients), inbound_id)
+        self.logger.info(f"Adding {len(clients)} clients to inbound with ID: {inbound_id}")
 
         self._post(url, headers, data)
         self.logger.info("Client added successfully.")
@@ -183,7 +183,7 @@ class ClientApi(BaseApi):
         settings = {"clients": [client.model_dump(by_alias=True, exclude_defaults=True)]}
         data = {"id": client.inbound_id, "settings": json.dumps(settings)}
 
-        self.logger.info("Updating client: %s", client)
+        self.logger.info(f"Updating client: {client}")
         self._post(url, headers, data)
         self.logger.info("Client updated successfully.")
 
@@ -210,7 +210,7 @@ class ClientApi(BaseApi):
 
         url = self._url(endpoint)
         data: dict[str, Any] = {}
-        self.logger.info("Resetting client IPs for email: %s", email)
+        self.logger.info(f"Resetting client IPs for email: {email}")
 
         self._post(url, headers, data)
         self.logger.info("Client IPs reset successfully.")
@@ -241,7 +241,7 @@ class ClientApi(BaseApi):
 
         url = self._url(endpoint)
         data: dict[str, Any] = {}
-        self.logger.info("Resetting client stats for inbound ID: %s, email: %s", inbound_id, email)
+        self.logger.info(f"Resetting client stats for inbound ID: {inbound_id}, email: {email}")
 
         self._post(url, headers, data)
         self.logger.info("Client stats reset successfully.")
@@ -273,7 +273,7 @@ class ClientApi(BaseApi):
 
         url = self._url(endpoint)
         data: dict[str, Any] = {}
-        self.logger.info("Deleting client with ID: %s", client_uuid)
+        self.logger.info(f"Deleting client with ID: {client_uuid}")
 
         self._post(url, headers, data)
         self.logger.info("Client deleted successfully.")
@@ -305,7 +305,7 @@ class ClientApi(BaseApi):
 
         url = self._url(endpoint)
         data: dict[str, Any] = {}
-        self.logger.info("Deleting depleted clients for inbound ID: %s", inbound_id)
+        self.logger.info(f"Deleting depleted clients for inbound ID: {inbound_id}")
 
         self._post(url, headers, data)
         self.logger.info("Depleted clients deleted successfully.")
@@ -367,7 +367,7 @@ class ClientApi(BaseApi):
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
-        self.logger.info("Getting client stats for ID: %s", client_uuid)
+        self.logger.info(f"Getting client stats for ID: {client_uuid}")
 
         response = self._get(url, headers)
         clients_json: list[dict[str, int | bool]] = response.json().get(ApiFields.OBJ)
@@ -377,6 +377,6 @@ class ClientApi(BaseApi):
                 client = Client.model_validate(client_json)
                 clients.append(client)
             except TypeError:
-                self.logger.error("Error parsing client: %s", client_json)
+                self.logger.error(f"Error parsing client: {client_json}")
                 continue
         return clients

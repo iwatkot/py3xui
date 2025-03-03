@@ -102,7 +102,7 @@ class AsyncInboundApi(AsyncBaseApi):
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
-        self.logger.info("Getting inbound by ID: %s", inbound_id)
+        self.logger.info(f"Getting inbound by ID: {inbound_id}")
 
         response = await self._get(url, headers)
 
@@ -151,7 +151,7 @@ class AsyncInboundApi(AsyncBaseApi):
 
         url = self._url(endpoint)
         data = inbound.to_json()
-        self.logger.info("Adding inbound: %s", inbound)
+        self.logger.info(f"Adding inbound: {inbound}")
 
         await self._post(url, headers, data)
         self.logger.info("Inbound added successfully.")
@@ -183,7 +183,7 @@ class AsyncInboundApi(AsyncBaseApi):
         url = self._url(endpoint)
         data: dict[str, Any] = {}
 
-        self.logger.info("Deleting inbound with ID: %s", inbound_id)
+        self.logger.info(f"Deleting inbound with ID: {inbound_id}")
         await self._post(url, headers, data)
         self.logger.info("Inbound deleted successfully.")
 
@@ -215,7 +215,7 @@ class AsyncInboundApi(AsyncBaseApi):
 
         url = self._url(endpoint)
         data = inbound.to_json()
-        self.logger.info("Updating inbound: %s", inbound)
+        self.logger.info(f"Updating inbound: {inbound}")
 
         await self._post(url, headers, data)
         self.logger.info("Inbound updated successfully.")
@@ -270,7 +270,7 @@ class AsyncInboundApi(AsyncBaseApi):
 
         url = self._url(endpoint)
         data: dict[str, Any] = {}
-        self.logger.info("Resetting inbound client stats for ID: %s", inbound_id)
+        self.logger.info(f"Resetting inbound client stats for ID: {inbound_id}")
 
         await self._post(url, headers, data)
         self.logger.info("Inbound client stats reset successfully.")

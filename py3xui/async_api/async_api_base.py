@@ -178,7 +178,7 @@ class AsyncBaseApi:
             ValueError: If the invalid method is provided.
             httpx.RequestError: If the request fails.
             httpx.HTTPStatusError: If the maximum number of retries is exceeded."""
-        self.logger.debug("%s request to %s...", method, url)
+        self.logger.debug(f"{method} request to {url}...")
         for retry in range(1, self.max_retries + 1):
             try:
                 skip_check = kwargs.pop("skip_check", False)
@@ -221,7 +221,7 @@ class AsyncBaseApi:
                 if retry == self.max_retries:
                     raise e
                 self.logger.warning(
-                    "Request to %s failed: %s, retry %s of %s", url, e, retry, self.max_retries
+                    f"Request to {url} failed: {e}, retry {retry} of {self.max_retries}"
                 )
                 await asyncio.sleep(1 * (retry + 1))
             except httpx.HTTPStatusError as e:
@@ -240,13 +240,13 @@ class AsyncBaseApi:
         data = {"username": self.username, "password": self.password}
         if self.token is not None:
             data.update({"loginSecret": self.token})
-        self.logger.info("Logging in with username: %s", self.username)
+        self.logger.info(f"Logging in with username: {self.username}")
 
         response = await self._post(url, headers, data, is_login=True)
         cookie = await self._get_cookie(response)
         if not cookie:
             raise ValueError("No session cookie found, something wrong with the login...")
-        self.logger.info("Session cookie successfully retrieved for username: %s", self.username)
+        self.logger.info(f"Session cookie successfully retrieved for username: {self.username}")
         self.session = cookie
 
     async def _get_cookie(self, response: httpx.Response) -> str | None:
