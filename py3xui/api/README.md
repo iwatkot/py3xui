@@ -1111,6 +1111,7 @@ max_retries (int): The maximum number of retries for the API requests.
 
 Public Methods:
 get_db: Retrieves a database backup file and saves it to a specified path.
+get_status: Retrieves the current status of the server.
 
 **Examples**:
 
@@ -1149,5 +1150,33 @@ This route is used to retrieve a database backup file and save it to a specified
 
     db_save_path = "db_backup.db"
     api.server.get_db(db_save_path)
+    ```
+
+<a id="api.api_server.ServerApi.get_status"></a>
+
+#### get\_status
+
+```python
+def get_status() -> Server
+```
+
+Gets the current server status.
+
+**Returns**:
+
+- `Server` - Object containing server status information
+  
+
+**Examples**:
+
+    ```python
+    import py3xui
+
+    api = py3xui.Api.from_env()
+    api.login()
+
+    status = api.server.get_status()
+    print(f"CPU Load: {status.cpu}%")
+    print(f"Memory Used: {status.mem.current}/{status.mem.total} bytes")
     ```
 
