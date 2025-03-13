@@ -205,7 +205,9 @@ class AsyncBaseApi:
                     verify = True
 
                 cookies = {"3x-ui": self.session} if self.session else {}
-                async with httpx.AsyncClient(cookies=cookies, verify=verify) as client:
+                async with httpx.AsyncClient(
+                    cookies=cookies, verify=verify, follow_redirects=True
+                ) as client:
                     if method == ApiFields.GET:
                         response = await client.get(url, headers=headers, **kwargs)
                     elif method == ApiFields.POST:
