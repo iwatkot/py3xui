@@ -370,6 +370,21 @@ Logs into the XUI API and sets the session cookie if successful.
 
 - `ValueError` - If the login is unsuccessful.
 
+<a id="api.api_base.BaseApi.cookies"></a>
+
+#### cookies
+
+```python
+@property
+def cookies() -> dict[str, str]
+```
+
+Returns the cookies for the XUI API. If session is not set yet, returns an empty dict.
+
+**Returns**:
+
+  dict[str, str]: The cookies for the XUI API.
+
 <a id="api.api_client"></a>
 
 # api.api\_client
