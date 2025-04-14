@@ -195,7 +195,7 @@ class BaseApi:
 
     @property
     def cookies(self) -> dict[str, str]:
-        """Returns the cookies for the XUI API. If sessions is not set yet, returns an empty dict.
+        """Returns the cookies for the XUI API. If session is not set yet, returns an empty dict.
 
         Returns:
             dict[str, str]: The cookies for the XUI API."""
