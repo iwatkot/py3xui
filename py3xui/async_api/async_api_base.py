@@ -204,9 +204,8 @@ class AsyncBaseApi:
                     # Otherwise, the default CA bundle will be used for verification.
                     verify = True
 
-                cookies = {"3x-ui": self.session} if self.session else {}
                 async with httpx.AsyncClient(
-                    cookies=cookies, verify=verify, follow_redirects=True
+                    cookies=self.cookies, verify=verify, follow_redirects=True
                 ) as client:
                     if method == ApiFields.GET:
                         response = await client.get(url, headers=headers, **kwargs)
@@ -264,6 +263,14 @@ class AsyncBaseApi:
             if cookie:
                 return cookie
         return None
+
+    @property
+    def cookies(self) -> dict[str, str]:
+        """Returns the cookies for the XUI API. If sessions is not set yet, returns an empty dict.
+
+        Returns:
+            dict[str, str]: The cookies for the XUI API."""
+        return {"3x-ui": self.session} if self.session else {}
 
     async def _check_response(self, response: httpx.Response) -> None:
         """Checks the response from the XUI API using the success field.

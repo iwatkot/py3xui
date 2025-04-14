@@ -193,6 +193,14 @@ class BaseApi:
                 return cookie
         return None
 
+    @property
+    def cookies(self) -> dict[str, str]:
+        """Returns the cookies for the XUI API. If sessions is not set yet, returns an empty dict.
+
+        Returns:
+            dict[str, str]: The cookies for the XUI API."""
+        return {"3x-ui": self.session} if self.session else {}
+
     def _check_response(self, response: requests.Response) -> None:
         """Checks the response from the XUI API using the success field.
 
@@ -267,7 +275,7 @@ class BaseApi:
                     verify = True
 
                 kwargs.update({"verify": verify})
-                response = method(url, cookies={"3x-ui": self.session}, headers=headers, **kwargs)
+                response = method(url, cookies=self.cookies, headers=headers, **kwargs)
                 response.raise_for_status()
                 if skip_check:
                     return response
