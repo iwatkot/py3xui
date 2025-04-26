@@ -97,3 +97,34 @@ class ServerApi(BaseApi):
         self.logger.info(f"Server status: {server_json}")
         server = Server.model_validate(server_json)
         return server
+
+    def get_new_x25519_cert(self) -> (str, str):
+        """Get the x25519 key pair.
+
+        Returns:
+            A tuple of the public and private key.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+
+            private_key,public_key = api.server.get_status()
+            print(f"private_key: {private_key}")
+            print(f"public_key: {public_key}")
+            ```
+        """
+        endpoint = "server/getNewX25519Cert"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        self.logger.info("Getting new X25519 certificate...")
+
+        response = self._post(url, headers, {})
+        if response.json().get(ApiFields.SUCCESS) is False:
+            return None
+        key_pair = response.json().get(ApiFields.OBJ)
+        print(f"X25519 Key pair: {key_pair}")
+        self.logger.info(f"X25519 Key pair: {key_pair}")
+        return key_pair["privateKey"], key_pair["publicKey"]
