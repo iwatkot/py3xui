@@ -1,4 +1,6 @@
 """This module contains the StreamSettings class for parsing the XUI API response."""
+import random
+import secrets
 
 from pydantic import ConfigDict, Field
 
@@ -58,3 +60,31 @@ class StreamSettings(JsonStringModel):
     model_config = ConfigDict(
         populate_by_name=True,
     )
+
+    @staticmethod
+    def get_random_short_ids(self)->list:
+        """
+        generate random short Ids
+        """
+
+        def random_seq(count, type="default", has_numbers=True, has_lowercase=True, has_uppercase=True):
+            seq = ''
+            if type == "hex":
+                seq = "0123456789abcdef"
+            else:
+                if has_numbers:
+                    seq += "0123456789"
+                if has_lowercase:
+                    seq += "abcdefghijklmnopqrstuvwxyz"
+                if has_uppercase:
+                    seq += "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+            # 生成随机序列
+            seq_length = len(seq)
+            result = ''.join(seq[secrets.randbelow(seq_length)] for _ in range(count))
+            return result
+
+        lengths = [2, 4, 6, 8, 10, 12, 14, 16]
+        random.shuffle(lengths)
+
+        return [random_seq(length, type="hex") for length in lengths]
