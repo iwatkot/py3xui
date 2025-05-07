@@ -270,7 +270,10 @@ class AsyncBaseApi:
 
         Returns:
             dict[str, str]: The cookies for the XUI API."""
-        return {"3x-ui": self.session} if self.session else {}
+        # Using a list of cookie name for compatibility reasons.
+        # Old versions of the 3x-ui panel used "session" as the cookie name, while
+        # newer versions use "3x-ui" as the cookie name.
+        return {cookie_name: self.session for cookie_name in COOKIE_NAMES} if self.session else {}
 
     async def _check_response(self, response: httpx.Response) -> None:
         """Checks the response from the XUI API using the success field.

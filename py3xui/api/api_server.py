@@ -69,17 +69,17 @@ class ServerApi(BaseApi):
 
     def get_status(self) -> Server:
         """Gets the current server status.
-        
+
         Returns:
             Server: Object containing server status information
-            
+
         Examples:
             ```python
             import py3xui
-            
+
             api = py3xui.Api.from_env()
             api.login()
-            
+
             status = api.server.get_status()
             print(f"CPU Load: {status.cpu}%")
             print(f"Memory Used: {status.mem.current}/{status.mem.total} bytes")
@@ -93,7 +93,7 @@ class ServerApi(BaseApi):
 
         response = self._post(url, headers, data)
         server_json = response.json().get(ApiFields.OBJ)
-        print(f"Server status: {server_json}")
+
         self.logger.info(f"Server status: {server_json}")
         server = Server.model_validate(server_json)
         return server
