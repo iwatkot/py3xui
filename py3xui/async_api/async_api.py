@@ -41,6 +41,7 @@ class AsyncApi:
         inbound (AsyncInboundApi): The inbound API.
         database (AsyncDatabaseApi): The database API.
         session (str): The session cookie for the XUI API.
+        cookie_name (str): The cookie name for the XUI API.
 
     Public Methods:
         login: Logs into the XUI API.
@@ -93,6 +94,7 @@ class AsyncApi:
             host, username, password, token, use_tls_verify, custom_certificate_path, logger
         )
         self._session: str | None = None
+        self._cookie_name: str | None = None
 
     @property
     def session(self) -> str | None:
@@ -105,11 +107,40 @@ class AsyncApi:
 
     @session.setter
     def session(self, value: str) -> None:
+        """Sets the session cookie for the XUI API.
+
+        Arguments:
+            value (str): The session cookie to set.
+        """
         self._session = value
         self.client.session = value
         self.inbound.session = value
         self.database.session = value
         self.server.session = value
+
+    @property
+    def cookie_name(self) -> str | None:
+        """The cookie name for the XUI API.
+
+        Returns:
+            str: The cookie name for the XUI API.
+        """
+        return self._cookie_name
+
+    @cookie_name.setter
+    def cookie_name(self, value: str | None) -> None:
+        """Sets the cookie name for the XUI API.
+
+        This method is used to set the cookie name for all the APIs.
+
+        Arguments:
+            value (str): The cookie name to set.
+        """
+        self._cookie_name = value
+        self.client.cookie_name = value
+        self.inbound.cookie_name = value
+        self.database.cookie_name = value
+        self.server.cookie_name = value
 
     @classmethod
     def from_env(
@@ -176,8 +207,6 @@ class AsyncApi:
             ```
         """
         await self.client.login()
-        self._session = self.client.session
-        self.inbound.session = self._session
-        self.database.session = self._session
-        self.server.session = self._session
+        self.session = self.client.session
+        self.cookie_name = self.client.cookie_name
         self.logger.info("Logged in successfully.")
