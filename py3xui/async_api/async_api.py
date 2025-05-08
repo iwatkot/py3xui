@@ -123,7 +123,7 @@ class AsyncApi:
         """The cookie name for the XUI API.
 
         Returns:
-            str: The cookie name for the XUI API.
+            str | None: The cookie name for the XUI API or None if not set.
         """
         return self._cookie_name
 

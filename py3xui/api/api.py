@@ -118,7 +118,7 @@ class Api:
         """The cookie name for the XUI API.
 
         Returns:
-            str: The cookie name for the XUI API.
+            str | None: The cookie name for the XUI API. If not set, it will be None.
         """
         return self._cookie_name
 
