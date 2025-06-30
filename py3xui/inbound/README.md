@@ -1,38 +1,35 @@
-<a id="inbound.bases"></a>
+<a id="inbound.settings"></a>
 
-# inbound.bases
+# inbound.settings
 
-This module contains the base classes for the inbound models.
+This module contains the Settings class, which is used to parse the JSON response
+from the XUI API.
 
-<a id="inbound.bases.JsonStringModel"></a>
+<a id="inbound.settings.SettingsFields"></a>
 
-## JsonStringModel Objects
-
-```python
-class JsonStringModel(BaseModel)
-```
-
-Base class for models that have a JSON string as a field.
-
-<a id="inbound.bases.JsonStringModel.model_validate"></a>
-
-#### model\_validate
+## SettingsFields Objects
 
 ```python
-@model_validator(mode="before")
-def model_validate(cls, values)
+class SettingsFields()
 ```
 
-Converts the JSON string to a dictionary if it is a string.
+Stores the fields returned by the XUI API for parsing.
 
-**Arguments**:
+<a id="inbound.settings.Settings"></a>
 
-- `values` _Any_ - The values to validate.
-  
+## Settings Objects
 
-**Returns**:
+```python
+class Settings(JsonStringModel)
+```
 
-- `Any` - The validated values.
+Represents the settings for an inbound connection.
+
+**Attributes**:
+
+- `clients` _list[Client]_ - The clients for the inbound connection. Optional.
+- `decryption` _str_ - The decryption method for the inbound connection. Optional.
+- `fallbacks` _list_ - The fallbacks for the inbound connection. Optional.
 
 <a id="inbound.inbound"></a>
 
@@ -122,38 +119,83 @@ Converts the Inbound instance to a JSON-compatible dictionary for the XUI API.
 
   dict[str, Any]: The JSON-compatible dictionary.
 
-<a id="inbound.settings"></a>
+<a id="inbound.stream_settings"></a>
 
-# inbound.settings
+# inbound.stream\_settings
 
-This module contains the Settings class, which is used to parse the JSON response
-from the XUI API.
+This module contains the StreamSettings class for parsing the XUI API response.
 
-<a id="inbound.settings.SettingsFields"></a>
+<a id="inbound.stream_settings.StreamSettingsFields"></a>
 
-## SettingsFields Objects
+## StreamSettingsFields Objects
 
 ```python
-class SettingsFields()
+class StreamSettingsFields()
 ```
 
 Stores the fields returned by the XUI API for parsing.
 
-<a id="inbound.settings.Settings"></a>
+<a id="inbound.stream_settings.StreamSettings"></a>
 
-## Settings Objects
+## StreamSettings Objects
 
 ```python
-class Settings(JsonStringModel)
+class StreamSettings(JsonStringModel)
 ```
 
-Represents the settings for an inbound connection.
+Represents the stream settings for an inbound.
 
 **Attributes**:
 
-- `clients` _list[Client]_ - The clients for the inbound connection. Optional.
-- `decryption` _str_ - The decryption method for the inbound connection. Optional.
-- `fallbacks` _list_ - The fallbacks for the inbound connection. Optional.
+- `security` _str_ - The security for the inbound connection. Required.
+- `network` _str_ - The network for the inbound connection. Required.
+- `tcp_settings` _dict_ - The TCP settings for the inbound connection. Required.
+- `external_proxy` _list_ - The external proxy for the inbound connection. Optional.
+- `reality_settings` _dict_ - The reality settings for the inbound connection. Optional.
+- `xtls_settings` _dict_ - The xTLS settings for the inbound connection. Optional.
+- `tls_settings` _dict_ - The TLS settings for the inbound connection. Optional.
+
+<a id="inbound.stream_settings.StreamSettings.tls_settings"></a>
+
+#### tls\_settings
+
+type: ignore
+
+<a id="inbound.bases"></a>
+
+# inbound.bases
+
+This module contains the base classes for the inbound models.
+
+<a id="inbound.bases.JsonStringModel"></a>
+
+## JsonStringModel Objects
+
+```python
+class JsonStringModel(BaseModel)
+```
+
+Base class for models that have a JSON string as a field.
+
+<a id="inbound.bases.JsonStringModel.model_validate"></a>
+
+#### model\_validate
+
+```python
+@model_validator(mode="before")
+def model_validate(cls, values)
+```
+
+Converts the JSON string to a dictionary if it is a string.
+
+**Arguments**:
+
+- `values` _Any_ - The values to validate.
+  
+
+**Returns**:
+
+- `Any` - The validated values.
 
 <a id="inbound.sniffing"></a>
 
@@ -203,48 +245,6 @@ type: ignore
 <a id="inbound.sniffing.Sniffing.route_only"></a>
 
 #### route\_only
-
-type: ignore
-
-<a id="inbound.stream_settings"></a>
-
-# inbound.stream\_settings
-
-This module contains the StreamSettings class for parsing the XUI API response.
-
-<a id="inbound.stream_settings.StreamSettingsFields"></a>
-
-## StreamSettingsFields Objects
-
-```python
-class StreamSettingsFields()
-```
-
-Stores the fields returned by the XUI API for parsing.
-
-<a id="inbound.stream_settings.StreamSettings"></a>
-
-## StreamSettings Objects
-
-```python
-class StreamSettings(JsonStringModel)
-```
-
-Represents the stream settings for an inbound.
-
-**Attributes**:
-
-- `security` _str_ - The security for the inbound connection. Required.
-- `network` _str_ - The network for the inbound connection. Required.
-- `tcp_settings` _dict_ - The TCP settings for the inbound connection. Required.
-- `external_proxy` _list_ - The external proxy for the inbound connection. Optional.
-- `reality_settings` _dict_ - The reality settings for the inbound connection. Optional.
-- `xtls_settings` _dict_ - The xTLS settings for the inbound connection. Optional.
-- `tls_settings` _dict_ - The TLS settings for the inbound connection. Optional.
-
-<a id="inbound.stream_settings.StreamSettings.tls_settings"></a>
-
-#### tls\_settings
 
 type: ignore
 

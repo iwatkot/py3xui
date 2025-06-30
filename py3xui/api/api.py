@@ -189,19 +189,24 @@ class Api:
 
         return cls(host, username, password, token, use_tls_verify, custom_certificate_path, logger)
 
-    def login(self) -> None:
+    def login(self, two_factor_code: str | int | None = None) -> None:
         """Logs into the XUI API and sets the session cookie for the client, inbound, and
         database APIs.
+
+        Arguments:
+            two_factor_code (str | int | None): The two-factor authentication code, if required.
+
 
         Examples:
             ```python
             import py3xui
 
             api = py3xui.Api.from_env()
-            api.login()
+            api.login() # If two-factor authentication is not enabled.
+            api.login("123456")  # If two-factor authentication is enabled, pass the code.
             ```
         """
-        self.client.login()
-        self.session = self.client.session
+        self.client.login(two_factor_code)
+        self.session = self.client.session  # type: ignore
         self.cookie_name = self.client.cookie_name
         self.logger.info("Logged in successfully.")

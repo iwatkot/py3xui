@@ -131,6 +131,21 @@ async_api = AsyncApi.from_env()
 await async_api.login()
 ```
 
+#### Using two-factor authentication
+If you enabled two-factor authentication in the 3x-ui app, you'll need to pass the two-factor code to the `login` method. The code can be either a string or an integer.
+```python
+from py3xui import Api, AsyncApi
+
+api = Api.from_env()
+api.login("123456")  # Replace with your actual two-factor code.
+
+async_api = AsyncApi.from_env()
+await async_api.login("123456")  # Replace with your actual two-factor code.
+```
+
+Note, that the two-factor code is being changed every 30 seconds, so you need to ensure that you pass the correct code when calling the `login` method. If you don't pass the code, the login will fail.  
+Keep in mind, that the session cookie has it's own expiration time, so you may need to call the `login` method again after some time while providing the new two-factor code. So, it's recommended to have some sort of automation to retrieve the valid two-factor code from time to time.
+
 ## Examples
 You'll find detailed docs with usage examples for both APIs and for used models in the corresponding package directories:
 - [Synchronous API](py3xui/api/README.md)

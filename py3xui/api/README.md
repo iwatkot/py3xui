@@ -1,3 +1,347 @@
+<a id="api.api_database"></a>
+
+# api.api\_database
+
+This module contains the DatabaseApi class, which is responsible handling database operations
+in the XUI API.
+
+<a id="api.api_database.DatabaseApi"></a>
+
+## DatabaseApi Objects
+
+```python
+class DatabaseApi(BaseApi)
+```
+
+This class provides methods to interact with the database in the XUI API.
+
+Attributes and Properties:
+host (str): The XUI host URL.
+username (str): The XUI username.
+password (str): The XUI password.
+token (str | None): The XUI secret token.
+use_tls_verify (bool): Whether to verify the server TLS certificate.
+custom_certificate_path (str | None): Path to a custom certificate file.
+session (requests.Session): The session object for the API.
+max_retries (int): The maximum number of retries for the API requests.
+
+Public Methods:
+export: Exports the database.
+
+**Examples**:
+
+    ```python
+    import py3xui
+
+    api = py3xui.Api.from_env()
+    api.login()
+    api.database.export()
+    ```
+
+<a id="api.api_database.DatabaseApi.export"></a>
+
+#### export
+
+```python
+def export() -> None
+```
+
+This endpoint triggers the creation of a system backup and initiates the delivery of
+the backup file to designated administrators via a configured Telegram bot. The server
+verifies the Telegram bot's activation status within the system settings and checks for
+the presence of admin IDs specified in the settings before sending the backup.
+
+[Source documentation](https://documenter.getpostman.com/view/16802678/2s9YkgD5jm#5368cbc0-7c84-4b8c-aa54-d9fffb24d1f2)
+
+**Examples**:
+
+    ```python
+    import py3xui
+
+    api = py3xui.Api.from_env()
+    api.login()
+    api.database.export()
+    ```
+
+<a id="api.api_inbound"></a>
+
+# api.api\_inbound
+
+This module contains the InboundApi class for handling inbounds in the XUI API.
+
+<a id="api.api_inbound.InboundApi"></a>
+
+## InboundApi Objects
+
+```python
+class InboundApi(BaseApi)
+```
+
+This class provides methods to interact with the inbounds in the XUI API.
+
+Attributes and Properties:
+host (str): The XUI host URL.
+username (str): The XUI username.
+password (str): The XUI password.
+token (str | None): The XUI secret token.
+use_tls_verify (bool): Whether to verify the server TLS certificate.
+custom_certificate_path (str | None): Path to a custom certificate file.
+session (requests.Session): The session object for the API.
+max_retries (int): The maximum number of retries for the API requests.
+
+Public Methods:
+get_list: Retrieves a list of inbounds.
+add: Adds a new inbound.
+delete: Deletes an inbound.
+update: Updates an inbound.
+reset_stats: Resets the statistics of all inbounds.
+reset_client_stats: Resets the statistics of a specific inbound.
+
+**Examples**:
+
+    ```python
+    import py3xui
+
+    api = py3xui.Api.from_env()
+    api.login()
+
+    inbounds: list[py3xui.Inbound] = api.inbound.get_list()
+    ```
+
+<a id="api.api_inbound.InboundApi.get_list"></a>
+
+#### get\_list
+
+```python
+def get_list() -> list[Inbound]
+```
+
+This route is used to retrieve a comprehensive list of all inbounds along with
+their associated client options and statistics.
+
+[Source documentation](https://documenter.getpostman.com/view/16802678/2s9YkgD5jm#b7c42b67-4362-44d3-bd61-ba7df0721802)
+
+**Returns**:
+
+- `list[Inbound]` - A list of inbounds.
+  
+
+**Examples**:
+
+    ```python
+    import py3xui
+
+    api = py3xui.Api.from_env()
+    api.login()
+
+    inbounds: list[py3xui.Inbound] = api.inbound.get_list()
+    ```
+
+<a id="api.api_inbound.InboundApi.get_by_id"></a>
+
+#### get\_by\_id
+
+```python
+def get_by_id(inbound_id: int) -> Inbound
+```
+
+This route is used to retrieve statistics and details for a specific inbound connection
+identified by specified ID. This includes information about the inbound itself, its
+statistics, and the clients connected to it.
+If the inbound is not found, the method will raise an exception.
+
+[Source documentation](https://www.postman.com/hsanaei/3x-ui/request/uu7wm1k/inbound)
+
+**Arguments**:
+
+- `inbound_id` _int_ - The ID of the inbound to retrieve.
+  
+
+**Returns**:
+
+  Inbound | None: The inbound object if found, otherwise None.
+  
+
+**Examples**:
+
+  
+    ```python
+
+    import py3xui
+
+    api = py3xui.Api.from_env()
+
+    api.login()
+
+    inbound_id = 1
+
+    inbound = api.inbound.get_by_id(inbound_id)
+
+<a id="api.api_inbound.InboundApi.add"></a>
+
+#### add
+
+```python
+def add(inbound: Inbound) -> None
+```
+
+This route is used to add a new inbound configuration.
+
+[Source documentation](https://documenter.getpostman.com/view/16802678/2s9YkgD5jm#813ac729-5ba6-4314-bc2a-d0d3acc70388)
+
+**Arguments**:
+
+- `inbound` _Inbound_ - The inbound object to add.
+  
+
+**Examples**:
+
+    ```python
+    import py3xui
+    from py3xui.inbound import Inbound, Settings, Sniffing, StreamSettings
+
+    api = py3xui.Api.from_env()
+    api.login()
+
+    settings = Settings()
+    sniffing = Sniffing(enabled=True)
+
+    tcp_settings = {
+        "acceptProxyProtocol": False,
+        "header": {"type": "none"},
+    }
+    stream_settings = StreamSettings(security="reality", network="tcp", tcp_settings=tcp_settings)
+
+    inbound = Inbound(
+        enable=True,
+        port=443,
+        protocol="vless",
+        settings=settings,
+        stream_settings=stream_settings,
+        sniffing=sniffing,
+        remark="test3",
+    )
+
+    api.inbound.add(inbound)
+    ```
+
+<a id="api.api_inbound.InboundApi.delete"></a>
+
+#### delete
+
+```python
+def delete(inbound_id: int) -> None
+```
+
+This route is used to delete an inbound identified by its ID.
+
+[Source documentation](https://documenter.getpostman.com/view/16802678/2s9YkgD5jm#a655d0e3-7d8c-4331-9061-422fcb515da9)
+
+**Arguments**:
+
+- `inbound_id` _int_ - The ID of the inbound to delete.
+  
+
+**Examples**:
+
+  
+    ```python
+    import py3xui
+
+    api = py3xui.Api.from_env()
+    api.login()
+    inbounds: list[py3xui.Inbound] = api.inbound.get_list()
+
+    for inbound in inbounds:
+        api.inbound.delete(inbound.id)
+    ```
+
+<a id="api.api_inbound.InboundApi.update"></a>
+
+#### update
+
+```python
+def update(inbound_id: int, inbound: Inbound) -> None
+```
+
+This route is used to update an existing inbound identified by its ID.
+
+[Source documentation](https://documenter.getpostman.com/view/16802678/2s9YkgD5jm#19249b9f-a940-41e2-8bf4-86ff8dde857e)
+
+**Arguments**:
+
+- `inbound_id` _int_ - The ID of the inbound to update.
+- `inbound` _Inbound_ - The inbound object to update.
+  
+
+**Examples**:
+
+    ```python
+    import py3xui
+
+    api = py3xui.Api.from_env()
+    api.login()
+    inbounds: list[py3xui.Inbound] = api.inbound.get_list()
+    inbound = inbounds[0]
+
+    inbound.remark = "updated"
+
+    api.inbound.update(inbound.id, inbound)
+    ```
+
+<a id="api.api_inbound.InboundApi.reset_stats"></a>
+
+#### reset\_stats
+
+```python
+def reset_stats() -> None
+```
+
+This route is used to reset the traffic statistics for all inbounds within the system.
+
+[Source documentation](https://documenter.getpostman.com/view/16802678/2s9YkgD5jm#6749f362-dc81-4769-8f45-37dc9e99f5e9)
+
+**Examples**:
+
+    ```python
+    import py3xui
+
+    api = py3xui.Api.from_env()
+    api.login()
+    api.inbound.reset_stats()
+    ```
+
+<a id="api.api_inbound.InboundApi.reset_client_stats"></a>
+
+#### reset\_client\_stats
+
+```python
+def reset_client_stats(inbound_id: int) -> None
+```
+
+This route is used to reset the traffic statistics for all clients associated with a
+specific inbound identified by its ID.
+
+[Source documentation](https://documenter.getpostman.com/view/16802678/2s9YkgD5jm#9bd93925-12a0-40d8-a390-d4874dea3683)
+
+**Arguments**:
+
+- `inbound_id` _int_ - The ID of the inbound to reset the client stats.
+  
+
+**Examples**:
+
+    ```python
+    import py3xui
+
+    api = py3xui.Api.from_env()
+    api.login()
+    inbounds: list[py3xui.Inbound] = api.inbound.get_list()
+    inbound = inbounds[0]
+
+    api.inbound.reset_client_stats(inbound.id)
+    ```
+
 <a id="api.api"></a>
 
 # api.api
@@ -39,6 +383,7 @@ It significantly increases the risk of security threats like man-in-the-middle a
 - `inbound` _InboundApi_ - The inbound API.
 - `database` _DatabaseApi_ - The database API.
 - `session` _str_ - The session cookie for the XUI API.
+- `cookie_name` _str_ - The cookie name for the XUI API.
   
   Public Methods:
 - `login` - Logs into the XUI API.
@@ -82,6 +427,53 @@ The session cookie for the XUI API.
 **Returns**:
 
 - `str` - The session cookie for the XUI API.
+
+<a id="api.api.Api.session"></a>
+
+#### session
+
+```python
+@session.setter
+def session(value: str) -> None
+```
+
+Sets the session cookie for the XUI API.
+
+**Arguments**:
+
+- `value` _str_ - The session cookie to set.
+
+<a id="api.api.Api.cookie_name"></a>
+
+#### cookie\_name
+
+```python
+@property
+def cookie_name() -> str | None
+```
+
+The cookie name for the XUI API.
+
+**Returns**:
+
+  str | None: The cookie name for the XUI API. If not set, it will be None.
+
+<a id="api.api.Api.cookie_name"></a>
+
+#### cookie\_name
+
+```python
+@cookie_name.setter
+def cookie_name(value: str | None) -> None
+```
+
+Sets the cookie name for the XUI API.
+
+This method is used to set the cookie name for all the APIs.
+
+**Arguments**:
+
+- `value` _str_ - The cookie name to set.
 
 <a id="api.api.Api.from_env"></a>
 
@@ -135,11 +527,57 @@ Following environment variables should be set:
 #### login
 
 ```python
-def login() -> None
+def login(two_factor_code: str | int | None = None) -> None
 ```
 
 Logs into the XUI API and sets the session cookie for the client, inbound, and
 database APIs.
+
+**Arguments**:
+
+- `two_factor_code` _str | int | None_ - The two-factor authentication code, if required.
+  
+  
+
+**Examples**:
+
+    ```python
+    import py3xui
+
+    api = py3xui.Api.from_env()
+    api.login() # If two-factor authentication is not enabled.
+    api.login("123456")  # If two-factor authentication is enabled, pass the code.
+    ```
+
+<a id="api.api_server"></a>
+
+# api.api\_server
+
+This module contains the ServerApi class for handling server in the XUI API.
+
+<a id="api.api_server.ServerApi"></a>
+
+## ServerApi Objects
+
+```python
+class ServerApi(BaseApi)
+```
+
+This class provides methods to interact with the server in the XUI API.
+
+Attributes and Properties:
+host (str): The XUI host URL.
+username (str): The XUI username.
+password (str): The XUI password.
+token (str | None): The XUI secret token.
+use_tls_verify (bool): Whether to verify the server TLS certificate.
+custom_certificate_path (str | None): Path to a custom certificate file.
+session (requests.Session): The session object for the API.
+max_retries (int): The maximum number of retries for the API requests.
+
+Public Methods:
+get_db: Retrieves a database backup file and saves it to a specified path.
+get_status: Retrieves the current status of the server.
 
 **Examples**:
 
@@ -148,242 +586,65 @@ database APIs.
 
     api = py3xui.Api.from_env()
     api.login()
+
+    db_save_path = "db_backup.db"
+    api.server.get_db(db_save_path)
     ```
 
-<a id="api.api_base"></a>
+<a id="api.api_server.ServerApi.get_db"></a>
 
-# api.api\_base
-
-This module contains the base class for the XUI API.
-
-<a id="api.api_base.ApiFields"></a>
-
-## ApiFields Objects
+#### get\_db
 
 ```python
-class ApiFields()
+def get_db(save_path: str) -> None
 ```
 
-Stores the fields returned by the XUI API for parsing.
-
-<a id="api.api_base.BaseApi"></a>
-
-## BaseApi Objects
-
-```python
-class BaseApi()
-```
-
-Base class for the XUI API. Contains common methods for making requests.
+This route is used to retrieve a database backup file and save it to a specified path.
 
 **Arguments**:
 
-- `host` _str_ - The host of the XUI API.
-- `username` _str_ - The username for the XUI API.
-- `password` _str_ - The password for the XUI API.
-- `token` _str | None_ - The secret token for the XUI API.
-- `use_tls_verify` _bool_ - Whether to verify the server TLS certificate.
-- `custom_certificate_path` _str | None_ - Path to a custom certificate file.
-- `logger` _Any | None_ - The logger, if not set, a dummy logger is used.
+- `save_path` _str_ - The path to save the database backup file.
   
-  Attributes and Properties:
-- `host` _str_ - The host of the XUI API.
-- `username` _str_ - The username for the XUI API.
-- `password` _str_ - The password for the XUI API.
-- `token` _str | None_ - The secret token for the XUI API.
-- `use_tls_verify` _bool_ - Whether to verify the server TLS certificate.
-- `custom_certificate_path` _str | None_ - Path to a custom certificate file.
-- `max_retries` _int_ - The maximum number of retries for a request.
-- `session` _str_ - The session cookie for the XUI API.
+
+**Examples**:
+
+    ```python
+    import py3xui
+
+    api = py3xui.Api.from_env()
+    api.login()
+
+    db_save_path = "db_backup.db"
+    api.server.get_db(db_save_path)
+    ```
+
+<a id="api.api_server.ServerApi.get_status"></a>
+
+#### get\_status
+
+```python
+def get_status() -> Server
+```
+
+Gets the current server status.
+
+**Returns**:
+
+- `Server` - Object containing server status information
   
-  Public Methods:
-- `login` - Logs into the XUI API.
-  
-  Private Methods:
-- `_check_response` - Checks the response from the XUI API.
-- `_url` - Returns the URL for the XUI API.
-- `_request_with_retry` - Makes a request to the XUI API with retries.
-- `_post` - Makes a POST request to the XUI API.
-- `_get` - Makes a GET request to the XUI API.
 
-<a id="api.api_base.BaseApi.host"></a>
+**Examples**:
 
-#### host
+    ```python
+    import py3xui
 
-```python
-@property
-def host() -> str
-```
+    api = py3xui.Api.from_env()
+    api.login()
 
-The host of the XUI API.
-
-**Returns**:
-
-- `str` - The host of the XUI API.
-
-<a id="api.api_base.BaseApi.username"></a>
-
-#### username
-
-```python
-@property
-def username() -> str
-```
-
-The username for the XUI API.
-
-**Returns**:
-
-- `str` - The username for the XUI API.
-
-<a id="api.api_base.BaseApi.password"></a>
-
-#### password
-
-```python
-@property
-def password() -> str
-```
-
-The password for the XUI API.
-
-**Returns**:
-
-- `str` - The password for the XUI API.
-
-<a id="api.api_base.BaseApi.token"></a>
-
-#### token
-
-```python
-@property
-def token() -> str | None
-```
-
-The secret token for the XUI API.
-
-**Returns**:
-
-  str | None: The secret token for the XUI API.
-
-<a id="api.api_base.BaseApi.use_tls_verify"></a>
-
-#### use\_tls\_verify
-
-```python
-@property
-def use_tls_verify() -> bool
-```
-
-Whether to verify the server TLS certificate.
-
-**Returns**:
-
-- `bool` - Whether to verify the TLS certificate for a request.
-
-<a id="api.api_base.BaseApi.custom_certificate_path"></a>
-
-#### custom\_certificate\_path
-
-```python
-@property
-def custom_certificate_path() -> str | None
-```
-
-The path to a custom certificate file.
-
-**Returns**:
-
-  str | None: The path to a custom certificate file.
-
-<a id="api.api_base.BaseApi.max_retries"></a>
-
-#### max\_retries
-
-```python
-@property
-def max_retries() -> int
-```
-
-The maximum number of retries for a request.
-
-**Returns**:
-
-- `int` - The maximum number of retries for a request.
-
-<a id="api.api_base.BaseApi.max_retries"></a>
-
-#### max\_retries
-
-```python
-@max_retries.setter
-def max_retries(value: int) -> None
-```
-
-Sets the maximum number of retries for a request.
-
-**Arguments**:
-
-- `value` _int_ - The maximum number of retries for a request.
-
-<a id="api.api_base.BaseApi.session"></a>
-
-#### session
-
-```python
-@property
-def session() -> str | None
-```
-
-The session cookie for the XUI API.
-
-**Returns**:
-
-  str | None: The session cookie for the XUI API.
-
-<a id="api.api_base.BaseApi.session"></a>
-
-#### session
-
-```python
-@session.setter
-def session(value: str | None) -> None
-```
-
-Sets the session cookie for the XUI API.
-
-**Arguments**:
-
-- `value` _str | None_ - The session cookie for the XUI API.
-
-<a id="api.api_base.BaseApi.login"></a>
-
-#### login
-
-```python
-def login() -> None
-```
-
-Logs into the XUI API and sets the session cookie if successful.
-
-**Raises**:
-
-- `ValueError` - If the login is unsuccessful.
-
-<a id="api.api_base.BaseApi.cookies"></a>
-
-#### cookies
-
-```python
-@property
-def cookies() -> dict[str, str]
-```
-
-Returns the cookies for the XUI API. If session is not set yet, returns an empty dict.
-
-**Returns**:
-
-  dict[str, str]: The cookies for the XUI API.
+    status = api.server.get_status()
+    print(f"CPU Load: {status.cpu}%")
+    print(f"Memory Used: {status.mem.current}/{status.mem.total} bytes")
+    ```
 
 <a id="api.api_client"></a>
 
@@ -754,444 +1015,274 @@ NOTE: At the moment of writing this, the API documentation does not exist for th
     print(clients)
     ```
 
-<a id="api.api_database"></a>
+<a id="api.api_base"></a>
 
-# api.api\_database
+# api.api\_base
 
-This module contains the DatabaseApi class, which is responsible handling database operations
-in the XUI API.
+This module contains the base class for the XUI API.
 
-<a id="api.api_database.DatabaseApi"></a>
+<a id="api.api_base.ApiFields"></a>
 
-## DatabaseApi Objects
-
-```python
-class DatabaseApi(BaseApi)
-```
-
-This class provides methods to interact with the database in the XUI API.
-
-Attributes and Properties:
-host (str): The XUI host URL.
-username (str): The XUI username.
-password (str): The XUI password.
-token (str | None): The XUI secret token.
-use_tls_verify (bool): Whether to verify the server TLS certificate.
-custom_certificate_path (str | None): Path to a custom certificate file.
-session (requests.Session): The session object for the API.
-max_retries (int): The maximum number of retries for the API requests.
-
-Public Methods:
-export: Exports the database.
-
-**Examples**:
-
-    ```python
-    import py3xui
-
-    api = py3xui.Api.from_env()
-    api.login()
-    api.database.export()
-    ```
-
-<a id="api.api_database.DatabaseApi.export"></a>
-
-#### export
+## ApiFields Objects
 
 ```python
-def export() -> None
+class ApiFields()
 ```
 
-This endpoint triggers the creation of a system backup and initiates the delivery of
-the backup file to designated administrators via a configured Telegram bot. The server
-verifies the Telegram bot's activation status within the system settings and checks for
-the presence of admin IDs specified in the settings before sending the backup.
+Stores the fields returned by the XUI API for parsing.
 
-[Source documentation](https://documenter.getpostman.com/view/16802678/2s9YkgD5jm#5368cbc0-7c84-4b8c-aa54-d9fffb24d1f2)
+<a id="api.api_base.BaseApi"></a>
 
-**Examples**:
-
-    ```python
-    import py3xui
-
-    api = py3xui.Api.from_env()
-    api.login()
-    api.database.export()
-    ```
-
-<a id="api.api_inbound"></a>
-
-# api.api\_inbound
-
-This module contains the InboundApi class for handling inbounds in the XUI API.
-
-<a id="api.api_inbound.InboundApi"></a>
-
-## InboundApi Objects
+## BaseApi Objects
 
 ```python
-class InboundApi(BaseApi)
+class BaseApi()
 ```
 
-This class provides methods to interact with the inbounds in the XUI API.
+Base class for the XUI API. Contains common methods for making requests.
 
-Attributes and Properties:
-host (str): The XUI host URL.
-username (str): The XUI username.
-password (str): The XUI password.
-token (str | None): The XUI secret token.
-use_tls_verify (bool): Whether to verify the server TLS certificate.
-custom_certificate_path (str | None): Path to a custom certificate file.
-session (requests.Session): The session object for the API.
-max_retries (int): The maximum number of retries for the API requests.
+**Arguments**:
 
-Public Methods:
-get_list: Retrieves a list of inbounds.
-add: Adds a new inbound.
-delete: Deletes an inbound.
-update: Updates an inbound.
-reset_stats: Resets the statistics of all inbounds.
-reset_client_stats: Resets the statistics of a specific inbound.
+- `host` _str_ - The host of the XUI API.
+- `username` _str_ - The username for the XUI API.
+- `password` _str_ - The password for the XUI API.
+- `token` _str | None_ - The secret token for the XUI API.
+- `use_tls_verify` _bool_ - Whether to verify the server TLS certificate.
+- `custom_certificate_path` _str | None_ - Path to a custom certificate file.
+- `logger` _Any | None_ - The logger, if not set, a dummy logger is used.
+  
+  Attributes and Properties:
+- `host` _str_ - The host of the XUI API.
+- `username` _str_ - The username for the XUI API.
+- `password` _str_ - The password for the XUI API.
+- `token` _str | None_ - The secret token for the XUI API.
+- `use_tls_verify` _bool_ - Whether to verify the server TLS certificate.
+- `custom_certificate_path` _str | None_ - Path to a custom certificate file.
+- `max_retries` _int_ - The maximum number of retries for a request.
+- `session` _str_ - The session cookie for the XUI API.
+- `cookie_name` _str_ - The name of the cookie for the XUI API.
+  
+  Public Methods:
+- `login` - Logs into the XUI API.
+  
+  Private Methods:
+- `_check_response` - Checks the response from the XUI API.
+- `_url` - Returns the URL for the XUI API.
+- `_request_with_retry` - Makes a request to the XUI API with retries.
+- `_post` - Makes a POST request to the XUI API.
+- `_get` - Makes a GET request to the XUI API.
 
-**Examples**:
+<a id="api.api_base.BaseApi.host"></a>
 
-    ```python
-    import py3xui
-
-    api = py3xui.Api.from_env()
-    api.login()
-
-    inbounds: list[py3xui.Inbound] = api.inbound.get_list()
-    ```
-
-<a id="api.api_inbound.InboundApi.get_list"></a>
-
-#### get\_list
+#### host
 
 ```python
-def get_list() -> list[Inbound]
+@property
+def host() -> str
 ```
 
-This route is used to retrieve a comprehensive list of all inbounds along with
-their associated client options and statistics.
-
-[Source documentation](https://documenter.getpostman.com/view/16802678/2s9YkgD5jm#b7c42b67-4362-44d3-bd61-ba7df0721802)
+The host of the XUI API.
 
 **Returns**:
 
-- `list[Inbound]` - A list of inbounds.
-  
+- `str` - The host of the XUI API.
 
-**Examples**:
+<a id="api.api_base.BaseApi.username"></a>
 
-    ```python
-    import py3xui
-
-    api = py3xui.Api.from_env()
-    api.login()
-
-    inbounds: list[py3xui.Inbound] = api.inbound.get_list()
-    ```
-
-<a id="api.api_inbound.InboundApi.get_by_id"></a>
-
-#### get\_by\_id
+#### username
 
 ```python
-def get_by_id(inbound_id: int) -> Inbound
+@property
+def username() -> str
 ```
 
-This route is used to retrieve statistics and details for a specific inbound connection
-identified by specified ID. This includes information about the inbound itself, its
-statistics, and the clients connected to it.
-If the inbound is not found, the method will raise an exception.
-
-[Source documentation](https://www.postman.com/hsanaei/3x-ui/request/uu7wm1k/inbound)
-
-**Arguments**:
-
-- `inbound_id` _int_ - The ID of the inbound to retrieve.
-  
+The username for the XUI API.
 
 **Returns**:
 
-  Inbound | None: The inbound object if found, otherwise None.
-  
+- `str` - The username for the XUI API.
 
-**Examples**:
+<a id="api.api_base.BaseApi.password"></a>
 
-  
-    ```python
-
-    import py3xui
-
-    api = py3xui.Api.from_env()
-
-    api.login()
-
-    inbound_id = 1
-
-    inbound = api.inbound.get_by_id(inbound_id)
-
-<a id="api.api_inbound.InboundApi.add"></a>
-
-#### add
+#### password
 
 ```python
-def add(inbound: Inbound) -> None
+@property
+def password() -> str
 ```
 
-This route is used to add a new inbound configuration.
-
-[Source documentation](https://documenter.getpostman.com/view/16802678/2s9YkgD5jm#813ac729-5ba6-4314-bc2a-d0d3acc70388)
-
-**Arguments**:
-
-- `inbound` _Inbound_ - The inbound object to add.
-  
-
-**Examples**:
-
-    ```python
-    import py3xui
-    from py3xui.inbound import Inbound, Settings, Sniffing, StreamSettings
-
-    api = py3xui.Api.from_env()
-    api.login()
-
-    settings = Settings()
-    sniffing = Sniffing(enabled=True)
-
-    tcp_settings = {
-        "acceptProxyProtocol": False,
-        "header": {"type": "none"},
-    }
-    stream_settings = StreamSettings(security="reality", network="tcp", tcp_settings=tcp_settings)
-
-    inbound = Inbound(
-        enable=True,
-        port=443,
-        protocol="vless",
-        settings=settings,
-        stream_settings=stream_settings,
-        sniffing=sniffing,
-        remark="test3",
-    )
-
-    api.inbound.add(inbound)
-    ```
-
-<a id="api.api_inbound.InboundApi.delete"></a>
-
-#### delete
-
-```python
-def delete(inbound_id: int) -> None
-```
-
-This route is used to delete an inbound identified by its ID.
-
-[Source documentation](https://documenter.getpostman.com/view/16802678/2s9YkgD5jm#a655d0e3-7d8c-4331-9061-422fcb515da9)
-
-**Arguments**:
-
-- `inbound_id` _int_ - The ID of the inbound to delete.
-  
-
-**Examples**:
-
-  
-    ```python
-    import py3xui
-
-    api = py3xui.Api.from_env()
-    api.login()
-    inbounds: list[py3xui.Inbound] = api.inbound.get_list()
-
-    for inbound in inbounds:
-        api.inbound.delete(inbound.id)
-    ```
-
-<a id="api.api_inbound.InboundApi.update"></a>
-
-#### update
-
-```python
-def update(inbound_id: int, inbound: Inbound) -> None
-```
-
-This route is used to update an existing inbound identified by its ID.
-
-[Source documentation](https://documenter.getpostman.com/view/16802678/2s9YkgD5jm#19249b9f-a940-41e2-8bf4-86ff8dde857e)
-
-**Arguments**:
-
-- `inbound_id` _int_ - The ID of the inbound to update.
-- `inbound` _Inbound_ - The inbound object to update.
-  
-
-**Examples**:
-
-    ```python
-    import py3xui
-
-    api = py3xui.Api.from_env()
-    api.login()
-    inbounds: list[py3xui.Inbound] = api.inbound.get_list()
-    inbound = inbounds[0]
-
-    inbound.remark = "updated"
-
-    api.inbound.update(inbound.id, inbound)
-    ```
-
-<a id="api.api_inbound.InboundApi.reset_stats"></a>
-
-#### reset\_stats
-
-```python
-def reset_stats() -> None
-```
-
-This route is used to reset the traffic statistics for all inbounds within the system.
-
-[Source documentation](https://documenter.getpostman.com/view/16802678/2s9YkgD5jm#6749f362-dc81-4769-8f45-37dc9e99f5e9)
-
-**Examples**:
-
-    ```python
-    import py3xui
-
-    api = py3xui.Api.from_env()
-    api.login()
-    api.inbound.reset_stats()
-    ```
-
-<a id="api.api_inbound.InboundApi.reset_client_stats"></a>
-
-#### reset\_client\_stats
-
-```python
-def reset_client_stats(inbound_id: int) -> None
-```
-
-This route is used to reset the traffic statistics for all clients associated with a
-specific inbound identified by its ID.
-
-[Source documentation](https://documenter.getpostman.com/view/16802678/2s9YkgD5jm#9bd93925-12a0-40d8-a390-d4874dea3683)
-
-**Arguments**:
-
-- `inbound_id` _int_ - The ID of the inbound to reset the client stats.
-  
-
-**Examples**:
-
-    ```python
-    import py3xui
-
-    api = py3xui.Api.from_env()
-    api.login()
-    inbounds: list[py3xui.Inbound] = api.inbound.get_list()
-    inbound = inbounds[0]
-
-    api.inbound.reset_client_stats(inbound.id)
-    ```
-
-<a id="api.api_server"></a>
-
-# api.api\_server
-
-This module contains the ServerApi class for handling server in the XUI API.
-
-<a id="api.api_server.ServerApi"></a>
-
-## ServerApi Objects
-
-```python
-class ServerApi(BaseApi)
-```
-
-This class provides methods to interact with the server in the XUI API.
-
-Attributes and Properties:
-host (str): The XUI host URL.
-username (str): The XUI username.
-password (str): The XUI password.
-token (str | None): The XUI secret token.
-use_tls_verify (bool): Whether to verify the server TLS certificate.
-custom_certificate_path (str | None): Path to a custom certificate file.
-session (requests.Session): The session object for the API.
-max_retries (int): The maximum number of retries for the API requests.
-
-Public Methods:
-get_db: Retrieves a database backup file and saves it to a specified path.
-get_status: Retrieves the current status of the server.
-
-**Examples**:
-
-    ```python
-    import py3xui
-
-    api = py3xui.Api.from_env()
-    api.login()
-
-    db_save_path = "db_backup.db"
-    api.server.get_db(db_save_path)
-    ```
-
-<a id="api.api_server.ServerApi.get_db"></a>
-
-#### get\_db
-
-```python
-def get_db(save_path: str) -> None
-```
-
-This route is used to retrieve a database backup file and save it to a specified path.
-
-**Arguments**:
-
-- `save_path` _str_ - The path to save the database backup file.
-  
-
-**Examples**:
-
-    ```python
-    import py3xui
-
-    api = py3xui.Api.from_env()
-    api.login()
-
-    db_save_path = "db_backup.db"
-    api.server.get_db(db_save_path)
-    ```
-
-<a id="api.api_server.ServerApi.get_status"></a>
-
-#### get\_status
-
-```python
-def get_status() -> Server
-```
-
-Gets the current server status.
+The password for the XUI API.
 
 **Returns**:
 
-- `Server` - Object containing server status information
+- `str` - The password for the XUI API.
+
+<a id="api.api_base.BaseApi.token"></a>
+
+#### token
+
+```python
+@property
+def token() -> str | None
+```
+
+The secret token for the XUI API.
+
+**Returns**:
+
+  str | None: The secret token for the XUI API.
+
+<a id="api.api_base.BaseApi.use_tls_verify"></a>
+
+#### use\_tls\_verify
+
+```python
+@property
+def use_tls_verify() -> bool
+```
+
+Whether to verify the server TLS certificate.
+
+**Returns**:
+
+- `bool` - Whether to verify the TLS certificate for a request.
+
+<a id="api.api_base.BaseApi.custom_certificate_path"></a>
+
+#### custom\_certificate\_path
+
+```python
+@property
+def custom_certificate_path() -> str | None
+```
+
+The path to a custom certificate file.
+
+**Returns**:
+
+  str | None: The path to a custom certificate file.
+
+<a id="api.api_base.BaseApi.max_retries"></a>
+
+#### max\_retries
+
+```python
+@property
+def max_retries() -> int
+```
+
+The maximum number of retries for a request.
+
+**Returns**:
+
+- `int` - The maximum number of retries for a request.
+
+<a id="api.api_base.BaseApi.max_retries"></a>
+
+#### max\_retries
+
+```python
+@max_retries.setter
+def max_retries(value: int) -> None
+```
+
+Sets the maximum number of retries for a request.
+
+**Arguments**:
+
+- `value` _int_ - The maximum number of retries for a request.
+
+<a id="api.api_base.BaseApi.session"></a>
+
+#### session
+
+```python
+@property
+def session() -> str | None
+```
+
+The session cookie for the XUI API.
+
+**Returns**:
+
+  str | None: The session cookie for the XUI API.
+
+<a id="api.api_base.BaseApi.session"></a>
+
+#### session
+
+```python
+@session.setter
+def session(value: str | None) -> None
+```
+
+Sets the session cookie for the XUI API.
+
+**Arguments**:
+
+- `value` _str | None_ - The session cookie for the XUI API.
+
+<a id="api.api_base.BaseApi.cookie_name"></a>
+
+#### cookie\_name
+
+```python
+@property
+def cookie_name() -> str | None
+```
+
+The name of the cookie for the XUI API.
+
+**Returns**:
+
+  str | None: The name of the cookie for the XUI API.
+
+<a id="api.api_base.BaseApi.cookie_name"></a>
+
+#### cookie\_name
+
+```python
+@cookie_name.setter
+def cookie_name(value: str | None) -> None
+```
+
+Sets the name of the cookie for the XUI API.
+
+**Arguments**:
+
+- `value` _str | None_ - The name of the cookie for the XUI API.
+
+<a id="api.api_base.BaseApi.login"></a>
+
+#### login
+
+```python
+def login(two_factor_code: str | int | None = None) -> None
+```
+
+Logs into the XUI API and sets the session cookie if successful.
+
+**Arguments**:
+
+- `two_factor_code` _str | int | None_ - The two-factor authentication code, if required.
   
 
-**Examples**:
+**Raises**:
 
-    ```python
-    import py3xui
+- `ValueError` - If the login is unsuccessful.
 
-    api = py3xui.Api.from_env()
-    api.login()
+<a id="api.api_base.BaseApi.cookies"></a>
 
-    status = api.server.get_status()
-    print(f"CPU Load: {status.cpu}%")
-    print(f"Memory Used: {status.mem.current}/{status.mem.total} bytes")
-    ```
+#### cookies
+
+```python
+@property
+def cookies() -> dict[str, str]
+```
+
+Returns the cookies for the XUI API. If session is not set yet, returns an empty dict.
+
+**Returns**:
+
+  dict[str, str]: The cookies for the XUI API.
 

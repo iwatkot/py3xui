@@ -247,8 +247,11 @@ class AsyncBaseApi:
                 raise e
         raise ConnectionError(f"Max retries exceeded with no successful response to {url}")
 
-    async def login(self) -> None:
+    async def login(self, two_factor_code: str | int | None = None) -> None:
         """Logs into the XUI API and sets the session cookie if successful.
+
+        Arguments:
+            two_factor_code (str | int | None): The two-factor authentication code, if required.
 
         Raises:
             ValueError: If the login is unsuccessful."""
@@ -257,6 +260,10 @@ class AsyncBaseApi:
 
         url = self._url(endpoint)
         data = {"username": self.username, "password": self.password}
+
+        if two_factor_code is not None:
+            data["twoFactorCode"] = str(two_factor_code)
+
         if self.token is not None:
             data.update({"loginSecret": self.token})
         self.logger.info("Logging in with username: %s", self.username)
