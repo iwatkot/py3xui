@@ -207,6 +207,6 @@ class Api:
             ```
         """
         self.client.login(two_factor_code)
-        self.session = self.client.session
+        self.session = self.client.session  # type: ignore
         self.cookie_name = self.client.cookie_name
         self.logger.info("Logged in successfully.")
