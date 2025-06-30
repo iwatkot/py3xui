@@ -12,3 +12,4 @@ qrcodes/
 *.db
 *.db-shm
 *.db-wal
+tests.py

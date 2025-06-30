@@ -194,19 +194,23 @@ class AsyncApi:
 
         return cls(host, username, password, token, use_tls_verify, custom_certificate_path, logger)
 
-    async def login(self) -> None:
+    async def login(self, two_factor_code: str | int | None = None) -> None:
         """Logs into the XUI API and sets the session cookie for the client, inbound, and
         database APIs.
+
+        Arguments:
+            two_factor_code (str | int | None): The two-factor authentication code, if required.
 
         Examples:
             ```python
             import py3xui
 
             api = py3xui.AsyncApi.from_env()
-            await api.login()
+            await api.login() # If two-factor authentication is not enabled.
+            await api.login("123456")  # If two-factor authentication is enabled, pass the code.
             ```
         """
-        await self.client.login()
+        await self.client.login(two_factor_code)
         self.session = self.client.session
         self.cookie_name = self.client.cookie_name
         self.logger.info("Logged in successfully.")
