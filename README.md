@@ -144,7 +144,9 @@ await async_api.login("123456")  # Replace with your actual two-factor code.
 ```
 
 Note, that the two-factor code is being changed every 30 seconds, so you need to ensure that you pass the correct code when calling the `login` method. If you don't pass the code, the login will fail.  
-Keep in mind, that the session cookie has it's own expiration time, so you may need to call the `login` method again after some time while providing the new two-factor code. So, it's recommended to have some sort of automation to retrieve the valid two-factor code from time to time.
+Keep in mind, that the session cookie has it's own expiration time, so you may need to call the `login` method again after some time while providing the new two-factor code. So, it's recommended to have some sort of automation to retrieve the valid two-factor code from time to time.  
+
+ℹ️ As an example of solution to automate the two-factor code retrieval, you can use the [`pyotp`](https://github.com/pyauth/pyotp) library to generate the code based on your secret key.
 
 ## Examples
 You'll find detailed docs with usage examples for both APIs and for used models in the corresponding package directories:
