@@ -47,7 +47,7 @@ On creation, the Api won't connect to the 3x-ui app, so you can spawn new instan
 pip install py3xui
 ```
 
-### Create a new instance of the SDK
+### Create a new instance of the API
 It's recommended to use an environment variable to store the API credentials:
 ```python
 import os
