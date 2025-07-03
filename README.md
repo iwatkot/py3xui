@@ -21,6 +21,7 @@ Sync and Async Object-oriented Python SDK for the 3x-ui API.
 [![Maintainability](https://api.codeclimate.com/v1/badges/c03ca2bca0191cb4a2ae/maintainability)](https://codeclimate.com/github/iwatkot/py3xui/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/c03ca2bca0191cb4a2ae/test_coverage)](https://codeclimate.com/github/iwatkot/py3xui/test_coverage)
 
+_ℹ️ If you need a JavaScript SDK, check out [js3xui](https://github.com/iwatkot/js3xui)._
 </div>
 
 ## Overview
