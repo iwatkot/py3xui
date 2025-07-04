@@ -23,6 +23,32 @@ SESSION = "abc123"
 
 
 @pytest.mark.asyncio
+async def test_from_env():
+    os.environ["XUI_HOST"] = HOST
+    os.environ["XUI_USERNAME"] = USERNAME
+    os.environ["XUI_PASSWORD"] = PASSWORD
+
+    api = AsyncApi.from_env()
+    assert api.inbound.host == HOST, f"Expected {HOST}, got {api.host}"
+    assert api.inbound.username == USERNAME, f"Expected {USERNAME}, got {api.username}"
+    assert api.inbound.password == PASSWORD, f"Expected {PASSWORD}, got {api.password}"
+
+
+@pytest.mark.asyncio
+async def test_login_failed(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/login",
+        json={ApiFields.SUCCESS: True},
+        status_code=200,
+    )
+
+    api = AsyncApi(HOST, "username", "password")
+    with pytest.raises(ValueError):
+        await api.client.login()
+
+
+@pytest.mark.asyncio
 async def test_get_client(httpx_mock: HTTPXMock):
     response_example = json.load(open(os.path.join(RESPONSES_DIR, "get_client.json")))
 
@@ -45,7 +71,11 @@ async def test_get_client(httpx_mock: HTTPXMock):
 
 @pytest.mark.asyncio
 async def test_get_ips(httpx_mock: HTTPXMock):
-    response_example = {ApiFields.SUCCESS: True, ApiFields.MSG: "", ApiFields.OBJ: ApiFields.NO_IP_RECORD}
+    response_example = {
+        ApiFields.SUCCESS: True,
+        ApiFields.MSG: "",
+        ApiFields.OBJ: ApiFields.NO_IP_RECORD,
+    }
 
     httpx_mock.add_response(
         method="POST",
@@ -381,7 +411,9 @@ async def test_get_server_status(httpx_mock: HTTPXMock):
 
     assert httpx_mock.get_request(), "Mocked request was not called"
     assert status.cpu == 5.2, f"Expected CPU 5.2, got {status.cpu}"
-    assert status.mem.current == 1024000, f"Expected current memory usage 1024, got {status.mem.current}"
+    assert (
+        status.mem.current == 1024000
+    ), f"Expected current memory usage 1024, got {status.mem.current}"
     assert status.mem.total == 8192000, f"Expected total memory 8192, got {status.mem.total}"
 
 
