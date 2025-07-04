@@ -523,3 +523,39 @@ async def test_get_inbound_by_id(httpx_mock: HTTPXMock):
     assert isinstance(
         inbound.client_stats[0], Client
     ), f"Expected Client, got {type(inbound.client_stats[0])}"
+
+
+@pytest.mark.asyncio
+async def test_reset_inbounds_stats(httpx_mock: HTTPXMock):
+    response_example = {ApiFields.SUCCESS: True}
+
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/inbounds/resetAllTraffics",
+        json=response_example,
+        status_code=200,
+    )
+
+    api = AsyncApi(HOST, USERNAME, PASSWORD)
+    api.session = SESSION
+    await api.inbound.reset_stats()
+
+    assert httpx_mock.get_request(), "Mocked request was not called"
+
+
+@pytest.mark.asyncio
+async def test_reset_inbound_client_stats(httpx_mock: HTTPXMock):
+    response_example = {ApiFields.SUCCESS: True}
+
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/inbounds/resetAllClientTraffics/1",
+        json=response_example,
+        status_code=200,
+    )
+
+    api = AsyncApi(HOST, USERNAME, PASSWORD)
+    api.session = SESSION
+    await api.inbound.reset_client_stats(1)
+
+    assert httpx_mock.get_request(), "Mocked request was not called"
