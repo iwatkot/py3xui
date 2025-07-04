@@ -1,7 +1,7 @@
-name: Tests
+name: Tests for PR
 
 on:
-  push:
+  pull_request:
     branches:
       - '*'
 
@@ -36,9 +36,3 @@ jobs:
 
       - name: Run pytest with coverage
         run: pytest --cov=py3xui --cov-branch --cov-report xml
-
-      - name: Upload results to Codecov
-        uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          slug: iwatkot/py3xui
