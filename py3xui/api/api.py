@@ -3,6 +3,7 @@
 # pylint: disable=R0801
 from __future__ import annotations
 
+import warnings
 from typing import Any
 
 from py3xui.api import ClientApi, DatabaseApi, InboundApi, ServerApi
@@ -76,6 +77,21 @@ class Api:
         logger: Any | None = None,
     ):  # pylint: disable=R0913, R0917
         self.logger = logger or Logger(__name__)
+
+        warnings.warn(
+            "The `token` parameter will be removed in future versions. "
+            "This will change the order of constructor arguments.",
+            FutureWarning,
+            stacklevel=2,
+        )
+
+        if token is not None:
+            warnings.warn(
+                "The `token` parameter is deprecated and will be removed in future versions.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
         self.client = ClientApi(
             host, username, password, token, use_tls_verify, custom_certificate_path, logger
         )
