@@ -28,7 +28,7 @@ def test_login_success():
 
 def test_login_failed():
     with requests_mock.Mocker() as m:
-        m.post(f"{HOST}/login", json={ApiFields.SUCCESS: True})
+        m.post(f"{HOST}/login", json={ApiFields.SUCCESS: False})
         api = Api(HOST, "username", "password")
         with pytest.raises(ValueError):
             api.client.login()

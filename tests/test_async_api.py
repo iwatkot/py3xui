@@ -39,7 +39,7 @@ async def test_login_failed(httpx_mock: HTTPXMock):
     httpx_mock.add_response(
         method="POST",
         url=f"{HOST}/login",
-        json={ApiFields.SUCCESS: True},
+        json={ApiFields.SUCCESS: False},
         status_code=200,
     )
 
