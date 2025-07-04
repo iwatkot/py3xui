@@ -45,7 +45,7 @@ async def test_login_failed(httpx_mock: HTTPXMock):
 
     api = AsyncApi(HOST, "username", "password")
     with pytest.raises(ValueError):
-        await api.client.login()
+        await api.login()
 
 
 @pytest.mark.asyncio
