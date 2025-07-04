@@ -29,9 +29,9 @@ async def test_from_env():
     os.environ["XUI_PASSWORD"] = PASSWORD
 
     api = AsyncApi.from_env()
-    assert api.inbound.host == HOST, f"Expected {HOST}, got {api.host}"
-    assert api.inbound.username == USERNAME, f"Expected {USERNAME}, got {api.username}"
-    assert api.inbound.password == PASSWORD, f"Expected {PASSWORD}, got {api.password}"
+    assert api.inbound.host == HOST, f"Expected {HOST}, got {api.inbound.host}"
+    assert api.inbound.username == USERNAME, f"Expected {USERNAME}, got {api.inbound.username}"
+    assert api.inbound.password == PASSWORD, f"Expected {PASSWORD}, got {api.inbound.password}"
 
 
 @pytest.mark.asyncio
