@@ -23,6 +23,47 @@ SESSION = "abc123"
 
 
 @pytest.mark.asyncio
+async def test_from_env():
+    os.environ["XUI_HOST"] = HOST
+    os.environ["XUI_USERNAME"] = USERNAME
+    os.environ["XUI_PASSWORD"] = PASSWORD
+
+    api = AsyncApi.from_env()
+    assert api.inbound.host == HOST, f"Expected {HOST}, got {api.inbound.host}"
+    assert api.inbound.username == USERNAME, f"Expected {USERNAME}, got {api.inbound.username}"
+    assert api.inbound.password == PASSWORD, f"Expected {PASSWORD}, got {api.inbound.password}"
+
+
+@pytest.mark.asyncio
+async def test_login_failed(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/login",
+        json={ApiFields.SUCCESS: False},
+        status_code=200,
+    )
+
+    api = AsyncApi(HOST, "username", "password")
+    with pytest.raises(ValueError):
+        await api.login()
+
+
+@pytest.mark.asyncio
+async def test_login_success(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/login",
+        json={ApiFields.SUCCESS: True},
+        status_code=200,
+        headers={"Set-Cookie": f"3x-ui={SESSION}; Path=/"},
+    )
+
+    api = AsyncApi(HOST, "username", "password")
+    await api.login()
+    assert api.session == SESSION, f"Expected {SESSION}, got {api.session}"
+
+
+@pytest.mark.asyncio
 async def test_get_client(httpx_mock: HTTPXMock):
     response_example = json.load(open(os.path.join(RESPONSES_DIR, "get_client.json")))
 
@@ -45,7 +86,11 @@ async def test_get_client(httpx_mock: HTTPXMock):
 
 @pytest.mark.asyncio
 async def test_get_ips(httpx_mock: HTTPXMock):
-    response_example = {ApiFields.SUCCESS: True, ApiFields.MSG: "", ApiFields.OBJ: ApiFields.NO_IP_RECORD}
+    response_example = {
+        ApiFields.SUCCESS: True,
+        ApiFields.MSG: "",
+        ApiFields.OBJ: ApiFields.NO_IP_RECORD,
+    }
 
     httpx_mock.add_response(
         method="POST",
@@ -381,7 +426,9 @@ async def test_get_server_status(httpx_mock: HTTPXMock):
 
     assert httpx_mock.get_request(), "Mocked request was not called"
     assert status.cpu == 5.2, f"Expected CPU 5.2, got {status.cpu}"
-    assert status.mem.current == 1024000, f"Expected current memory usage 1024, got {status.mem.current}"
+    assert (
+        status.mem.current == 1024000
+    ), f"Expected current memory usage 1024, got {status.mem.current}"
     assert status.mem.total == 8192000, f"Expected total memory 8192, got {status.mem.total}"
 
 
@@ -431,3 +478,66 @@ async def test_get_db_failed(httpx_mock: HTTPXMock, tmp_path):
 
     assert httpx_mock.get_request(), "Mocked request was not called"
     assert not save_path.exists(), "Backup file should not have been created"
+
+
+@pytest.mark.asyncio
+async def test_get_inbound_by_id(httpx_mock: HTTPXMock):
+    response_example = json.load(open(os.path.join(RESPONSES_DIR, "get_inbound_by_id.json")))
+
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{HOST}/panel/api/inbounds/get/1",
+        json=response_example,
+        status_code=200,
+    )
+
+    api = AsyncApi(HOST, USERNAME, PASSWORD)
+    api.session = SESSION
+    inbound = await api.inbound.get_by_id(1)
+
+    assert httpx_mock.get_request(), "Mocked request was not called"
+    assert isinstance(inbound, Inbound), f"Expected Inbound, got {type(inbound)}"
+    assert inbound.id == 1, f"Expected 1, got {inbound.id}"
+    assert inbound.remark == "test-inbound", f"Expected 'test-inbound', got {inbound.remark}"
+    assert inbound.port == 37316, f"Expected 37316, got {inbound.port}"
+    assert inbound.protocol == "vless", f"Expected 'vless', got {inbound.protocol}"
+    assert inbound.enable is True, f"Expected True, got {inbound.enable}"
+    assert isinstance(
+        inbound.client_stats[0], Client
+    ), f"Expected Client, got {type(inbound.client_stats[0])}"
+
+
+@pytest.mark.asyncio
+async def test_reset_inbounds_stats(httpx_mock: HTTPXMock):
+    response_example = {ApiFields.SUCCESS: True}
+
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/inbounds/resetAllTraffics",
+        json=response_example,
+        status_code=200,
+    )
+
+    api = AsyncApi(HOST, USERNAME, PASSWORD)
+    api.session = SESSION
+    await api.inbound.reset_stats()
+
+    assert httpx_mock.get_request(), "Mocked request was not called"
+
+
+@pytest.mark.asyncio
+async def test_reset_inbound_client_stats(httpx_mock: HTTPXMock):
+    response_example = {ApiFields.SUCCESS: True}
+
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/inbounds/resetAllClientTraffics/1",
+        json=response_example,
+        status_code=200,
+    )
+
+    api = AsyncApi(HOST, USERNAME, PASSWORD)
+    api.session = SESSION
+    await api.inbound.reset_client_stats(1)
+
+    assert httpx_mock.get_request(), "Mocked request was not called"
