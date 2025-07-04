@@ -1,6 +1,9 @@
 <div align="center" markdown>
 <img src="https://github.com/iwatkot/py3xui/assets/118521851/42c5d579-6202-4a9e-88f3-2d844fdd95b6">
 
+⚠️ The secret token feature was removed in the 3x-UI 2.6.0. ⚠️     
+The corresponding `token` parameter in the Api and AsyncApi constructors is deprecated and will be removed in future versions of the SDK. This will change the order of constructor arguments, so please be aware of this change when updating the SDK.
+
 Sync and Async Object-oriented Python SDK for the 3x-ui API.
 
 <p align="center">
@@ -83,20 +86,6 @@ api = AsyncApi("http://your-3x-ui-host.com:2053", "your-username", "your-passwor
 *️⃣ If you're using a custom URI Path, ensure that you've added it to the host, for example:<br>
 If your host is `http://your-3x-ui-host.com:2053` and the URI Path is `/test/`, then the host should be `http://your-3x-ui-host.com:2053/test/`.<br>
 Otherwise, all API requests will fail with a `404` error.
-
-*️⃣ If you're using a secret token, which is set in in the 3x-ui panel, you'll also add it, otherwise all API request will fail.<br>
-Same as for other credentials, you can use an environment variable to store the token:
-```python
-...
-os.environ["XUI_TOKEN"] = "your-token"
-
-api = Api.from_env()
-```
-
-Or pass it directly, when creating an instance:
-```python
-api = Api("http://your-3x-ui-host.com:2053", "your-username", "your-password", "your-token")
-```
 
 ### Using TLS and custom certificates
 Interacting with server over HTTPS requires careful management of TLS verification to ensure secure communications. This SDK provides options for setting TLS configurations, which include specifying custom certificates for increased trust or disabling TLS verification when necessary.
