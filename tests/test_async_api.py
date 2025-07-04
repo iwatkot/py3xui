@@ -467,40 +467,7 @@ async def test_get_db_failed(httpx_mock: HTTPXMock, tmp_path):
 
 @pytest.mark.asyncio
 async def test_get_inbound_by_id(httpx_mock: HTTPXMock):
-    # Using the same structure as get_inbounds.json but for a single inbound
-    response_example = {
-        "success": True,
-        "msg": "",
-        "obj": {
-            "id": 1,
-            "up": 0,
-            "down": 0,
-            "total": 0,
-            "remark": "test-inbound",
-            "enable": True,
-            "expiryTime": 0,
-            "clientStats": [
-                {
-                    "id": 1,
-                    "inboundId": 1,
-                    "enable": True,
-                    "email": "alhtim2x",
-                    "up": 0,
-                    "down": 0,
-                    "expiryTime": 0,
-                    "total": 0,
-                    "reset": 0,
-                }
-            ],
-            "listen": "",
-            "port": 37316,
-            "protocol": "vless",
-            "settings": '{\n  "clients": [\n    {\n      "id": "d76eb6ed-0697-4cd5-a8c5-8cfeb4d1b209",\n      "flow": "",\n      "email": "alhtim2x",\n      "limitIp": 0,\n      "totalGB": 0,\n      "expiryTime": 0,\n      "enable": true,\n      "tgId": "",\n      "subId": "21c2lku9iyjm7a0o",\n      "reset": 0\n    }\n  ],\n  "decryption": "none",\n  "fallbacks": []\n}',
-            "streamSettings": '{\n  "network": "tcp",\n  "security": "reality",\n  "externalProxy": [],\n  "realitySettings": {\n    "show": false,\n    "xver": 0,\n    "dest": "yahoo.com:443",\n    "serverNames": [\n      "yahoo.com",\n      "www.yahoo.com"\n    ],\n    "privateKey": "",\n    "minClient": "",\n    "maxClient": "",\n    "maxTimediff": 0,\n    "shortIds": [\n      "b7e114ba"\n    ],\n    "settings": {\n      "publicKey": "",\n      "fingerprint": "firefox",\n      "serverName": "",\n      "spiderX": "/"\n    }\n  },\n  "tcpSettings": {\n    "acceptProxyProtocol": false,\n    "header": {\n      "type": "none"\n    }\n  }\n}',
-            "tag": "inbound-37316",
-            "sniffing": '{\n  "enabled": true,\n  "destOverride": [\n    "http",\n    "tls",\n    "quic",\n    "fakedns"\n  ],\n  "metadataOnly": false,\n  "routeOnly": false\n}',
-        },
-    }
+    response_example = json.load(open(os.path.join(RESPONSES_DIR, "get_inbound_by_id.json")))
 
     httpx_mock.add_response(
         method="GET",
