@@ -49,6 +49,21 @@ async def test_login_failed(httpx_mock: HTTPXMock):
 
 
 @pytest.mark.asyncio
+async def test_login_success(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/login",
+        json={ApiFields.SUCCESS: True},
+        status_code=200,
+        headers={"Set-Cookie": f"3x-ui={SESSION}; Path=/"},
+    )
+
+    api = AsyncApi(HOST, "username", "password")
+    await api.login()
+    assert api.session == SESSION, f"Expected {SESSION}, got {api.session}"
+
+
+@pytest.mark.asyncio
 async def test_get_client(httpx_mock: HTTPXMock):
     response_example = json.load(open(os.path.join(RESPONSES_DIR, "get_client.json")))
 
