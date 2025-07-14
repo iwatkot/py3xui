@@ -13,7 +13,6 @@ class InboundApi(BaseApi):
         host (str): The XUI host URL.
         username (str): The XUI username.
         password (str): The XUI password.
-        token (str | None): The XUI secret token.
         use_tls_verify (bool): Whether to verify the server TLS certificate.
         custom_certificate_path (str | None): Path to a custom certificate file.
         session (requests.Session): The session object for the API.

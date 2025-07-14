@@ -2,7 +2,7 @@
 <img src="https://github.com/iwatkot/py3xui/assets/118521851/42c5d579-6202-4a9e-88f3-2d844fdd95b6">
 
 ⚠️ The secret token feature was removed in the 3x-UI 2.6.0. ⚠️     
-The corresponding `token` parameter in the Api and AsyncApi constructors is deprecated and will be removed in future versions of the SDK. This will change the order of constructor arguments, so please be aware of this change when updating the SDK.
+The corresponding `token` parameter in the Api and AsyncApi constructors was removed in py3xui 0.5.0. This changed the order of constructor arguments, so please be aware of this change when updating the SDK.
 
 Sync and Async Object-oriented Python SDK for the 3x-ui API.
 
