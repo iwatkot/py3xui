@@ -78,20 +78,6 @@ def xui_password() -> str:
     )
 
 
-def xui_token() -> str | None:
-    """Get the XUI secret token from the environment using the following keys:
-    - XUI_TOKEN
-
-    Returns:
-        str | None: The XUI secret token or None if not found
-    """
-    return parse_env(
-        keys=["XUI_TOKEN"],
-        postprocess_fn=lambda x: x,
-        raise_if_not_found=False,
-    )
-
-
 def tls_verify() -> bool | None:
     """Get the TLS verification setting from the environment using the following keys:
     - TLS_VERIFY

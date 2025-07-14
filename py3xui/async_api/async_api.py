@@ -3,7 +3,6 @@
 # pylint: disable=R0801
 from __future__ import annotations
 
-import warnings
 from typing import Any
 
 from py3xui.async_api import (
@@ -32,7 +31,6 @@ class AsyncApi:
         host (str): The XUI host URL.
         username (str): The XUI username.
         password (str): The XUI password.
-        token (str | None): The XUI secret token.
         use_tls_verify (bool): Whether to verify the server TLS certificate.
         custom_certificate_path (str | None): Path to a custom certificate file.
         logger (Any | None): The logger, if not set, a dummy logger is used.
@@ -56,12 +54,11 @@ class AsyncApi:
         os.environ["XUI_HOST"] = "https://xui.example.com"
         os.environ["XUI_USERNAME"] = "username"
         os.environ["XUI_PASSWORD"] = "password"
-        os.environ["XUI_TOKEN"] = "token"
 
         api = py3xui.AsyncApi.from_env()
 
         # Alternatively, you can provide the credentials directly.
-        api = py3xui.AsyncApi("https://xui.example.com", "username", "password", "token")
+        api = py3xui.AsyncApi("https://xui.example.com", "username", "password")
 
         await api.login()
 
@@ -76,39 +73,23 @@ class AsyncApi:
         host: str,
         username: str,
         password: str,
-        token: str | None = None,
         use_tls_verify: bool = True,
         custom_certificate_path: str | None = None,
         logger: Any | None = None,
     ):  # pylint: disable=R0913, R0917
         self.logger = logger or Logger(__name__)
 
-        warnings.warn(
-            "The `token` parameter will be removed in future versions. "
-            "This will change the order of constructor arguments.",
-            FutureWarning,
-            stacklevel=2,
-        )
-
-        if token is not None:
-            warnings.warn(
-                "The `token` parameter is deprecated and will be removed in future versions. "
-                "It will also affect the order of the parameters in the constructor.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-
         self.client = AsyncClientApi(
-            host, username, password, token, use_tls_verify, custom_certificate_path, logger
+            host, username, password, use_tls_verify, custom_certificate_path, logger
         )
         self.inbound = AsyncInboundApi(
-            host, username, password, token, use_tls_verify, custom_certificate_path, logger
+            host, username, password, use_tls_verify, custom_certificate_path, logger
         )
         self.database = AsyncDatabaseApi(
-            host, username, password, token, use_tls_verify, custom_certificate_path, logger
+            host, username, password, use_tls_verify, custom_certificate_path, logger
         )
         self.server = AsyncServerApi(
-            host, username, password, token, use_tls_verify, custom_certificate_path, logger
+            host, username, password, use_tls_verify, custom_certificate_path, logger
         )
         self._session: str | None = None
         self._cookie_name: str | None = None
@@ -173,7 +154,6 @@ class AsyncApi:
         - XUI_HOST: The XUI host URL.
         - XUI_USERNAME: The XUI username.
         - XUI_PASSWORD: The XUI password.
-        - XUI_TOKEN: The XUI secret token (Optional).
         - TLS_VERIFY: Whether to verify the server TLS certificate (Optional).
         - TLS_CERT_PATH: Path to a custom certificate file (Optional).
 
@@ -199,7 +179,6 @@ class AsyncApi:
         host = env.xui_host()
         username = env.xui_username()
         password = env.xui_password()
-        token = env.xui_token()
 
         if use_tls_verify is None:
             use_tls_verify = env.tls_verify()
@@ -209,7 +188,7 @@ class AsyncApi:
         if custom_certificate_path is None:
             custom_certificate_path = env.tls_cert_path()
 
-        return cls(host, username, password, token, use_tls_verify, custom_certificate_path, logger)
+        return cls(host, username, password, use_tls_verify, custom_certificate_path, logger)
 
     async def login(self, two_factor_code: str | int | None = None) -> None:
         """Logs into the XUI API and sets the session cookie for the client, inbound, and

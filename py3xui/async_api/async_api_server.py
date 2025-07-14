@@ -15,7 +15,6 @@ class AsyncServerApi(AsyncBaseApi):
         host (str): The XUI host URL.
         username (str): The XUI username.
         password (str): The XUI password.
-        token (str | None): The XUI secret token.
         use_tls_verify (bool): Whether to verify the server TLS certificate.
         custom_certificate_path (str | None): Path to a custom certificate file.
         session (requests.Session): The session object for the API.
@@ -36,7 +35,7 @@ class AsyncServerApi(AsyncBaseApi):
         status = await api.server.get_status()
         print(f"CPU Load: {status.cpu}%")
         print(f"Memory Used: {status.mem.current}/{status.mem.total} bytes")
-        
+
         # Get DB backup
         db_save_path = "db_backup.db"
         await api.server.get_db(db_save_path)
@@ -78,17 +77,17 @@ class AsyncServerApi(AsyncBaseApi):
 
     async def get_status(self) -> Server:
         """Retrieves the current server status.
-        
+
         Returns:
             Server: An object containing server status information
-            
+
         Examples:
             ```python
             import py3xui
-            
+
             api = py3xui.AsyncApi.from_env()
             await api.login()
-            
+
             status = await api.server.get_status()
             print(f"CPU Load: {status.cpu}%")
             print(f"Memory Used: {status.mem.current}/{status.mem.total} bytes")

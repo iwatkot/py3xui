@@ -31,7 +31,6 @@ class BaseApi:
         host (str): The host of the XUI API.
         username (str): The username for the XUI API.
         password (str): The password for the XUI API.
-        token (str | None): The secret token for the XUI API.
         use_tls_verify (bool): Whether to verify the server TLS certificate.
         custom_certificate_path (str | None): Path to a custom certificate file.
         logger (Any | None): The logger, if not set, a dummy logger is used.
@@ -40,7 +39,6 @@ class BaseApi:
         host (str): The host of the XUI API.
         username (str): The username for the XUI API.
         password (str): The password for the XUI API.
-        token (str | None): The secret token for the XUI API.
         use_tls_verify (bool): Whether to verify the server TLS certificate.
         custom_certificate_path (str | None): Path to a custom certificate file.
         max_retries (int): The maximum number of retries for a request.
@@ -64,7 +62,6 @@ class BaseApi:
         host: str,
         username: str,
         password: str,
-        token: str | None = None,
         use_tls_verify: bool = True,
         custom_certificate_path: str | None = None,
         logger: Any | None = None,
@@ -72,7 +69,6 @@ class BaseApi:
         self._host = host.rstrip("/")
         self._username = username
         self._password = password
-        self._token = token
         self._use_tls_verify = use_tls_verify
         self._custom_certificate_path = custom_certificate_path
         self._max_retries: int = 3
@@ -103,14 +99,6 @@ class BaseApi:
         Returns:
             str: The password for the XUI API."""
         return self._password
-
-    @property
-    def token(self) -> str | None:
-        """The secret token for the XUI API.
-
-        Returns:
-            str | None: The secret token for the XUI API."""
-        return self._token
 
     @property
     def use_tls_verify(self) -> bool:
@@ -193,8 +181,6 @@ class BaseApi:
         if two_factor_code is not None:
             data["twoFactorCode"] = str(two_factor_code)
 
-        if self.token is not None:
-            data.update({"loginSecret": self.token})
         self.logger.info("Logging in with username: %s", self.username)
 
         response = self._post(url, headers, data, is_login=True)
