@@ -94,21 +94,6 @@ Get the XUI password from the environment using the following keys:
 
   str | None: The XUI password or None
 
-<a id="utils.env.xui_token"></a>
-
-#### xui\_token
-
-```python
-def xui_token() -> str | None
-```
-
-Get the XUI secret token from the environment using the following keys:
-- XUI_TOKEN
-
-**Returns**:
-
-  str | None: The XUI secret token or None if not found
-
 <a id="utils.env.tls_verify"></a>
 
 #### tls\_verify

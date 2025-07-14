@@ -19,7 +19,6 @@ Attributes and Properties:
 host (str): The XUI host URL.
 username (str): The XUI username.
 password (str): The XUI password.
-token (str | None): The XUI secret token.
 use_tls_verify (bool): Whether to verify the server TLS certificate.
 custom_certificate_path (str | None): Path to a custom certificate file.
 session (requests.Session): The session object for the API.
@@ -83,7 +82,6 @@ Attributes and Properties:
 host (str): The XUI host URL.
 username (str): The XUI username.
 password (str): The XUI password.
-token (str | None): The XUI secret token.
 use_tls_verify (bool): Whether to verify the server TLS certificate.
 custom_certificate_path (str | None): Path to a custom certificate file.
 session (requests.Session): The session object for the API.
@@ -373,7 +371,6 @@ It significantly increases the risk of security threats like man-in-the-middle a
 - `host` _str_ - The XUI host URL.
 - `username` _str_ - The XUI username.
 - `password` _str_ - The XUI password.
-- `token` _str | None_ - The XUI secret token.
 - `use_tls_verify` _bool_ - Whether to verify the server TLS certificate.
 - `custom_certificate_path` _str | None_ - Path to a custom certificate file.
 - `logger` _Any | None_ - The logger, if not set, a dummy logger is used.
@@ -399,12 +396,11 @@ It significantly increases the risk of security threats like man-in-the-middle a
     os.environ["XUI_HOST"] = "https://xui.example.com"
     os.environ["XUI_USERNAME"] = "username"
     os.environ["XUI_PASSWORD"] = "password"
-    os.environ["XUI_TOKEN"] = "token"
 
     api = py3xui.Api.from_env()
 
     # Alternatively, you can provide the credentials directly.
-    api = py3xui.Api("https://xui.example.com", "username", "password", "token")
+    api = py3xui.Api("https://xui.example.com", "username", "password")
 
     api.login()
 
@@ -494,7 +490,6 @@ Following environment variables should be set:
 - XUI_HOST: The XUI host URL.
 - XUI_USERNAME: The XUI username.
 - XUI_PASSWORD: The XUI password.
-- XUI_TOKEN: The XUI secret token (Optional).
 - TLS_VERIFY: Whether to verify the server TLS certificate (Optional).
 - TLS_CERT_PATH: Path to a custom certificate file (Optional).
 
@@ -569,7 +564,6 @@ Attributes and Properties:
 host (str): The XUI host URL.
 username (str): The XUI username.
 password (str): The XUI password.
-token (str | None): The XUI secret token.
 use_tls_verify (bool): Whether to verify the server TLS certificate.
 custom_certificate_path (str | None): Path to a custom certificate file.
 session (requests.Session): The session object for the API.
@@ -667,7 +661,6 @@ Attributes and Properties:
 host (str): The XUI host URL.
 username (str): The XUI username.
 password (str): The XUI password.
-token (str | None): The XUI secret token.
 use_tls_verify (bool): Whether to verify the server TLS certificate.
 custom_certificate_path (str | None): Path to a custom certificate file.
 session (requests.Session): The session object for the API.
@@ -1046,7 +1039,6 @@ Base class for the XUI API. Contains common methods for making requests.
 - `host` _str_ - The host of the XUI API.
 - `username` _str_ - The username for the XUI API.
 - `password` _str_ - The password for the XUI API.
-- `token` _str | None_ - The secret token for the XUI API.
 - `use_tls_verify` _bool_ - Whether to verify the server TLS certificate.
 - `custom_certificate_path` _str | None_ - Path to a custom certificate file.
 - `logger` _Any | None_ - The logger, if not set, a dummy logger is used.
@@ -1055,7 +1047,6 @@ Base class for the XUI API. Contains common methods for making requests.
 - `host` _str_ - The host of the XUI API.
 - `username` _str_ - The username for the XUI API.
 - `password` _str_ - The password for the XUI API.
-- `token` _str | None_ - The secret token for the XUI API.
 - `use_tls_verify` _bool_ - Whether to verify the server TLS certificate.
 - `custom_certificate_path` _str | None_ - Path to a custom certificate file.
 - `max_retries` _int_ - The maximum number of retries for a request.
@@ -1116,21 +1107,6 @@ The password for the XUI API.
 **Returns**:
 
 - `str` - The password for the XUI API.
-
-<a id="api.api_base.BaseApi.token"></a>
-
-#### token
-
-```python
-@property
-def token() -> str | None
-```
-
-The secret token for the XUI API.
-
-**Returns**:
-
-  str | None: The secret token for the XUI API.
 
 <a id="api.api_base.BaseApi.use_tls_verify"></a>
 
