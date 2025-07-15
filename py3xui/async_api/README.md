@@ -307,7 +307,7 @@ It significantly increases the risk of security threats like man-in-the-middle a
 - `password` _str_ - The XUI password.
 - `use_tls_verify` _bool_ - Whether to verify the server TLS certificate.
 - `custom_certificate_path` _str | None_ - Path to a custom certificate file.
-- `logger` _Any | None_ - The logger, if not set, a dummy logger is used.
+- `logger` _Any | None_ - The logger, if not set, default logger is used.
   
   Attributes and Properties:
 - `client` _AsyncClientApi_ - The client API.
@@ -667,7 +667,7 @@ Base class for the XUI API. Contains async common methods for making requests.
 - `password` _str_ - The password for the XUI API.
 - `use_tls_verify` _bool_ - Whether to verify the server TLS certificate.
 - `custom_certificate_path` _str | None_ - Path to a custom certificate file.
-- `logger` _Any | None_ - The logger, if not set, a dummy logger is used.
+- `logger` _Any | None_ - The logger, if not set, default logger is used.
   
   Attributes and Properties:
 - `host` _str_ - The host of the XUI API.

@@ -124,9 +124,3 @@ Get the path to the TLS certificate from the environment using the following key
 
   str | None: The path to the TLS certificate file, or None if not set.
 
-<a id="utils.logger"></a>
-
-# utils.logger
-
-This module contains dummy logging class if the logger was not set in API.
-
