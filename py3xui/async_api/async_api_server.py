@@ -102,6 +102,6 @@ class AsyncServerApi(AsyncBaseApi):
 
         response = await self._post(url, headers, data)
         server_json = response.json().get(ApiFields.OBJ)
-        self.logger.info(f"Server status: {server_json}")
+        self.logger.info("Server status: %s", server_json)
         server = Server.model_validate(server_json)
         return server
