@@ -3,6 +3,7 @@
 # pylint: disable=R0801
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from py3xui.async_api import (
@@ -11,7 +12,7 @@ from py3xui.async_api import (
     AsyncInboundApi,
     AsyncServerApi,
 )
-from py3xui.utils import Logger, env
+from py3xui.utils import env
 
 
 class AsyncApi:
@@ -33,7 +34,7 @@ class AsyncApi:
         password (str): The XUI password.
         use_tls_verify (bool): Whether to verify the server TLS certificate.
         custom_certificate_path (str | None): Path to a custom certificate file.
-        logger (Any | None): The logger, if not set, a dummy logger is used.
+        logger (Any | None): The logger, if not set, default logger is used.
 
     Attributes and Properties:
         client (AsyncClientApi): The client API.
@@ -77,7 +78,7 @@ class AsyncApi:
         custom_certificate_path: str | None = None,
         logger: Any | None = None,
     ):  # pylint: disable=R0913, R0917
-        self.logger = logger or Logger(__name__)
+        self.logger = logger or logging.getLogger(__name__)
 
         self.client = AsyncClientApi(
             host, username, password, use_tls_verify, custom_certificate_path, logger
