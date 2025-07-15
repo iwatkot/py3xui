@@ -2,12 +2,13 @@
 
 # pylint: disable=R0801
 
+import logging
 from time import sleep
 from typing import Any, Callable
 
 import requests
 
-from py3xui.utils import COOKIE_NAMES, Logger
+from py3xui.utils import COOKIE_NAMES
 
 
 # pylint: disable=too-few-public-methods
@@ -74,7 +75,7 @@ class BaseApi:
         self._max_retries: int = 3
         self._session: str | None = None
         self._cookie_name: str | None = None
-        self.logger = logger or Logger(__name__)
+        self.logger = logger or logging.getLogger(__name__)
 
     @property
     def host(self) -> str:

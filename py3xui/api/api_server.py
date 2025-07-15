@@ -61,9 +61,9 @@ class ServerApi(BaseApi):
         if response.status_code == 200:
             with open(save_path, "wb") as file:
                 file.write(response.content)
-            self.logger.info(f"DB backup saved to {save_path}")
+            self.logger.info("DB backup saved to %s", save_path)
         else:
-            self.logger.error(f"Failed to get DB backup: {response.text}")
+            self.logger.error("Failed to get DB backup: %s", response.text)
             response.raise_for_status()
 
     def get_status(self) -> Server:
@@ -93,6 +93,6 @@ class ServerApi(BaseApi):
         response = self._post(url, headers, data)
         server_json = response.json().get(ApiFields.OBJ)
 
-        self.logger.info(f"Server status: {server_json}")
+        self.logger.debug("Server status: %s", server_json)
         server = Server.model_validate(server_json)
         return server

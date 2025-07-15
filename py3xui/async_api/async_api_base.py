@@ -3,12 +3,13 @@
 # pylint: disable=R0801
 
 import asyncio
+import logging
 from typing import Any
 
 import httpx
 
 from py3xui.api.api_base import ApiFields
-from py3xui.utils import COOKIE_NAMES, Logger
+from py3xui.utils import COOKIE_NAMES
 
 
 # pylint: disable=R0902
@@ -21,7 +22,7 @@ class AsyncBaseApi:
         password (str): The password for the XUI API.
         use_tls_verify (bool): Whether to verify the server TLS certificate.
         custom_certificate_path (str | None): Path to a custom certificate file.
-        logger (Any | None): The logger, if not set, a dummy logger is used.
+        logger (Any | None): The logger, if not set, default logger is used.
 
     Attributes and Properties:
         host (str): The host of the XUI API.
@@ -62,7 +63,7 @@ class AsyncBaseApi:
         self._max_retries: int = 3
         self._session: str | None = None
         self._cookie_name: str | None = None
-        self.logger = logger or Logger(__name__)
+        self.logger = logger or logging.getLogger(__name__)
 
     @property
     def host(self) -> str:
