@@ -73,7 +73,7 @@ class Client(BaseModel):
             return None
         return int(v)
 
-    flow: str = ""
+    flow: str | None = ""
     method: str = ""
     limit_ip: int = Field(default=0, alias=ClientFields.LIMIT_IP)  # type: ignore
     sub_id: str = Field(default="", alias=ClientFields.SUB_ID)  # type: ignore
