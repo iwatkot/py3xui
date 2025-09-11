@@ -51,7 +51,7 @@ class ServerApi(BaseApi):
             api.server.get_db(db_save_path)
             ```
         """
-        endpoint = "server/getDb"
+        endpoint = "panel/api/server/getDb"
         headers = {"Accept": "application/octet-stream"}
         url = self._url(endpoint)
         self.logger.info("Getting DB backup...")
@@ -84,7 +84,7 @@ class ServerApi(BaseApi):
             print(f"Memory Used: {status.mem.current}/{status.mem.total} bytes")
             ```
         """
-        endpoint = "server/status"
+        endpoint = "panel/api/server/status"
         headers = {"Accept": "application/json"}
         data: dict[str, Any] = {}
         url = self._url(endpoint)
@@ -111,7 +111,7 @@ class ServerApi(BaseApi):
             print(f"Online Users: {online_users}")
             ```
         """
-        endpoint = "panel/inbound/onlines"
+        endpoint = "panel/api/inbounds/onlines"
         headers = {"Accept": "application/json"}
         data: dict[str, Any] = {}
         url = self._url(endpoint)
