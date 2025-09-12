@@ -18,7 +18,7 @@ If you discover a security vulnerability in py3xui, please report it responsibly
 ### How to Report
 
 1. **Do not** create a public GitHub issue for security vulnerabilities
-2. **Do** send an email to [iwatkot@gmail.com](mailto:iwatkot@gmail.com) with the subject line "Security Vulnerability in py3xui"
+2. **Do** send an email to [contact@iwtk.me](mailto:iwatkot@gmail.com) with the subject line "Security Vulnerability in py3xui"
 3. Include the following information in your report:
    - A detailed description of the vulnerability
    - Steps to reproduce the issue
