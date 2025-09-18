@@ -51,7 +51,7 @@ class ServerApi(BaseApi):
             api.server.get_db(db_save_path)
             ```
         """
-        endpoint = "server/getDb"
+        endpoint = "panel/api/server/getDb"
         headers = {"Accept": "application/octet-stream"}
         url = self._url(endpoint)
         self.logger.info("Getting DB backup...")
@@ -84,7 +84,7 @@ class ServerApi(BaseApi):
             print(f"Memory Used: {status.mem.current}/{status.mem.total} bytes")
             ```
         """
-        endpoint = "server/status"
+        endpoint = "panel/api/server/status"
         headers = {"Accept": "application/json"}
         data: dict[str, Any] = {}
         url = self._url(endpoint)
@@ -96,3 +96,29 @@ class ServerApi(BaseApi):
         self.logger.debug("Server status: %s", server_json)
         server = Server.model_validate(server_json)
         return server
+
+    def get_online_users(self) -> list:
+        """this route is used to retrieve a list of online users.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+
+            online_users = api.server.get_online_users()
+            print(f"Online Users: {online_users}")
+            ```
+        """
+        endpoint = "panel/api/inbounds/onlines"
+        headers = {"Accept": "application/json"}
+        data: dict[str, Any] = {}
+        url = self._url(endpoint)
+        self.logger.info("Getting online users...")
+
+        response = self._post(url, headers, data)
+        online_json = response.json().get(ApiFields.OBJ)
+
+        self.logger.debug("Online users: %s", online_json)
+        return online_json

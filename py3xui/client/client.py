@@ -1,6 +1,6 @@
 """This module contains the Client class which represents a client in the XUI API."""
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 # pylint: disable=too-few-public-methods
@@ -66,8 +66,14 @@ class Client(BaseModel):
 
     total: int = 0
     reset: int | None = None
+        
+    @field_validator("reset", mode="before")
+    def parse_reset(cls, v):
+        if v == "":
+            return None
+        return int(v)
 
-    flow: str = ""
+    flow: str | None = ""
     method: str = ""
     limit_ip: int = Field(default=0, alias=ClientFields.LIMIT_IP)  # type: ignore
     sub_id: str = Field(default="", alias=ClientFields.SUB_ID)  # type: ignore
