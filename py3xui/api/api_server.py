@@ -1,7 +1,5 @@
 """This module contains the ServerApi class for handling server in the XUI API."""
 
-from typing import Any
-
 from py3xui.api.api_base import ApiFields, BaseApi
 from py3xui.server.server import Server
 
@@ -84,13 +82,12 @@ class ServerApi(BaseApi):
             print(f"Memory Used: {status.mem.current}/{status.mem.total} bytes")
             ```
         """
-        endpoint = "server/status"
+        endpoint = "panel/api/server/status"
         headers = {"Accept": "application/json"}
-        data: dict[str, Any] = {}
         url = self._url(endpoint)
         self.logger.info("Getting server status...")
 
-        response = self._post(url, headers, data)
+        response = self._get(url, headers)
         server_json = response.json().get(ApiFields.OBJ)
 
         self.logger.debug("Server status: %s", server_json)

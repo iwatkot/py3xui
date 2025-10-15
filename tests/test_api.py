@@ -272,7 +272,7 @@ def test_get_status():
     response_example = json.load(open(os.path.join(RESPONSES_DIR, "get_server_status.json")))
 
     with requests_mock.Mocker() as m:
-        m.post(f"{HOST}/server/status", json=response_example)
+        m.get(f"{HOST}/panel/api/server/status", json=response_example)
         api = Api(HOST, USERNAME, PASSWORD)
         api.session = SESSION
 

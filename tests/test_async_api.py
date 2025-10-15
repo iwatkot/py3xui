@@ -414,8 +414,8 @@ async def test_get_server_status(httpx_mock: HTTPXMock):
     response_example = json.load(open(os.path.join(RESPONSES_DIR, "get_server_status.json")))
 
     httpx_mock.add_response(
-        method="POST",
-        url=f"{HOST}/server/status",
+        method="GET",
+        url=f"{HOST}/panel/api/server/status",
         json=response_example,
         status_code=200,
     )
