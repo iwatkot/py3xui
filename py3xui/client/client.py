@@ -29,6 +29,8 @@ class ClientFields:
     TG_ID = "tgId"
     TOTAL_GB = "totalGB"
 
+    UUID = "uuid"
+
 
 class Client(BaseModel):
     """Represents a client in the XUI API.
@@ -73,6 +75,7 @@ class Client(BaseModel):
     sub_id: str = Field(default="", alias=ClientFields.SUB_ID)  # type: ignore
     tg_id: int | str | None = Field(default="", alias=ClientFields.TG_ID)  # type: ignore
     total_gb: int = Field(default=0, alias=ClientFields.TOTAL_GB)  # type: ignore
+    uuid: str | None = Field(default=None, alias=ClientFields.UUID)  # type: ignore
 
     model_config = ConfigDict(
         populate_by_name=True,
