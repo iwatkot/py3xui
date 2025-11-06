@@ -49,7 +49,7 @@ class ServerApi(BaseApi):
             api.server.get_db(db_save_path)
             ```
         """
-        endpoint = "server/getDb"
+        endpoint = "panel/api/server/getDb"
         headers = {"Accept": "application/octet-stream"}
         url = self._url(endpoint)
         self.logger.info("Getting DB backup...")

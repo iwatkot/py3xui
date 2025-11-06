@@ -442,7 +442,7 @@ async def test_get_db(httpx_mock: HTTPXMock, tmp_path):
 
     httpx_mock.add_response(
         method="GET",
-        url=f"{HOST}/server/getDb",
+        url=f"{HOST}/panel/api/server/getDb",
         content=db_content,
         status_code=200,
     )
@@ -465,7 +465,7 @@ async def test_get_db_failed(httpx_mock: HTTPXMock, tmp_path):
 
     httpx_mock.add_response(
         method="GET",
-        url=f"{HOST}/server/getDb",
+        url=f"{HOST}/panel/api/server/getDb",
         json={ApiFields.SUCCESS: False, ApiFields.MSG: "Failed to get DB backup"},
         status_code=500,
     )

@@ -294,7 +294,7 @@ def test_get_db():
 
     with requests_mock.Mocker() as m:
         m.get(
-            f"{HOST}/server/getDb",
+            f"{HOST}/panel/api/server/getDb",
             content=test_content,
             headers={"Content-Type": "application/octet-stream"},
         )
@@ -319,7 +319,7 @@ def test_get_db_failed():
     Test error handling when getting DB backup fails
     """
     with requests_mock.Mocker() as m:
-        m.get(f"{HOST}/server/getDb", status_code=500)
+        m.get(f"{HOST}/panel/api/server/getDb", status_code=500)
 
         api = Api(HOST, USERNAME, PASSWORD)
         api.session = SESSION
