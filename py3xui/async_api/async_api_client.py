@@ -81,6 +81,7 @@ class AsyncClientApi(AsyncBaseApi):
         response = await self._get(url, headers)
 
         client_json = response.json().get(ApiFields.OBJ)
+
         if not client_json:
             self.logger.warning("No client found for email: %s", email)
             return None
@@ -181,6 +182,7 @@ class AsyncClientApi(AsyncBaseApi):
 
         url = self._url(endpoint)
         settings = {"clients": [client.model_dump(by_alias=True, exclude_defaults=True)]}
+        
         data = {"id": client.inbound_id, "settings": json.dumps(settings)}
 
         self.logger.info("Updating client: %s", client)
