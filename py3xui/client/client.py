@@ -26,6 +26,7 @@ class ClientFields:
     METHOD = "method"
     LIMIT_IP = "limitIp"
     SUB_ID = "subId"
+    COMMENT = "comment"
     TG_ID = "tgId"
     TOTAL_GB = "totalGB"
 
@@ -50,6 +51,7 @@ class Client(BaseModel):
         method (str): The method (encryption cipher) used by the client. Optional.
         limit_ip (int): The limit of IPs for the client. Optional.
         sub_id (str): The sub ID of the client. Optional.
+        comment (str): The comment of the client. Optional.
         tg_id (str): The Telegram ID of the client. Optional.
         total_gb (int): The total amount of data transferred by the client in GB. Optional.
     """
@@ -73,6 +75,7 @@ class Client(BaseModel):
     method: str = ""
     limit_ip: int = Field(default=0, alias=ClientFields.LIMIT_IP)  # type: ignore
     sub_id: str = Field(default="", alias=ClientFields.SUB_ID)  # type: ignore
+    comment: str = Field(default="", alias=ClientFields.COMMENT)  # type: ignore
     tg_id: int | str | None = Field(default="", alias=ClientFields.TG_ID)  # type: ignore
     total_gb: int = Field(default=0, alias=ClientFields.TOTAL_GB)  # type: ignore
     uuid: str | None = Field(default=None, alias=ClientFields.UUID)  # type: ignore

@@ -40,6 +40,7 @@ Represents a client in the XUI API.
 - `method` _str_ - The method (encryption cipher) used by the client. Optional.
 - `limit_ip` _int_ - The limit of IPs for the client. Optional.
 - `sub_id` _str_ - The sub ID of the client. Optional.
+- `comment` _str_ - The comment of the client. Optional.
 - `tg_id` _str_ - The Telegram ID of the client. Optional.
 - `total_gb` _int_ - The total amount of data transferred by the client in GB. Optional.
 
@@ -74,6 +75,13 @@ type: ignore
 type: ignore
 
 <a id="client.client.Client.tg_id"></a>
+
+#### comment
+
+type: ignore
+
+<a id="client.client.Client.comment"></a>
+
 
 #### tg\_id
 
