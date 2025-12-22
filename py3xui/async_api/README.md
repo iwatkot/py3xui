@@ -570,6 +570,7 @@ max_retries (int): The maximum number of retries for the API requests.
 Public Methods:
 get_db: Retrieves a database backup file and saves it to a specified path.
 get_status: Retrieves the current server status.
+generate_reality_keys: Generates a new Reality (X25519) key pair on the server.
 
 **Examples**:
 
@@ -642,6 +643,34 @@ Retrieves the current server status.
     status = await api.server.get_status()
     print(f"CPU Load: {status.cpu}%")
     print(f"Memory Used: {status.mem.current}/{status.mem.total} bytes")
+    ```
+
+<a id="async_api.async_api_server.AsyncServerApi.generate_reality_keys"></a>
+
+#### generate\_reality\_keys
+
+```python
+async def generate_reality_keys() -> RealityKeyPair
+```
+
+Generates a new Reality (X25519) key pair on the server.
+
+**Returns**:
+
+- `RealityKeyPair` - Generated key pair containing private and public keys.
+  
+
+**Examples**:
+
+    ```python
+    import py3xui
+
+    api = py3xui.AsyncApi.from_env()
+    await api.login()
+
+    keys = await api.server.generate_reality_keys()
+    print(keys.public_key)
+    print(keys.private_key)
     ```
 
 <a id="async_api.async_api_base"></a>
@@ -1259,4 +1288,3 @@ NOTE: At the moment of writing this, the API documentation does not exist for th
     clients = await api.client.get_traffic_by_id("239708ef-487e-4945-829d-ad79a0ce067e")
     print(clients)
     ```
-

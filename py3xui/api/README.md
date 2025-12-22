@@ -572,6 +572,7 @@ max_retries (int): The maximum number of retries for the API requests.
 Public Methods:
 get_db: Retrieves a database backup file and saves it to a specified path.
 get_status: Retrieves the current status of the server.
+generate_reality_keys: Generates a new Reality (X25519) key pair on the server.
 
 **Examples**:
 
@@ -638,6 +639,34 @@ Gets the current server status.
     status = api.server.get_status()
     print(f"CPU Load: {status.cpu}%")
     print(f"Memory Used: {status.mem.current}/{status.mem.total} bytes")
+    ```
+
+<a id="api.api_server.ServerApi.generate_reality_keys"></a>
+
+#### generate\_reality\_keys
+
+```python
+def generate_reality_keys() -> RealityKeyPair
+```
+
+Generates a new Reality (X25519) key pair on the server.
+
+**Returns**:
+
+- `RealityKeyPair` - Generated key pair containing private and public keys.
+  
+
+**Examples**:
+
+    ```python
+    import py3xui
+
+    api = py3xui.Api.from_env()
+    api.login()
+
+    keys = api.server.generate_reality_keys()
+    print(keys.public_key)
+    print(keys.private_key)
     ```
 
 <a id="api.api_client"></a>
@@ -1261,4 +1290,3 @@ Returns the cookies for the XUI API. If session is not set yet, returns an empty
 **Returns**:
 
   dict[str, str]: The cookies for the XUI API.
-

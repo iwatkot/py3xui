@@ -196,6 +196,20 @@ client_by_email.id = cliend_uuid
 api.client.update(client_by_email.id, client_by_email)
 ```
 
+### Generate Reality keys
+When you need a fresh Reality (X25519) key pair for configuring inbounds, ask the server to generate it:
+
+```python
+from py3xui import Api
+
+api = Api("https://your-host", "username", "password", use_tls_verify=False)
+api.login()
+
+keys = api.server.generate_reality_keys()
+print("Public key:", keys.public_key)
+print("Private key:", keys.private_key)
+```
+
 ### Create a connection string and QR code
 When you need to provide the user with a connection string that can be used in a software to create a new connection profile and/or a QR code, you can use the following example.
 
