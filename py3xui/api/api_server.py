@@ -1,7 +1,7 @@
 """This module contains the ServerApi class for handling server in the XUI API."""
 
 from py3xui.api.api_base import ApiFields, BaseApi
-from py3xui.server.server import Server
+from py3xui.server.server import RealityKeyPair, Server
 
 
 class ServerApi(BaseApi):
@@ -93,3 +93,23 @@ class ServerApi(BaseApi):
         self.logger.debug("Server status: %s", server_json)
         server = Server.model_validate(server_json)
         return server
+
+    def generate_reality_keys(self) -> RealityKeyPair:
+        """Generates a new Reality (X25519) key pair on the server.
+
+        Returns:
+            RealityKeyPair: Generated key pair containing private and public keys.
+        """
+        endpoint = "panel/api/server/getNewX25519Cert"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        self.logger.info("Generating new Reality keys...")
+
+        response = self._get(url, headers)
+        keys_json = response.json().get(ApiFields.OBJ)
+
+        if not keys_json:
+            raise ValueError("Reality keys were not returned by the server.")
+
+        self.logger.debug("Reality keys generated: %s", keys_json)
+        return RealityKeyPair.model_validate(keys_json)
