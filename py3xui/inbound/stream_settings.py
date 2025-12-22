@@ -19,6 +19,7 @@ class StreamSettingsFields:
     REALITY_SETTINGS = "realitySettings"
     XTLS_SETTINGS = "xtlsSettings"
     TLS_SETTINGS = "tlsSettings"
+    XHTTP_SETTINGS = "xhttpSettings"
 
 
 class StreamSettings(JsonStringModel):
@@ -32,6 +33,7 @@ class StreamSettings(JsonStringModel):
         reality_settings (dict): The reality settings for the inbound connection. Optional.
         xtls_settings (dict): The xTLS settings for the inbound connection. Optional.
         tls_settings (dict): The TLS settings for the inbound connection. Optional.
+        xhttp_settings (dict): The XHTTP settings for the inbound connection. Optional.
     """
 
     security: str
@@ -54,6 +56,9 @@ class StreamSettings(JsonStringModel):
         default={}, alias=StreamSettingsFields.XTLS_SETTINGS
     )
     tls_settings: dict = Field(default={}, alias=StreamSettingsFields.TLS_SETTINGS)  # type: ignore
+    xhttp_settings: dict = Field(  # type: ignore
+        default={}, alias=StreamSettingsFields.XHTTP_SETTINGS
+    )
 
     model_config = ConfigDict(
         populate_by_name=True,
