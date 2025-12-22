@@ -328,4 +328,27 @@ def test_get_db_failed():
             api.server.get_db("failed_backup.db")
 
 
+def test_generate_reality_keys():
+    """
+    Test for generating Reality (X25519) keys
+    """
+    response_example = {
+        ApiFields.SUCCESS: True,
+        ApiFields.MSG: "",
+        ApiFields.OBJ: {"privateKey": "priv", "publicKey": "pub"},
+    }
+
+    with requests_mock.Mocker() as m:
+        m.get(f"{HOST}/panel/api/server/getNewX25519Cert", json=response_example)
+
+        api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
+
+        keys = api.server.generate_reality_keys()
+
+        assert m.called, "Mocked request was not called"
+        assert keys.private_key == "priv", f"Expected 'priv', got {keys.private_key}"
+        assert keys.public_key == "pub", f"Expected 'pub', got {keys.public_key}"
+
+
 # endregion

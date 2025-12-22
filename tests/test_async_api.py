@@ -433,6 +433,34 @@ async def test_get_server_status(httpx_mock: HTTPXMock):
 
 
 @pytest.mark.asyncio
+async def test_generate_reality_keys(httpx_mock: HTTPXMock):
+    """
+    Test for generating Reality (X25519) keys
+    """
+    response_example = {
+        ApiFields.SUCCESS: True,
+        ApiFields.MSG: "",
+        ApiFields.OBJ: {"privateKey": "priv", "publicKey": "pub"},
+    }
+
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{HOST}/panel/api/server/getNewX25519Cert",
+        json=response_example,
+        status_code=200,
+    )
+
+    api = AsyncApi(HOST, USERNAME, PASSWORD)
+    api.session = SESSION
+
+    keys = await api.server.generate_reality_keys()
+
+    assert httpx_mock.get_request(), "Mocked request was not called"
+    assert keys.private_key == "priv", f"Expected 'priv', got {keys.private_key}"
+    assert keys.public_key == "pub", f"Expected 'pub', got {keys.public_key}"
+
+
+@pytest.mark.asyncio
 async def test_get_db(httpx_mock: HTTPXMock, tmp_path):
     """
     Test for checking database backup retrieval
