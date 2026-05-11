@@ -369,8 +369,10 @@ It significantly increases the risk of security threats like man-in-the-middle a
 **Arguments**:
 
 - `host` _str_ - The XUI host URL.
-- `username` _str_ - The XUI username.
-- `password` _str_ - The XUI password.
+- `username` _str | None_ - The XUI username. Required when token is not provided.
+- `password` _str | None_ - The XUI password. Required when token is not provided.
+- `token` _str | None_ - The bearer token for API authentication. When provided,
+  login() is not required.
 - `use_tls_verify` _bool_ - Whether to verify the server TLS certificate.
 - `custom_certificate_path` _str | None_ - Path to a custom certificate file.
 - `logger` _Any | None_ - The logger, if not set, default logger is used.
@@ -380,6 +382,7 @@ It significantly increases the risk of security threats like man-in-the-middle a
 - `inbound` _InboundApi_ - The inbound API.
 - `database` _DatabaseApi_ - The database API.
 - `session` _str_ - The session cookie for the XUI API.
+- `csrf_token` _str | None_ - The CSRF token propagated to the sub-APIs.
 - `cookie_name` _str_ - The cookie name for the XUI API.
   
   Public Methods:
@@ -404,10 +407,35 @@ It significantly increases the risk of security threats like man-in-the-middle a
 
     api.login()
 
+    # Or use bearer token authentication without calling login().
+    api = py3xui.Api("https://xui.example.com", token="api-token")
+
     # Some examples of using the API.
     inbounds: list[py3xui.Inbound] = api.inbound.get_list()
     client: py3xui.Client = api.client.get_by_email("email")
     ```
+
+<a id="api.api.Api.csrf_token"></a>
+
+#### csrf\_token
+
+```python
+@property
+def csrf_token() -> str | None
+```
+
+The CSRF token shared by the sync sub-APIs after login.
+
+<a id="api.api.Api.csrf_token"></a>
+
+#### csrf\_token
+
+```python
+@csrf_token.setter
+def csrf_token(value: str | None) -> None
+```
+
+Sets the CSRF token on the sync client, inbound, database, and server APIs.
 
 <a id="api.api.Api.session"></a>
 
@@ -488,8 +516,9 @@ for SSL/TLS verification can be passed directly or read from environment variabl
 
 Following environment variables should be set:
 - XUI_HOST: The XUI host URL.
-- XUI_USERNAME: The XUI username.
-- XUI_PASSWORD: The XUI password.
+- XUI_USERNAME: The XUI username. Required when XUI_TOKEN is not set.
+- XUI_PASSWORD: The XUI password. Required when XUI_TOKEN is not set.
+- XUI_TOKEN: The bearer token for API authentication (Optional).
 - TLS_VERIFY: Whether to verify the server TLS certificate (Optional).
 - TLS_CERT_PATH: Path to a custom certificate file (Optional).
 
@@ -513,8 +542,8 @@ Following environment variables should be set:
     ```python
     import py3xui
 
-    api = py3xui.AsyncApi.from_env()
-    await api.login()
+    api = py3xui.Api.from_env()
+    api.login()
     ```
 
 <a id="api.api.Api.login"></a>
@@ -526,7 +555,9 @@ def login(two_factor_code: str | int | None = None) -> None
 ```
 
 Logs into the XUI API and sets the session cookie for the client, inbound, and
-database APIs.
+database APIs. Login fetches a CSRF token first and propagates it to all
+sub-APIs. If the API was created with a bearer token, use requests directly
+without calling login().
 
 **Arguments**:
 
@@ -1158,19 +1189,23 @@ Base class for the XUI API. Contains common methods for making requests.
 **Arguments**:
 
 - `host` _str_ - The host of the XUI API.
-- `username` _str_ - The username for the XUI API.
-- `password` _str_ - The password for the XUI API.
+- `username` _str | None_ - The username for the XUI API. Required when token is not provided.
+- `password` _str | None_ - The password for the XUI API. Required when token is not provided.
+- `token` _str | None_ - The bearer token for the XUI API. When provided,
+  login() is not required.
 - `use_tls_verify` _bool_ - Whether to verify the server TLS certificate.
 - `custom_certificate_path` _str | None_ - Path to a custom certificate file.
 - `logger` _Any | None_ - The logger, if not set, a dummy logger is used.
   
   Attributes and Properties:
 - `host` _str_ - The host of the XUI API.
-- `username` _str_ - The username for the XUI API.
-- `password` _str_ - The password for the XUI API.
+- `username` _str | None_ - The username for the XUI API.
+- `password` _str | None_ - The password for the XUI API.
+- `token` _str | None_ - The bearer token for the XUI API.
 - `use_tls_verify` _bool_ - Whether to verify the server TLS certificate.
 - `custom_certificate_path` _str | None_ - Path to a custom certificate file.
 - `max_retries` _int_ - The maximum number of retries for a request.
+- `csrf_token` _str | None_ - The CSRF token used with session authentication.
 - `session` _str_ - The session cookie for the XUI API.
 - `cookie_name` _str_ - The name of the cookie for the XUI API.
   
@@ -1205,7 +1240,7 @@ The host of the XUI API.
 
 ```python
 @property
-def username() -> str
+def username() -> str | None
 ```
 
 The username for the XUI API.
@@ -1220,7 +1255,7 @@ The username for the XUI API.
 
 ```python
 @property
-def password() -> str
+def password() -> str | None
 ```
 
 The password for the XUI API.
@@ -1228,6 +1263,32 @@ The password for the XUI API.
 **Returns**:
 
 - `str` - The password for the XUI API.
+
+<a id="api.api_base.BaseApi.token"></a>
+
+#### token
+
+```python
+@property
+def token() -> str | None
+```
+
+The bearer token for the XUI API.
+
+**Returns**:
+
+- `str | None` - The bearer token for the XUI API.
+
+<a id="api.api_base.BaseApi.token"></a>
+
+#### token
+
+```python
+@token.setter
+def token(value: str | None) -> None
+```
+
+Sets the bearer token for the XUI API.
 
 <a id="api.api_base.BaseApi.use_tls_verify"></a>
 
@@ -1288,6 +1349,36 @@ Sets the maximum number of retries for a request.
 **Arguments**:
 
 - `value` _int_ - The maximum number of retries for a request.
+
+<a id="api.api_base.BaseApi.csrf_token"></a>
+
+#### csrf\_token
+
+```python
+@property
+def csrf_token() -> str | None
+```
+
+The CSRF token for session-authenticated requests.
+
+**Returns**:
+
+  str | None: The CSRF token for the XUI API.
+
+<a id="api.api_base.BaseApi.csrf_token"></a>
+
+#### csrf\_token
+
+```python
+@csrf_token.setter
+def csrf_token(value: str | None) -> None
+```
+
+Sets the CSRF token for session-authenticated requests.
+
+**Arguments**:
+
+- `value` _str | None_ - The CSRF token for the XUI API.
 
 <a id="api.api_base.BaseApi.session"></a>
 
@@ -1359,6 +1450,10 @@ def login(two_factor_code: str | int | None = None) -> None
 
 Logs into the XUI API and sets the session cookie if successful.
 
+The login flow first fetches a CSRF token from the csrf-token endpoint, then
+sends that token with the username/password login request. The saved CSRF token
+is also sent on later requests when session authentication is used.
+
 **Arguments**:
 
 - `two_factor_code` _str | int | None_ - The two-factor authentication code, if required.
@@ -1366,6 +1461,7 @@ Logs into the XUI API and sets the session cookie if successful.
 
 **Raises**:
 
+- `RuntimeError` - If login is called when token authentication is already configured.
 - `ValueError` - If the login is unsuccessful.
 
 <a id="api.api_base.BaseApi.cookies"></a>

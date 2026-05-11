@@ -5,7 +5,9 @@ from typing import Any, Callable
 
 
 def parse_env(
-    keys: list[str], postprocess_fn: Callable[[str], Any], raise_if_not_found: bool = True
+    keys: list[str],
+    postprocess_fn: Callable[[str], Any],
+    raise_if_not_found: bool = True,
 ) -> Any:
     """Parse the environment for the first key that is found and return the value after
     postprocessing it.
@@ -75,6 +77,17 @@ def xui_password() -> str:
     return parse_env(
         keys=["XUI_PASSWORD"],
         postprocess_fn=lambda x: x,
+    )
+
+
+def xui_token() -> str | None:
+    """Get the optional XUI API token from the environment.
+
+    Returns:
+        str | None: The XUI API token or None if not set.
+    """
+    return parse_env(
+        keys=["XUI_TOKEN"], postprocess_fn=lambda x: x, raise_if_not_found=False
     )
 
 

@@ -18,36 +18,80 @@ SESSION = "abc123"
 EMAIL = "alhtim2x"
 SESSION = "abc123"
 CSRF_TOKEN = "test-csrf-token"
-CSRF_PAGE = f'<input type="hidden" name="csrf_token" value="{CSRF_TOKEN}">'
+TOKEN = "test-api-token"
+CSRF_RESPONSE = {ApiFields.SUCCESS: True, ApiFields.OBJ: CSRF_TOKEN}
 
 
 def test_login_success():
     with requests_mock.Mocker() as m:
-        m.get(HOST, text=CSRF_PAGE)
+        m.get(f"{HOST}/csrf-token", json=CSRF_RESPONSE, cookies={"3x-ui": SESSION})
         m.post(f"{HOST}/login", json={ApiFields.SUCCESS: True}, cookies={"3x-ui": SESSION})
         api = Api(HOST, "username", "password")
         api.login()
         assert api.client.session == SESSION, f"Expected {SESSION}, got {api.client.session}"
+        assert api.csrf_token == CSRF_TOKEN, f"Expected {CSRF_TOKEN}, got {api.csrf_token}"
+        assert api.inbound.csrf_token == CSRF_TOKEN
+        assert m.request_history[1].headers["X-CSRF-Token"] == CSRF_TOKEN
 
 
 def test_login_failed():
     with requests_mock.Mocker() as m:
-        m.get(HOST, text=CSRF_PAGE)
+        m.get(f"{HOST}/csrf-token", json=CSRF_RESPONSE, cookies={"3x-ui": SESSION})
         m.post(f"{HOST}/login", json={ApiFields.SUCCESS: False})
         api = Api(HOST, "username", "password")
         with pytest.raises(ValueError):
             api.client.login()
 
 
-def test_from_env():
-    os.environ["XUI_HOST"] = HOST
-    os.environ["XUI_USERNAME"] = USERNAME
-    os.environ["XUI_PASSWORD"] = PASSWORD
+def test_from_env(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("XUI_HOST", HOST)
+    monkeypatch.setenv("XUI_USERNAME", USERNAME)
+    monkeypatch.setenv("XUI_PASSWORD", PASSWORD)
+    monkeypatch.delenv("XUI_TOKEN", raising=False)
 
     api = Api.from_env()
     assert api.inbound.host == HOST, f"Expected {HOST}, got {api.inbound.host}"
     assert api.inbound.username == USERNAME, f"Expected {USERNAME}, got {api.inbound.username}"
     assert api.inbound.password == PASSWORD, f"Expected {PASSWORD}, got {api.inbound.password}"
+    assert api.inbound.token is None
+
+
+def test_from_env_token(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("XUI_HOST", HOST)
+    monkeypatch.setenv("XUI_TOKEN", TOKEN)
+    monkeypatch.delenv("XUI_USERNAME", raising=False)
+    monkeypatch.delenv("XUI_PASSWORD", raising=False)
+
+    api = Api.from_env()
+    assert api.inbound.host == HOST, f"Expected {HOST}, got {api.inbound.host}"
+    assert api.inbound.username is None
+    assert api.inbound.password is None
+    assert api.inbound.token == TOKEN
+
+
+def test_token_auth_uses_authorization_header():
+    response_example = json.load(open(os.path.join(RESPONSES_DIR, "get_inbounds.json")))
+
+    with requests_mock.Mocker() as m:
+        m.get(f"{HOST}/panel/api/inbounds/list", json=response_example)
+        api = Api(HOST, token=TOKEN)
+        inbounds = api.inbound.get_list()
+
+        assert len(inbounds) == 1, f"Expected 1, got {len(inbounds)}"
+        assert m.last_request.headers["Authorization"] == f"Bearer {TOKEN}"
+        assert m.last_request.headers["Accept"] == "application/json"
+
+
+def test_login_rejected_with_token():
+    api = Api(HOST, token=TOKEN)
+
+    with pytest.raises(RuntimeError):
+        api.login()
+
+
+def test_credentials_or_token_required():
+    with pytest.raises(ValueError):
+        Api(HOST)
 
 
 def test_get_inbounds():

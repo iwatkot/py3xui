@@ -94,6 +94,20 @@ Get the XUI password from the environment using the following keys:
 
   str | None: The XUI password or None
 
+<a id="utils.env.xui_token"></a>
+
+#### xui\_token
+
+```python
+def xui_token() -> str | None
+```
+
+Get the optional XUI API token from the environment.
+
+**Returns**:
+
+  str | None: The XUI API token or None if not set.
+
 <a id="utils.env.tls_verify"></a>
 
 #### tls\_verify
@@ -123,4 +137,3 @@ Get the path to the TLS certificate from the environment using the following key
 **Returns**:
 
   str | None: The path to the TLS certificate file, or None if not set.
-
