@@ -3,13 +3,40 @@
 # pylint: disable=R0801
 
 import asyncio
+from html.parser import HTMLParser
 import logging
+import re
 from typing import Any
 
 import httpx
 
 from py3xui.api.api_base import ApiFields
 from py3xui.utils import COOKIE_NAMES
+
+
+class _CsrfTokenParser(HTMLParser):
+    """Extracts CSRF tokens from login page HTML."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.token: str | None = None
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if self.token:
+            return
+
+        attrs_dict: dict[str, str] = {
+            name.lower(): value for name, value in attrs if value is not None
+        }
+
+        if tag.lower() == "input":
+            name = attrs_dict.get("name", "").lower()
+            if name in {"csrf", "csrf_token", "csrf-token", "csrftoken", "_csrf"}:
+                self.token = attrs_dict.get("value")
+        elif tag.lower() == "meta":
+            name = attrs_dict.get("name", "").lower()
+            if name == "csrf-token":
+                self.token = attrs_dict.get("content")
 
 
 # pylint: disable=R0902
@@ -186,6 +213,8 @@ class AsyncBaseApi:
             httpx.RequestError: If the request fails.
             httpx.HTTPStatusError: If the maximum number of retries is exceeded."""
         self.logger.debug("%s request to %s...", method, url)
+
+        is_login = kwargs.pop("is_login", False)
         for retry in range(1, self.max_retries + 1):
             try:
                 skip_check = kwargs.pop("skip_check", False)
@@ -223,18 +252,56 @@ class AsyncBaseApi:
                 response.raise_for_status()
                 if skip_check:
                     return response
-                await self._check_response(response)
+                if not is_login:
+                    await self._check_response(response)
                 return response
             except (httpx.RequestError, httpx.TimeoutException) as e:
                 if retry == self.max_retries:
                     raise e
                 self.logger.warning(
-                    "Request to %s failed: %s, retry %s of %s", url, e, retry, self.max_retries
+                    "Request to %s failed: %s, retry %s of %s",
+                    url,
+                    e,
+                    retry,
+                    self.max_retries,
                 )
                 await asyncio.sleep(1 * (retry + 1))
             except httpx.HTTPStatusError as e:
                 raise e
-        raise ConnectionError(f"Max retries exceeded with no successful response to {url}")
+        raise ConnectionError(
+            f"Max retries exceeded with no successful response to {url}"
+        )
+
+    @staticmethod
+    def _extract_csrf_token(page: str) -> str:
+        """Extracts csrf token from HTML login page
+
+        Arguments:
+            page (str): The web login page
+
+        Raises:
+            RuntimeError: if no CSRF token found
+
+        Returns:
+            str: The CSRF token found on the web page
+        """
+        parser = _CsrfTokenParser()
+        parser.feed(page)
+        if parser.token:
+            return parser.token
+
+        patterns: tuple[str, ...] = (
+            r'csrfToken["\']?\s*[:=]\s*["\']([^"\']+)',
+            r'csrf[_-]?token["\']?\s*[:=]\s*["\']([^"\']+)',
+            r'_csrf["\']?\s*[:=]\s*["\']([^"\']+)',
+        )
+
+        for pattern in patterns:
+            match = re.search(pattern, page, re.IGNORECASE)
+            if match:
+                return match.group(1)
+
+        raise RuntimeError("CSRF token not found on the page.")
 
     async def login(self, two_factor_code: str | int | None = None) -> None:
         """Logs into the XUI API and sets the session cookie if successful.
@@ -255,11 +322,24 @@ class AsyncBaseApi:
 
         self.logger.info("Logging in with username: %s", self.username)
 
+        # Request to get cookie and CSRF token
+        response = await self._get(self.host, headers, is_login=True)
+        response.raise_for_status()
+        self.session = await self._get_cookie(response)
+
+        csrf_token: str = self._extract_csrf_token(response.text)
+        headers["X-CSRF-Token"] = csrf_token
+        headers["Origin"] = self.host
+
         response = await self._post(url, headers, data, is_login=True)
         cookie = await self._get_cookie(response)
         if not cookie:
-            raise ValueError("No session cookie found, something wrong with the login...")
-        self.logger.info("Session cookie successfully retrieved for username: %s", self.username)
+            raise ValueError(
+                "No session cookie found, something wrong with the login..."
+            )
+        self.logger.info(
+            "Session cookie successfully retrieved for username: %s", self.username
+        )
         self.session = cookie
 
     async def _get_cookie(self, response: httpx.Response) -> str | None:
@@ -322,8 +402,12 @@ class AsyncBaseApi:
         Returns:
             httpx.Response: The response from the XUI API."""
         if not kwargs.pop("is_login", False) and not self.session:
-            raise ValueError("Before making a POST request, you must use the login() method.")
-        return await self._request_with_retry(ApiFields.POST, url, headers, json=data, **kwargs)
+            raise ValueError(
+                "Before making a POST request, you must use the login() method."
+            )
+        return await self._request_with_retry(
+            ApiFields.POST, url, headers, json=data, **kwargs
+        )
 
     async def _get(self, url: str, headers: dict[str, str], **kwargs) -> httpx.Response:
         """Makes a GET request to the XUI API.
@@ -337,6 +421,8 @@ class AsyncBaseApi:
 
         Returns:
             httpx.Response: The response from the XUI API."""
-        if not kwargs.pop("is_login", False) and not self.session:
-            raise ValueError("Before making a POST request, you must use the login() method.")
+        if not kwargs.get("is_login", False) and not self.session:
+            raise ValueError(
+                "Before making a POST request, you must use the login() method."
+            )
         return await self._request_with_retry(ApiFields.GET, url, headers, **kwargs)

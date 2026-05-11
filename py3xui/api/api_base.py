@@ -3,6 +3,8 @@
 # pylint: disable=R0801
 
 import logging
+import re
+from html.parser import HTMLParser
 from time import sleep
 from typing import Any, Callable
 
@@ -22,6 +24,31 @@ class ApiFields:
     NO_IP_RECORD = "No IP Record"
     GET = "GET"
     POST = "POST"
+
+
+class _CsrfTokenParser(HTMLParser):
+    """Extracts CSRF tokens from login page HTML."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.token: str | None = None
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if self.token:
+            return
+
+        attrs_dict: dict[str, str] = {
+            name.lower(): value for name, value in attrs if value is not None
+        }
+
+        if tag.lower() == "input":
+            name = attrs_dict.get("name", "").lower()
+            if name in {"csrf", "csrf_token", "csrf-token", "csrftoken", "_csrf"}:
+                self.token = attrs_dict.get("value")
+        elif tag.lower() == "meta":
+            name = attrs_dict.get("name", "").lower()
+            if name == "csrf-token":
+                self.token = attrs_dict.get("content")
 
 
 # pylint: disable=R0902
@@ -165,6 +192,37 @@ class BaseApi:
             value (str | None): The name of the cookie for the XUI API."""
         self._cookie_name = value
 
+    @staticmethod
+    def _extract_csrf_token(page: str) -> str:
+        """Extracts csrf token from HTML login page
+
+        Arguments:
+            page (str): The web login page
+
+        Raises:
+            RuntimeError: if no CSRF token found
+
+        Returns:
+            str: The CSRF token found on the web page
+        """
+        parser = _CsrfTokenParser()
+        parser.feed(page)
+        if parser.token:
+            return parser.token
+
+        patterns: tuple[str, ...] = (
+            r'csrfToken["\']?\s*[:=]\s*["\']([^"\']+)',
+            r'csrf[_-]?token["\']?\s*[:=]\s*["\']([^"\']+)',
+            r'_csrf["\']?\s*[:=]\s*["\']([^"\']+)',
+        )
+
+        for pattern in patterns:
+            match = re.search(pattern, page, re.IGNORECASE)
+            if match:
+                return match.group(1)
+
+        raise RuntimeError("CSRF token not found on the page.")
+
     def login(self, two_factor_code: str | int | None = None) -> None:
         """Logs into the XUI API and sets the session cookie if successful.
 
@@ -184,11 +242,27 @@ class BaseApi:
 
         self.logger.info("Logging in with username: %s", self.username)
 
+        # Request to get cookie and CSRF token
+        response = self._get(self.host, headers, is_login=True)
+        response.raise_for_status()
+        self.session = self._get_cookie(response)
+
+        csrf_token: str = self._extract_csrf_token(response.text)
+        headers["X-CSRF-Token"] = csrf_token
+        headers["Origin"] = self.host
+
         response = self._post(url, headers, data, is_login=True)
         cookie = self._get_cookie(response)
+        if cookie is None:
+            cookie = self.session
+
         if not cookie:
-            raise ValueError("No session cookie found, something wrong with the login...")
-        self.logger.info("Session cookie successfully retrieved for username: %s", self.username)
+            raise ValueError(
+                "No session cookie found, something wrong with the login..."
+            )
+        self.logger.info(
+            "Session cookie successfully retrieved for username: %s", self.username
+        )
         self.session = cookie
 
     def _get_cookie(self, response: requests.Response) -> str | None:
@@ -265,6 +339,8 @@ class BaseApi:
             requests.exceptions.RequestException: If the request fails.
             requests.exceptions.RetryError: If the maximum number of retries is exceeded."""
         self.logger.debug("%s request to %s...", method.__name__.upper(), url)
+
+        is_login = kwargs.pop("is_login", False)
         for retry in range(1, self.max_retries + 1):
             try:
                 skip_check = kwargs.pop("skip_check", False)
@@ -295,13 +371,21 @@ class BaseApi:
                 response.raise_for_status()
                 if skip_check:
                     return response
-                self._check_response(response)
+                if not is_login:
+                    self._check_response(response)
                 return response
-            except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
+            except (
+                requests.exceptions.ConnectionError,
+                requests.exceptions.Timeout,
+            ) as e:
                 if retry == self.max_retries:
                     raise e
                 self.logger.warning(
-                    "Request to %s failed: %s, retry %s of %s", url, e, retry, self.max_retries
+                    "Request to %s failed: %s, retry %s of %s",
+                    url,
+                    e,
+                    retry,
+                    self.max_retries,
                 )
                 sleep(1 * (retry + 1))
             except requests.exceptions.RequestException as e:
@@ -327,8 +411,12 @@ class BaseApi:
         Returns:
             requests.Response: The response from the XUI API."""
         if not kwargs.pop("is_login", False) and not self.session:
-            raise ValueError("Before making a POST request, you must use the login() method.")
-        return self._request_with_retry(requests.post, url, headers, json=data, **kwargs)
+            raise ValueError(
+                "Before making a POST request, you must use the login() method."
+            )
+        return self._request_with_retry(
+            requests.post, url, headers, json=data, **kwargs
+        )
 
     def _get(self, url: str, headers: dict[str, str], **kwargs) -> requests.Response:
         """Makes a GET request to the XUI API.
@@ -343,6 +431,8 @@ class BaseApi:
 
         Returns:
             requests.Response: The response from the XUI API."""
-        if not kwargs.pop("is_login", False) and not self.session:
-            raise ValueError("Before making a GET request, you must use the login() method.")
+        if not kwargs.get("is_login", False) and not self.session:
+            raise ValueError(
+                "Before making a GET request, you must use the login() method."
+            )
         return self._request_with_retry(requests.get, url, headers, **kwargs)

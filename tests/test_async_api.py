@@ -15,6 +15,8 @@ HOST = "http://localhost"
 USERNAME = "admin"
 PASSWORD = "admin"
 SESSION = "abc123"
+CSRF_TOKEN = "test-csrf-token"
+CSRF_PAGE = f'<input type="hidden" name="csrf_token" value="{CSRF_TOKEN}">'
 EMAIL = "alhtim2x"
 RESPONSES_DIR = "tests/responses"
 HOST = "http://localhost"
@@ -38,6 +40,12 @@ async def test_from_env():
 @pytest.mark.asyncio
 async def test_login_failed(httpx_mock: HTTPXMock):
     httpx_mock.add_response(
+        method="GET",
+        url=HOST,
+        text=CSRF_PAGE,
+        status_code=200,
+    )
+    httpx_mock.add_response(
         method="POST",
         url=f"{HOST}/login",
         json={ApiFields.SUCCESS: False},
@@ -51,6 +59,12 @@ async def test_login_failed(httpx_mock: HTTPXMock):
 
 @pytest.mark.asyncio
 async def test_login_success(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="GET",
+        url=HOST,
+        text=CSRF_PAGE,
+        status_code=200,
+    )
     httpx_mock.add_response(
         method="POST",
         url=f"{HOST}/login",

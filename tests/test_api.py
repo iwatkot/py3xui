@@ -17,10 +17,13 @@ PASSWORD = "admin"
 SESSION = "abc123"
 EMAIL = "alhtim2x"
 SESSION = "abc123"
+CSRF_TOKEN = "test-csrf-token"
+CSRF_PAGE = f'<input type="hidden" name="csrf_token" value="{CSRF_TOKEN}">'
 
 
 def test_login_success():
     with requests_mock.Mocker() as m:
+        m.get(HOST, text=CSRF_PAGE)
         m.post(f"{HOST}/login", json={ApiFields.SUCCESS: True}, cookies={"3x-ui": SESSION})
         api = Api(HOST, "username", "password")
         api.login()
@@ -29,6 +32,7 @@ def test_login_success():
 
 def test_login_failed():
     with requests_mock.Mocker() as m:
+        m.get(HOST, text=CSRF_PAGE)
         m.post(f"{HOST}/login", json={ApiFields.SUCCESS: False})
         api = Api(HOST, "username", "password")
         with pytest.raises(ValueError):
