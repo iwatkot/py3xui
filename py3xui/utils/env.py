@@ -48,35 +48,45 @@ def xui_host() -> str:
     )
 
 
-def xui_username() -> str:
+def xui_username(raise_if_not_found: bool = False) -> str | None:
     """Get the XUI username from the environment using the following keys:
     - XUI_USERNAME
 
+    Arguments:
+        raise_if_not_found (bool): Whether to raise an error if XUI_USERNAME is not set.
+            Defaults to False because token authentication does not require a username.
+
     Raises:
-        ValueError: If none of the keys are found in the environment
+        ValueError: If none of the keys are found and raise_if_not_found is True.
 
     Returns:
-        str | None: The XUI username or None
+        str | None: The XUI username or None.
     """
     return parse_env(
         keys=["XUI_USERNAME"],
         postprocess_fn=lambda x: x,
+        raise_if_not_found=raise_if_not_found,
     )
 
 
-def xui_password() -> str:
+def xui_password(raise_if_not_found: bool = False) -> str | None:
     """Get the XUI password from the environment using the following keys:
     - XUI_PASSWORD
 
+    Arguments:
+        raise_if_not_found (bool): Whether to raise an error if XUI_PASSWORD is not set.
+            Defaults to False because token authentication does not require a password.
+
     Raises:
-        ValueError: If none of the keys are found in the environment
+        ValueError: If none of the keys are found and raise_if_not_found is True.
 
     Returns:
-        str | None: The XUI password or None
+        str | None: The XUI password or None.
     """
     return parse_env(
         keys=["XUI_PASSWORD"],
         postprocess_fn=lambda x: x,
+        raise_if_not_found=raise_if_not_found,
     )
 
 

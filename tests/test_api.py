@@ -43,6 +43,36 @@ def test_login_failed():
             api.client.login()
 
 
+def test_login_failed_without_csrf_token():
+    with requests_mock.Mocker() as m:
+        m.get(
+            f"{HOST}/csrf-token",
+            json={ApiFields.SUCCESS: True, ApiFields.OBJ: None},
+        )
+        m.post(f"{HOST}/login", json={ApiFields.SUCCESS: True})
+        api = Api(HOST, "username", "password")
+
+        with pytest.raises(ValueError):
+            api.login()
+
+        assert len(m.request_history) == 1
+
+
+def test_logged_in_requests_include_csrf_header():
+    response_example = json.load(open(os.path.join(RESPONSES_DIR, "get_inbounds.json")))
+
+    with requests_mock.Mocker() as m:
+        m.get(f"{HOST}/csrf-token", json=CSRF_RESPONSE, cookies={"3x-ui": SESSION})
+        m.post(f"{HOST}/login", json={ApiFields.SUCCESS: True}, cookies={"3x-ui": SESSION})
+        m.get(f"{HOST}/panel/api/inbounds/list", json=response_example)
+
+        api = Api(HOST, "username", "password")
+        api.login()
+        api.inbound.get_list()
+
+        assert m.request_history[2].headers["X-CSRF-Token"] == CSRF_TOKEN
+
+
 def test_from_env(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("XUI_HOST", HOST)
     monkeypatch.setenv("XUI_USERNAME", USERNAME)
@@ -67,6 +97,16 @@ def test_from_env_token(monkeypatch: pytest.MonkeyPatch):
     assert api.inbound.username is None
     assert api.inbound.password is None
     assert api.inbound.token == TOKEN
+
+
+def test_from_env_requires_credentials_without_token(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("XUI_HOST", HOST)
+    monkeypatch.delenv("XUI_USERNAME", raising=False)
+    monkeypatch.delenv("XUI_PASSWORD", raising=False)
+    monkeypatch.delenv("XUI_TOKEN", raising=False)
+
+    with pytest.raises(ValueError):
+        Api.from_env()
 
 
 def test_token_auth_uses_authorization_header():

@@ -122,10 +122,18 @@ class Api:
 
     @property
     def csrf_token(self) -> str | None:
+        """The CSRF token shared by the underlying API clients.
+
+        Returns:
+            str | None: The CSRF token for session-authenticated requests."""
         return self._csrf_token
 
     @csrf_token.setter
     def csrf_token(self, value: str | None) -> None:
+        """Sets the CSRF token for all underlying API clients.
+
+        Arguments:
+            value (str | None): The CSRF token to propagate."""
         self._csrf_token = value
         self.client.csrf_token = value
         self.inbound.csrf_token = value
@@ -215,18 +223,12 @@ class Api:
             api.login()
             ```
         """
-        token = env.xui_token()
         host = env.xui_host()
-        username = env.parse_env(
-            keys=["XUI_USERNAME"],
-            postprocess_fn=lambda x: x,
-            raise_if_not_found=token is None,
-        )
-        password = env.parse_env(
-            keys=["XUI_PASSWORD"],
-            postprocess_fn=lambda x: x,
-            raise_if_not_found=token is None,
-        )
+        token = env.xui_token()
+        is_token_found: bool = token is None
+
+        username = env.xui_username(raise_if_not_found=is_token_found)
+        password = env.xui_password(raise_if_not_found=is_token_found)
 
         if use_tls_verify is None:
             use_tls_verify = env.tls_verify()

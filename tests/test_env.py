@@ -20,9 +20,19 @@ def test_envs_success():
 def test_envs_failed():
     os.environ["ABCDEF"] = "http://localhost"
     os.environ.pop("XUI_HOST", None)
+    os.environ.pop("XUI_USERNAME", None)
+    os.environ.pop("XUI_PASSWORD", None)
     os.environ.pop("XUI_TOKEN", None)
 
     with pytest.raises(ValueError):
         env.xui_host()
 
     assert env.xui_token() is None
+    assert env.xui_username() is None
+    assert env.xui_password() is None
+
+    with pytest.raises(ValueError):
+        env.xui_username(raise_if_not_found=True)
+
+    with pytest.raises(ValueError):
+        env.xui_password(raise_if_not_found=True)

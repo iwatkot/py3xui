@@ -72,8 +72,9 @@ class AsyncApi:
     def __init__(
         self,
         host: str,
-        username: str,
-        password: str,
+        username: str | None = None,
+        password: str | None = None,
+        token: str | None = None,
         use_tls_verify: bool = True,
         custom_certificate_path: str | None = None,
         logger: Any | None = None,
@@ -81,19 +82,65 @@ class AsyncApi:
         self.logger = logger or logging.getLogger(__name__)
 
         self.client = AsyncClientApi(
-            host, username, password, use_tls_verify, custom_certificate_path, logger
+            host,
+            username,
+            password,
+            token,
+            use_tls_verify,
+            custom_certificate_path,
+            logger,
         )
         self.inbound = AsyncInboundApi(
-            host, username, password, use_tls_verify, custom_certificate_path, logger
+            host,
+            username,
+            password,
+            token,
+            use_tls_verify,
+            custom_certificate_path,
+            logger,
         )
         self.database = AsyncDatabaseApi(
-            host, username, password, use_tls_verify, custom_certificate_path, logger
+            host,
+            username,
+            password,
+            token,
+            use_tls_verify,
+            custom_certificate_path,
+            logger,
         )
         self.server = AsyncServerApi(
-            host, username, password, use_tls_verify, custom_certificate_path, logger
+            host,
+            username,
+            password,
+            token,
+            use_tls_verify,
+            custom_certificate_path,
+            logger,
         )
+        self._csrf_token: str | None = None
         self._session: str | None = None
         self._cookie_name: str | None = None
+
+    @property
+    def csrf_token(self) -> str | None:
+        """The csrf token for the XUI API.
+
+        Returns:
+            str: The csrf token for the XUI API.
+        """
+        return self._csrf_token
+
+    @csrf_token.setter
+    def csrf_token(self, value: str | None) -> None:
+        """Sets the csrf token for the XUI API.
+
+        Arguments:
+            value (str | None): The csrf token to set."""
+        self._csrf_token = value
+        self.client.csrf_token = value
+        self.inbound.csrf_token = value
+        self.database.csrf_token = value
+        self.server.csrf_token = value
 
     @property
     def session(self) -> str | None:
@@ -178,8 +225,11 @@ class AsyncApi:
             ```
         """
         host = env.xui_host()
-        username = env.xui_username()
-        password = env.xui_password()
+        token = env.xui_token()
+        is_token_found: bool = token is None
+
+        username = env.xui_username(raise_if_not_found=is_token_found)
+        password = env.xui_password(raise_if_not_found=is_token_found)
 
         if use_tls_verify is None:
             use_tls_verify = env.tls_verify()
@@ -189,11 +239,20 @@ class AsyncApi:
         if custom_certificate_path is None:
             custom_certificate_path = env.tls_cert_path()
 
-        return cls(host, username, password, use_tls_verify, custom_certificate_path, logger)
+        return cls(
+            host,
+            username,
+            password,
+            token,
+            use_tls_verify,
+            custom_certificate_path,
+            logger,
+        )
 
     async def login(self, two_factor_code: str | int | None = None) -> None:
         """Logs into the XUI API and sets the session cookie for the client, inbound, and
-        database APIs.
+        database APIs. Login reads the CSRF token from the panel login page and sends
+        it with the username/password login request.
 
         Arguments:
             two_factor_code (str | int | None): The two-factor authentication code, if required.
@@ -209,5 +268,6 @@ class AsyncApi:
         """
         await self.client.login(two_factor_code)
         self.session = self.client.session  # type: ignore
+        self.csrf_token = self.client.csrf_token
         self.cookie_name = self.client.cookie_name
         self.logger.info("Logged in successfully.")

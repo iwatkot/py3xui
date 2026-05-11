@@ -59,11 +59,16 @@ Get the XUI host from the environment using the following keys:
 #### xui\_username
 
 ```python
-def xui_username() -> str
+def xui_username(raise_if_not_found: bool = False) -> str
 ```
 
 Get the XUI username from the environment using the following keys:
 - XUI_USERNAME
+
+**Arguments**:
+
+- `raise_if_not_found` _bool_ - Whether to raise an error if `XUI_USERNAME`
+  is not found. Defaults to False.
 
 **Raises**:
 
@@ -79,11 +84,16 @@ Get the XUI username from the environment using the following keys:
 #### xui\_password
 
 ```python
-def xui_password() -> str
+def xui_password(raise_if_not_found: bool = False) -> str
 ```
 
 Get the XUI password from the environment using the following keys:
 - XUI_PASSWORD
+
+**Arguments**:
+
+- `raise_if_not_found` _bool_ - Whether to raise an error if `XUI_PASSWORD`
+  is not found. Defaults to False.
 
 **Raises**:
 

@@ -11,6 +11,7 @@ import requests
 from py3xui.utils import COOKIE_NAMES
 
 
+# pylint: disable=too-few-public-methods
 class ApiFields:
     """Stores the fields returned by the XUI API for parsing."""
 
@@ -114,11 +115,15 @@ class BaseApi:
         """The token for the XUI API.
 
         Returns:
-            str: The token for the XUI API."""
+            str | None: The token for the XUI API."""
         return self._token
 
     @token.setter
     def token(self, value: str | None) -> None:
+        """Sets the bearer token for API authentication.
+
+        Arguments:
+            value (str | None): The bearer token to use for requests."""
         self._token = value
 
     @property
@@ -202,6 +207,10 @@ class BaseApi:
         self._cookie_name = value
 
     def _check_token_or_password(self) -> None:
+        """Validates that token auth or username/password auth is configured.
+
+        Raises:
+            ValueError: If neither a token nor username/password credentials are set."""
         if self.token:
             return
         if self.username and self.password:
@@ -209,6 +218,13 @@ class BaseApi:
         raise ValueError("There must be either token or username and password.")
 
     def _get_csrf_token(self) -> str:
+        """Fetches and stores a CSRF token for username/password login.
+
+        Returns:
+            str: The CSRF token returned by the XUI API.
+
+        Raises:
+            ValueError: If the csrf-token endpoint does not return a usable token."""
         endpoint: str = "csrf-token"
         headers: dict[str, str] = {}
 
@@ -248,6 +264,11 @@ class BaseApi:
 
         if None in (self._username, self._password):
             raise ValueError("No username or password entered.")
+
+        # Clear the session before new login
+        self.session = None
+        self.cookie_name = None
+        self.csrf_token = None
 
         headers: dict[str, str] = {"X-CSRF-Token": self._get_csrf_token()}
 
@@ -328,6 +349,13 @@ class BaseApi:
         return f"{self._host}/{endpoint}"
 
     def _generate_headers(self, headers: dict[str, str]) -> dict[str, str]:
+        """Adds authentication headers for token or session based requests.
+
+        Arguments:
+            headers (dict[str, str]): Existing request headers to extend.
+
+        Returns:
+            dict[str, str]: The headers with authentication fields added when available."""
         if self._token is not None:
             headers.update(
                 {"Authorization": f"Bearer {self._token}", "Accept": "application/json"}

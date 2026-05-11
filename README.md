@@ -1,8 +1,8 @@
 <div align="center" markdown>
 <img src="https://github.com/iwatkot/py3xui/assets/118521851/42c5d579-6202-4a9e-88f3-2d844fdd95b6">
 
-⚠️ The secret token feature was removed in the 3x-UI 2.6.0. ⚠️     
-The corresponding `token` parameter in the Api and AsyncApi constructors was removed in py3xui 0.5.0. This changed the order of constructor arguments, so please be aware of this change when updating the SDK.
+⚠️ The legacy secret token feature was removed in 3x-UI 2.6.0. ⚠️
+The synchronous `Api` also supports optional bearer token authentication with the `token` constructor argument or `XUI_TOKEN` environment variable for panels that expose token auth. `AsyncApi` still uses username/password login.
 
 Sync and Async Object-oriented Python SDK for the 3x-ui API.
 
@@ -71,6 +71,13 @@ api = Api.from_env()
 api = Api("http://your-3x-ui-host.com:2053", "your-username", "your-password")
 ```
 
+For synchronous token authentication, set `XUI_TOKEN` instead of `XUI_USERNAME` and `XUI_PASSWORD`, or pass `token` directly:
+```python
+from py3xui import Api
+
+api = Api("http://your-3x-ui-host.com:2053", token="your-api-token")
+```
+
 To work asynchronously:
 ```python
 from py3xui import AsyncApi
@@ -109,7 +116,7 @@ api = Api(
 This allows you to maintain TLS verification by providing a trusted certificate explicitly.
 
 ### Login
-No matter which API you're using or if was it created using environment variables or credentials, you'll need to call the `login` method to authenticate the user and save the cookie for future requests.
+When using username/password authentication, call the `login` method to authenticate the user and save the cookie for future requests. The synchronous API first fetches the CSRF token from the `csrf-token` endpoint and sends it with the login request. The asynchronous API reads the CSRF token from the login page before submitting credentials.
 ```python
 from py3xui import Api, AsyncApi
 
@@ -119,6 +126,8 @@ api.login()
 async_api = AsyncApi.from_env()
 await async_api.login()
 ```
+
+When the synchronous `Api` is created with `token` or `XUI_TOKEN`, do not call `login`; requests are authenticated with the `Authorization: Bearer ...` header.
 
 #### Using two-factor authentication
 If you enabled two-factor authentication in the 3x-ui app, you'll need to pass the two-factor code to the `login` method. The code can be either a string or an integer.

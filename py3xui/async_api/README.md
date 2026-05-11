@@ -460,7 +460,8 @@ async def login(two_factor_code: str | int | None = None) -> None
 ```
 
 Logs into the XUI API and sets the session cookie for the client, inbound, and
-database APIs.
+database APIs. Login reads the CSRF token from the panel login page and sends
+it with the username/password login request.
 
 **Arguments**:
 
@@ -990,6 +991,9 @@ async def login(two_factor_code: str | int | None = None) -> None
 ```
 
 Logs into the XUI API and sets the session cookie if successful.
+
+The login flow reads a CSRF token from the panel login page, then sends that
+token with the username/password login request.
 
 **Arguments**:
 

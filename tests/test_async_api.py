@@ -17,6 +17,7 @@ PASSWORD = "admin"
 SESSION = "abc123"
 CSRF_TOKEN = "test-csrf-token"
 CSRF_PAGE = f'<input type="hidden" name="csrf_token" value="{CSRF_TOKEN}">'
+CSRF_RESPONSE = {ApiFields.SUCCESS: True, ApiFields.OBJ: CSRF_TOKEN}
 EMAIL = "alhtim2x"
 RESPONSES_DIR = "tests/responses"
 HOST = "http://localhost"
@@ -41,8 +42,8 @@ async def test_from_env():
 async def test_login_failed(httpx_mock: HTTPXMock):
     httpx_mock.add_response(
         method="GET",
-        url=HOST,
-        text=CSRF_PAGE,
+        url=f"{HOST}/csrf-token",
+        json=CSRF_RESPONSE,
         status_code=200,
     )
     httpx_mock.add_response(
@@ -61,8 +62,8 @@ async def test_login_failed(httpx_mock: HTTPXMock):
 async def test_login_success(httpx_mock: HTTPXMock):
     httpx_mock.add_response(
         method="GET",
-        url=HOST,
-        text=CSRF_PAGE,
+        url=f"{HOST}/csrf-token",
+        json=CSRF_RESPONSE,
         status_code=200,
     )
     httpx_mock.add_response(
@@ -76,6 +77,29 @@ async def test_login_success(httpx_mock: HTTPXMock):
     api = AsyncApi(HOST, "username", "password")
     await api.login()
     assert api.session == SESSION, f"Expected {SESSION}, got {api.session}"
+
+
+@pytest.mark.asyncio
+async def test_login_sends_csrf_header(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{HOST}/csrf-token",
+        json=CSRF_RESPONSE,
+        status_code=200,
+    )
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/login",
+        json={ApiFields.SUCCESS: True},
+        status_code=200,
+        headers={"Set-Cookie": f"3x-ui={SESSION}; Path=/"},
+    )
+
+    api = AsyncApi(HOST, "username", "password")
+    await api.login()
+
+    login_request = httpx_mock.get_requests()[1]
+    assert login_request.headers["X-CSRF-Token"] == CSRF_TOKEN
 
 
 @pytest.mark.asyncio
