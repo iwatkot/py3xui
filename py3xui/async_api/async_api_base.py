@@ -231,7 +231,7 @@ class AsyncBaseApi:
         self.logger.debug("%s request to %s...", method, url)
 
         if not kwargs.pop("is_csrf_request", False):
-            headers: dict[str, str] = self._generate_headers(headers)
+            headers = self._generate_headers(headers)
 
         for retry in range(1, self.max_retries + 1):
             try:
@@ -346,9 +346,9 @@ class AsyncBaseApi:
         endpoint = "login"
         url = self._url(endpoint)
 
-        data: dict[str, str] = {  # pyright: ignore[reportAssignmentType]
-            "username": self.username,
-            "password": self.password,
+        data: dict[str, str] = {  # type: ignore # pyright: ignore[reportAssignmentType]
+            "username": self.username,  # type: ignore
+            "password": self.password,  # type: ignore
         }
 
         if two_factor_code is not None:
