@@ -2,7 +2,7 @@
 <img src="https://github.com/iwatkot/py3xui/assets/118521851/42c5d579-6202-4a9e-88f3-2d844fdd95b6">
 
 ⚠️ The legacy secret token feature was removed in 3x-UI 2.6.0. ⚠️
-The synchronous `Api` also supports optional bearer token authentication with the `token` constructor argument or `XUI_TOKEN` environment variable for panels that expose token auth. `AsyncApi` still uses username/password login.
+The project also supports optional bearer token authentication with the `token` constructor argument or `XUI_TOKEN` environment variable for panels that expose token auth.
 
 Sync and Async Object-oriented Python SDK for the 3x-ui API.
 
@@ -116,7 +116,7 @@ api = Api(
 This allows you to maintain TLS verification by providing a trusted certificate explicitly.
 
 ### Login
-When using username/password authentication, call the `login` method to authenticate the user and save the cookie for future requests. The synchronous API first fetches the CSRF token from the `csrf-token` endpoint and sends it with the login request. The asynchronous API reads the CSRF token from the login page before submitting credentials.
+When using username/password authentication, call the `login` method to authenticate the user and save the cookie for future requests. The API first fetches the CSRF token from the `csrf-token` endpoint and sends it with the login request.
 ```python
 from py3xui import Api, AsyncApi
 
