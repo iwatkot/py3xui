@@ -243,10 +243,10 @@ class Api:
             host,
             username,
             password,
-            token,
             use_tls_verify,
             custom_certificate_path,
             logger,
+            token=token,
         )
 
     def login(self, two_factor_code: str | int | None = None) -> None:

@@ -245,10 +245,10 @@ class AsyncApi:
             host,
             username,
             password,
-            token,
             use_tls_verify,
             custom_certificate_path,
             logger,
+            token=token,
         )
 
     async def login(self, two_factor_code: str | int | None = None) -> None:

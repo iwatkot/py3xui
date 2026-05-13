@@ -432,7 +432,8 @@ class AsyncBaseApi:
             and self.token is None
         ):
             raise ValueError(
-                "Before making a POST request, you must use the login() method. Or use token authentication."
+                "Before making a POST request, you must use the login() method.\
+                Or use token authentication."
             )
         return await self._request_with_retry(
             ApiFields.POST, url, headers, json=data, **kwargs
@@ -456,6 +457,7 @@ class AsyncBaseApi:
             and self.token is None
         ):
             raise ValueError(
-                "Before making a POST request, you must use the login() method. Or use token authentication."
+                "Before making a POST request, you must use the login() method.\
+                Or use token authentication."
             )
         return await self._request_with_retry(ApiFields.GET, url, headers, **kwargs)
