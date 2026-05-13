@@ -74,10 +74,12 @@ class AsyncApi:
         host: str,
         username: str | None = None,
         password: str | None = None,
-        token: str | None = None,
         use_tls_verify: bool = True,
         custom_certificate_path: str | None = None,
         logger: Any | None = None,
+        *,
+        token: str
+        | None = None,  # The token is keyword for complability with older versions
     ):  # pylint: disable=R0913, R0917
         self.logger = logger or logging.getLogger(__name__)
 
@@ -226,10 +228,10 @@ class AsyncApi:
         """
         host = env.xui_host()
         token = env.xui_token()
-        is_token_found: bool = token is None
+        is_token_missing: bool = token is None
 
-        username = env.xui_username(raise_if_not_found=is_token_found)
-        password = env.xui_password(raise_if_not_found=is_token_found)
+        username = env.xui_username(raise_if_not_found=is_token_missing)
+        password = env.xui_password(raise_if_not_found=is_token_missing)
 
         if use_tls_verify is None:
             use_tls_verify = env.tls_verify()

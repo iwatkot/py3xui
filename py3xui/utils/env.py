@@ -48,7 +48,7 @@ def xui_host() -> str:
     )
 
 
-def xui_username(raise_if_not_found: bool = False) -> str | None:
+def xui_username(raise_if_not_found: bool = True) -> str | None:
     """Get the XUI username from the environment using the following keys:
     - XUI_USERNAME
 
@@ -69,7 +69,7 @@ def xui_username(raise_if_not_found: bool = False) -> str | None:
     )
 
 
-def xui_password(raise_if_not_found: bool = False) -> str | None:
+def xui_password(raise_if_not_found: bool = True) -> str | None:
     """Get the XUI password from the environment using the following keys:
     - XUI_PASSWORD
 

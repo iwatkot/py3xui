@@ -321,7 +321,7 @@ class AsyncBaseApi:
     async def login(self, two_factor_code: str | int | None = None) -> None:
         """Logs into the XUI API and sets the session cookie if successful.
 
-        The login flow reads a CSRF token from the panel login page, then sends that
+        The login flow reads a CSRF token from the `csrf-token' endpoint, then sends that
         token with the username/password login request.
 
         Arguments:
@@ -432,7 +432,7 @@ class AsyncBaseApi:
             and self.token is None
         ):
             raise ValueError(
-                "Before making a POST request, you must use the login() method."
+                "Before making a POST request, you must use the login() method. Or use token authentication."
             )
         return await self._request_with_retry(
             ApiFields.POST, url, headers, json=data, **kwargs
@@ -456,6 +456,6 @@ class AsyncBaseApi:
             and self.token is None
         ):
             raise ValueError(
-                "Before making a POST request, you must use the login() method."
+                "Before making a POST request, you must use the login() method. Or use token authentication."
             )
         return await self._request_with_retry(ApiFields.GET, url, headers, **kwargs)

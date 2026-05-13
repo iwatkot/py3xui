@@ -155,7 +155,7 @@ class BaseApi:
         """Sets the maximum number of retries for a request.
 
         Arguments:
-        value (int): The maximum number of retries for a request."""
+            value (int): The maximum number of retries for a request."""
         self._max_retries = value
 
     @property

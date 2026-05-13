@@ -15,8 +15,6 @@ HOST = "http://localhost"
 USERNAME = "admin"
 PASSWORD = "admin"
 SESSION = "abc123"
-CSRF_TOKEN = "test-csrf-token"
-CSRF_PAGE = f'<input type="hidden" name="csrf_token" value="{CSRF_TOKEN}">'
 CSRF_RESPONSE = {ApiFields.SUCCESS: True, ApiFields.OBJ: CSRF_TOKEN}
 EMAIL = "alhtim2x"
 RESPONSES_DIR = "tests/responses"
