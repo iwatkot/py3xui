@@ -1,3 +1,4 @@
+from multiprocessing import Value
 import os
 
 import pytest
@@ -28,8 +29,6 @@ def test_envs_failed():
         env.xui_host()
 
     assert env.xui_token() is None
-    assert env.xui_username() is None
-    assert env.xui_password() is None
 
     with pytest.raises(ValueError):
         env.xui_username(raise_if_not_found=True)

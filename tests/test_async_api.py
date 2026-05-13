@@ -15,6 +15,7 @@ HOST = "http://localhost"
 USERNAME = "admin"
 PASSWORD = "admin"
 SESSION = "abc123"
+CSRF_TOKEN = "test-csrf-token"
 CSRF_RESPONSE = {ApiFields.SUCCESS: True, ApiFields.OBJ: CSRF_TOKEN}
 EMAIL = "alhtim2x"
 RESPONSES_DIR = "tests/responses"
@@ -32,8 +33,12 @@ async def test_from_env():
 
     api = AsyncApi.from_env()
     assert api.inbound.host == HOST, f"Expected {HOST}, got {api.inbound.host}"
-    assert api.inbound.username == USERNAME, f"Expected {USERNAME}, got {api.inbound.username}"
-    assert api.inbound.password == PASSWORD, f"Expected {PASSWORD}, got {api.inbound.password}"
+    assert api.inbound.username == USERNAME, (
+        f"Expected {USERNAME}, got {api.inbound.username}"
+    )
+    assert api.inbound.password == PASSWORD, (
+        f"Expected {PASSWORD}, got {api.inbound.password}"
+    )
 
 
 @pytest.mark.asyncio
@@ -273,7 +278,9 @@ async def test_client_online(httpx_mock: HTTPXMock):
 
 @pytest.mark.asyncio
 async def test_get_client_traffic_by_id(httpx_mock: HTTPXMock):
-    response_example = json.load(open(os.path.join(RESPONSES_DIR, "get_client_traffic_by_id.json")))
+    response_example = json.load(
+        open(os.path.join(RESPONSES_DIR, "get_client_traffic_by_id.json"))
+    )
 
     httpx_mock.add_response(
         method="GET",
@@ -305,7 +312,9 @@ def _prepare_inbound() -> Inbound:
         "acceptProxyProtocol": False,
         "header": {"type": "none"},
     }
-    stream_settings = StreamSettings(security="reality", network="tcp", tcp_settings=tcp_settings)
+    stream_settings = StreamSettings(
+        security="reality", network="tcp", tcp_settings=tcp_settings
+    )
 
     inbound = Inbound(
         enable=True,
@@ -338,16 +347,16 @@ async def test_get_inbounds(httpx_mock: HTTPXMock):
     assert len(inbounds) == 1, f"Expected 1, got {len(inbounds)}"
     inbound = inbounds[0]
     assert isinstance(inbound, Inbound), f"Expected Inbound, got {type(inbound)}"
-    assert isinstance(
-        inbound.stream_settings, (StreamSettings, str)
-    ), f"Expected StreamSettings or str, got {type(inbound.stream_settings)}"
+    assert isinstance(inbound.stream_settings, (StreamSettings, str)), (
+        f"Expected StreamSettings or str, got {type(inbound.stream_settings)}"
+    )
 
-    assert isinstance(
-        inbound.sniffing, Sniffing
-    ), f"Expected Sniffing, got {type(inbound.sniffing)}"
-    assert isinstance(
-        inbound.client_stats[0], Client
-    ), f"Expected ClientStats, got {type(inbound.client_stats[0])}"
+    assert isinstance(inbound.sniffing, Sniffing), (
+        f"Expected Sniffing, got {type(inbound.sniffing)}"
+    )
+    assert isinstance(inbound.client_stats[0], Client), (
+        f"Expected ClientStats, got {type(inbound.client_stats[0])}"
+    )
 
     assert inbound.id == 1, f"Expected 1, got {inbound.id}"
 
@@ -390,7 +399,10 @@ async def test_delete_inbound_success(httpx_mock: HTTPXMock):
 
 @pytest.mark.asyncio
 async def test_delete_inbound_failed(httpx_mock: HTTPXMock):
-    response_example = {ApiFields.SUCCESS: False, ApiFields.MSG: "Delete Failed: record not found"}
+    response_example = {
+        ApiFields.SUCCESS: False,
+        ApiFields.MSG: "Delete Failed: record not found",
+    }
 
     httpx_mock.add_response(
         method="POST",
@@ -448,7 +460,9 @@ async def test_get_server_status(httpx_mock: HTTPXMock):
     """
     Test for checking server status retrieval
     """
-    response_example = json.load(open(os.path.join(RESPONSES_DIR, "get_server_status.json")))
+    response_example = json.load(
+        open(os.path.join(RESPONSES_DIR, "get_server_status.json"))
+    )
 
     httpx_mock.add_response(
         method="GET",
@@ -463,10 +477,12 @@ async def test_get_server_status(httpx_mock: HTTPXMock):
 
     assert httpx_mock.get_request(), "Mocked request was not called"
     assert status.cpu == 5.2, f"Expected CPU 5.2, got {status.cpu}"
-    assert (
-        status.mem.current == 1024000
-    ), f"Expected current memory usage 1024, got {status.mem.current}"
-    assert status.mem.total == 8192000, f"Expected total memory 8192, got {status.mem.total}"
+    assert status.mem.current == 1024000, (
+        f"Expected current memory usage 1024, got {status.mem.current}"
+    )
+    assert status.mem.total == 8192000, (
+        f"Expected total memory 8192, got {status.mem.total}"
+    )
 
 
 @pytest.mark.asyncio
@@ -547,7 +563,9 @@ async def test_get_db_failed(httpx_mock: HTTPXMock, tmp_path):
 
 @pytest.mark.asyncio
 async def test_get_inbound_by_id(httpx_mock: HTTPXMock):
-    response_example = json.load(open(os.path.join(RESPONSES_DIR, "get_inbound_by_id.json")))
+    response_example = json.load(
+        open(os.path.join(RESPONSES_DIR, "get_inbound_by_id.json"))
+    )
 
     httpx_mock.add_response(
         method="GET",
@@ -563,13 +581,15 @@ async def test_get_inbound_by_id(httpx_mock: HTTPXMock):
     assert httpx_mock.get_request(), "Mocked request was not called"
     assert isinstance(inbound, Inbound), f"Expected Inbound, got {type(inbound)}"
     assert inbound.id == 1, f"Expected 1, got {inbound.id}"
-    assert inbound.remark == "test-inbound", f"Expected 'test-inbound', got {inbound.remark}"
+    assert inbound.remark == "test-inbound", (
+        f"Expected 'test-inbound', got {inbound.remark}"
+    )
     assert inbound.port == 37316, f"Expected 37316, got {inbound.port}"
     assert inbound.protocol == "vless", f"Expected 'vless', got {inbound.protocol}"
     assert inbound.enable is True, f"Expected True, got {inbound.enable}"
-    assert isinstance(
-        inbound.client_stats[0], Client
-    ), f"Expected Client, got {type(inbound.client_stats[0])}"
+    assert isinstance(inbound.client_stats[0], Client), (
+        f"Expected Client, got {type(inbound.client_stats[0])}"
+    )
 
 
 @pytest.mark.asyncio
@@ -618,7 +638,7 @@ async def test_get_xray_version_available(httpx_mock: HTTPXMock):
         ApiFields.MSG: "",
         ApiFields.OBJ: ["1.5.0"],
     }
-    
+
     httpx_mock.add_response(
         method="GET",
         url=f"{HOST}/panel/api/server/getXrayVersion",
@@ -635,7 +655,6 @@ async def test_get_xray_version_available(httpx_mock: HTTPXMock):
     assert xray_versions == response_example_xray_available[ApiFields.OBJ]
 
 
-
 @pytest.mark.asyncio
 async def test_get_xray_version_unavailable(httpx_mock: HTTPXMock):
     """
@@ -646,14 +665,14 @@ async def test_get_xray_version_unavailable(httpx_mock: HTTPXMock):
         ApiFields.MSG: "",
         ApiFields.OBJ: None,
     }
-    
+
     httpx_mock.add_response(
         method="GET",
         url=f"{HOST}/panel/api/server/getXrayVersion",
         json=response_example_xray_unavailable,
         status_code=200,
     )
-        
+
     api = AsyncApi(HOST, USERNAME, PASSWORD)
     api.session = SESSION
 
@@ -673,14 +692,14 @@ async def test_install_new_xray_version_unavailable(httpx_mock: HTTPXMock):
         ApiFields.MSG: "",
         ApiFields.OBJ: None,
     }
-    
+
     httpx_mock.add_response(
         method="POST",
         url=f"{HOST}/panel/api/server/installXray/1.5.0",
         json=response_example,
         status_code=200,
     )
-    
+
     api = AsyncApi(HOST, USERNAME, PASSWORD)
     api.session = SESSION
     await api.server.install_new_xray_version("1.5.0")
@@ -698,7 +717,7 @@ async def test_install_new_xray_version_failed(httpx_mock: HTTPXMock):
         ApiFields.MSG: "",
         ApiFields.OBJ: None,
     }
-    
+
     httpx_mock.add_response(
         method="POST",
         url=f"{HOST}/panel/api/server/installXray/1.5.0",
@@ -713,7 +732,6 @@ async def test_install_new_xray_version_failed(httpx_mock: HTTPXMock):
         await api.server.install_new_xray_version("1.5.0")
 
     assert httpx_mock.get_request(), "Mocked request was not called"
-
 
 
 @pytest.mark.asyncio
@@ -763,7 +781,9 @@ async def test_get_server_config(httpx_mock: HTTPXMock):
     """
     Test for getting server config
     """
-    response_example = json.load(open(os.path.join(RESPONSES_DIR, "get_server_config.json")))
+    response_example = json.load(
+        open(os.path.join(RESPONSES_DIR, "get_server_config.json"))
+    )
 
     httpx_mock.add_response(
         method="GET",
@@ -778,5 +798,9 @@ async def test_get_server_config(httpx_mock: HTTPXMock):
     config = await api.server.get_server_config()
 
     assert config is not None, "Expected config, got None"
-    assert isinstance(config.inbounds, list), f"Expected list of inbounds, got {type(config.inbounds)}"
-    assert config.log.access == "none", f"Expected access log 'none', got {config.log.access}"
+    assert isinstance(config.inbounds, list), (
+        f"Expected list of inbounds, got {type(config.inbounds)}"
+    )
+    assert config.log.access == "none", (
+        f"Expected access log 'none', got {config.log.access}"
+    )
