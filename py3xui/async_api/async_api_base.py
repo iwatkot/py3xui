@@ -313,7 +313,7 @@ class AsyncBaseApi:
         response_json = response.json()
         csrf_token = response_json.get(ApiFields.OBJ)
         if not isinstance(csrf_token, str) or not csrf_token:
-            raise ValueError("No CSRF token found, something wrong with the login...")
+            raise ValueError("Cannot get CSRF token, something wrong with the login...")
         self.csrf_token = csrf_token
 
         return csrf_token
@@ -432,8 +432,8 @@ class AsyncBaseApi:
             and self.token is None
         ):
             raise ValueError(
-                "Before making a POST request, you must use the login() method.\
-                Or use token authentication."
+                "Before making a POST request, you must use the login() method.",
+                "Or use token authentication.",
             )
         return await self._request_with_retry(
             ApiFields.POST, url, headers, json=data, **kwargs
@@ -457,7 +457,7 @@ class AsyncBaseApi:
             and self.token is None
         ):
             raise ValueError(
-                "Before making a POST request, you must use the login() method.\
-                Or use token authentication."
+                "Before making a POST request, you must use the login() method.",
+                "Or use token authentication.",
             )
         return await self._request_with_retry(ApiFields.GET, url, headers, **kwargs)

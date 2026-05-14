@@ -236,12 +236,15 @@ class BaseApi:
             is_csrf_request=True,
             skip_check=True,
         )
-        self.session = self._get_cookie(response)
+
+        cookie: str | None = self._get_cookie(response)
+        if cookie is not None:
+            self.session = cookie
 
         response_json = response.json()
         csrf_token = response_json.get(ApiFields.OBJ)
         if not isinstance(csrf_token, str) or not csrf_token:
-            raise ValueError("No CSRF token found, something wrong with the login...")
+            raise ValueError("Cannot get CSRF code, something wrong with the login...")
         self.csrf_token = csrf_token
 
         return csrf_token

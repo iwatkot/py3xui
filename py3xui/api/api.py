@@ -76,7 +76,7 @@ class Api:
         custom_certificate_path: str | None = None,
         logger: Any | None = None,
         *,
-        token: str | None = None,  # The token is keyword for old version compbality
+        token: str | None = None,  # The token is keyword for old version compatibility
     ):  # pylint: disable=R0913, R0917
         self.logger = logger or logging.getLogger(__name__)
 

@@ -54,7 +54,7 @@ def xui_username(raise_if_not_found: bool = True) -> str | None:
 
     Arguments:
         raise_if_not_found (bool): Whether to raise an error if XUI_USERNAME is not set.
-            Defaults to False because token authentication does not require a username.
+            Defaults to True.
 
     Raises:
         ValueError: If none of the keys are found and raise_if_not_found is True.
@@ -75,7 +75,7 @@ def xui_password(raise_if_not_found: bool = True) -> str | None:
 
     Arguments:
         raise_if_not_found (bool): Whether to raise an error if XUI_PASSWORD is not set.
-            Defaults to False because token authentication does not require a password.
+            Defaults to True.
 
     Raises:
         ValueError: If none of the keys are found and raise_if_not_found is True.
