@@ -51,10 +51,11 @@ class AsyncBaseApi:
         host: str,
         username: str | None = None,
         password: str | None = None,
-        token: str | None = None,
         use_tls_verify: bool = True,
         custom_certificate_path: str | None = None,
         logger: Any | None = None,
+        *,
+        token: str | None = None,
     ):  # pylint: disable=R0913, R0917
         self._host: str = host.rstrip("/")
         self._username: str | None = username
@@ -308,7 +309,10 @@ class AsyncBaseApi:
             is_csrf_request=True,
             skip_check=True,
         )
-        self.session = await self._get_cookie(response)
+
+        cookie = await self._get_cookie(response)
+        if cookie:
+            self.session = cookie
 
         response_json = response.json()
         csrf_token = response_json.get(ApiFields.OBJ)
@@ -432,7 +436,7 @@ class AsyncBaseApi:
             and self.token is None
         ):
             raise ValueError(
-                "Before making a POST request, you must use the login() method.",
+                "Before making a POST request, you must use the login() method. "
                 "Or use token authentication.",
             )
         return await self._request_with_retry(
@@ -457,7 +461,7 @@ class AsyncBaseApi:
             and self.token is None
         ):
             raise ValueError(
-                "Before making a POST request, you must use the login() method.",
+                "Before making a POST request, you must use the login() method. "
                 "Or use token authentication.",
             )
         return await self._request_with_retry(ApiFields.GET, url, headers, **kwargs)

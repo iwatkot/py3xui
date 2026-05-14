@@ -79,7 +79,7 @@ class AsyncApi:
         logger: Any | None = None,
         *,
         token: str
-        | None = None,  # The token is keyword for complability with older versions
+        | None = None,  # The token is keyword for compatibility with older versions
     ):  # pylint: disable=R0913, R0917
         self.logger = logger or logging.getLogger(__name__)
 
@@ -87,37 +87,37 @@ class AsyncApi:
             host,
             username,
             password,
-            token,
             use_tls_verify,
             custom_certificate_path,
             logger,
+            token=token,
         )
         self.inbound = AsyncInboundApi(
             host,
             username,
             password,
-            token,
             use_tls_verify,
             custom_certificate_path,
             logger,
+            token=token,
         )
         self.database = AsyncDatabaseApi(
             host,
             username,
             password,
-            token,
             use_tls_verify,
             custom_certificate_path,
             logger,
+            token=token,
         )
         self.server = AsyncServerApi(
             host,
             username,
             password,
-            token,
             use_tls_verify,
             custom_certificate_path,
             logger,
+            token=token,
         )
         self._csrf_token: str | None = None
         self._session: str | None = None

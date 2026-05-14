@@ -84,37 +84,37 @@ class Api:
             host,
             username,
             password,
-            token,
             use_tls_verify,
             custom_certificate_path,
             logger,
+            token=token,
         )
         self.inbound = InboundApi(
             host,
             username,
             password,
-            token,
             use_tls_verify,
             custom_certificate_path,
             logger,
+            token=token,
         )
         self.database = DatabaseApi(
             host,
             username,
             password,
-            token,
             use_tls_verify,
             custom_certificate_path,
             logger,
+            token=token,
         )
         self.server = ServerApi(
             host,
             username,
             password,
-            token,
             use_tls_verify,
             custom_certificate_path,
             logger,
+            token=token,
         )
 
         self._csrf_token: str | None = None

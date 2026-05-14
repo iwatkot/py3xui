@@ -67,10 +67,11 @@ class BaseApi:
         host: str,
         username: str | None = None,
         password: str | None = None,
-        token: str | None = None,
         use_tls_verify: bool = True,
         custom_certificate_path: str | None = None,
         logger: Any | None = None,
+        *,
+        token: str | None = None,
     ):  # pylint: disable=R0913, R0917
         self._host: str = host.rstrip("/")
         self._username: str | None = username
