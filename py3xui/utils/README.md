@@ -59,11 +59,16 @@ Get the XUI host from the environment using the following keys:
 #### xui\_username
 
 ```python
-def xui_username() -> str
+def xui_username(raise_if_not_found: bool = True) -> str | None
 ```
 
 Get the XUI username from the environment using the following keys:
 - XUI_USERNAME
+
+**Arguments**:
+
+- `raise_if_not_found` _bool_ - Whether to raise an error if `XUI_USERNAME`
+  is not found. Defaults to True.
 
 **Raises**:
 
@@ -79,11 +84,16 @@ Get the XUI username from the environment using the following keys:
 #### xui\_password
 
 ```python
-def xui_password() -> str
+def xui_password(raise_if_not_found: bool = True) -> str | None
 ```
 
 Get the XUI password from the environment using the following keys:
 - XUI_PASSWORD
+
+**Arguments**:
+
+- `raise_if_not_found` _bool_ - Whether to raise an error if `XUI_PASSWORD`
+  is not found. Defaults to True.
 
 **Raises**:
 
@@ -93,6 +103,20 @@ Get the XUI password from the environment using the following keys:
 **Returns**:
 
   str | None: The XUI password or None
+
+<a id="utils.env.xui_token"></a>
+
+#### xui\_token
+
+```python
+def xui_token() -> str | None
+```
+
+Get the optional XUI API token from the environment.
+
+**Returns**:
+
+  str | None: The XUI API token or None if not set.
 
 <a id="utils.env.tls_verify"></a>
 
@@ -123,4 +147,3 @@ Get the path to the TLS certificate from the environment using the following key
 **Returns**:
 
   str | None: The path to the TLS certificate file, or None if not set.
-

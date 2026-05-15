@@ -49,21 +49,27 @@ class AsyncBaseApi:
     def __init__(
         self,
         host: str,
-        username: str,
-        password: str,
+        username: str | None = None,
+        password: str | None = None,
         use_tls_verify: bool = True,
         custom_certificate_path: str | None = None,
         logger: Any | None = None,
+        *,
+        token: str | None = None,
     ):  # pylint: disable=R0913, R0917
-        self._host = host.rstrip("/")
-        self._username = username
-        self._password = password
+        self._host: str = host.rstrip("/")
+        self._username: str | None = username
+        self._password: str | None = password
+        self._token: str | None = token
         self._use_tls_verify = use_tls_verify
         self._custom_certificate_path = custom_certificate_path
+        self._csrf_token: str | None = None
         self._max_retries: int = 3
         self._session: str | None = None
         self._cookie_name: str | None = None
         self.logger = logger or logging.getLogger(__name__)
+
+        self._check_token_or_password()
 
     @property
     def host(self) -> str:
@@ -74,7 +80,7 @@ class AsyncBaseApi:
         return self._host
 
     @property
-    def username(self) -> str:
+    def username(self) -> str | None:
         """The username for the XUI API.
 
         Returns:
@@ -82,12 +88,40 @@ class AsyncBaseApi:
         return self._username
 
     @property
-    def password(self) -> str:
+    def password(self) -> str | None:
         """The password for the XUI API.
 
         Returns:
             str: The password for the XUI API."""
         return self._password
+
+    @property
+    def csrf_token(self) -> str | None:
+        """The CSRF token for session-authenticated requests.
+
+        Returns:
+            str | None: The CSRF token for the XUI API."""
+        return self._csrf_token
+
+    @csrf_token.setter
+    def csrf_token(self, value: str | None) -> None:
+        """Sets the CSRF token for session-authenticated requests.
+
+        Arguments:
+            value (str | None): The CSRF token for the XUI API."""
+        self._csrf_token = value
+
+    @property
+    def token(self) -> str | None:
+        """The token for the XUI API.
+
+        Returns:
+            str: The token for the XUI API."""
+        return self._token
+
+    @token.setter
+    def token(self, value: str | None) -> None:
+        self._token = value
 
     @property
     def use_tls_verify(self) -> bool:
@@ -163,6 +197,16 @@ class AsyncBaseApi:
             str: The URL for the XUI API."""
         return f"{self._host}/{endpoint}"
 
+    def _generate_headers(self, headers: dict[str, str]) -> dict[str, str]:
+        if self._token is not None:
+            headers.update(
+                {"Authorization": f"Bearer {self._token}", "Accept": "application/json"}
+            )
+        elif self._csrf_token is not None:
+            headers.update({"X-CSRF-Token": self._csrf_token})
+
+        return headers
+
     async def _request_with_retry(
         self,
         method: str,
@@ -186,6 +230,10 @@ class AsyncBaseApi:
             httpx.RequestError: If the request fails.
             httpx.HTTPStatusError: If the maximum number of retries is exceeded."""
         self.logger.debug("%s request to %s...", method, url)
+
+        if not kwargs.pop("is_csrf_request", False):
+            headers = self._generate_headers(headers)
+
         for retry in range(1, self.max_retries + 1):
             try:
                 skip_check = kwargs.pop("skip_check", False)
@@ -229,26 +277,83 @@ class AsyncBaseApi:
                 if retry == self.max_retries:
                     raise e
                 self.logger.warning(
-                    "Request to %s failed: %s, retry %s of %s", url, e, retry, self.max_retries
+                    "Request to %s failed: %s, retry %s of %s",
+                    url,
+                    e,
+                    retry,
+                    self.max_retries,
                 )
                 await asyncio.sleep(1 * (retry + 1))
             except httpx.HTTPStatusError as e:
                 raise e
-        raise ConnectionError(f"Max retries exceeded with no successful response to {url}")
+        raise ConnectionError(
+            f"Max retries exceeded with no successful response to {url}"
+        )
+
+    def _check_token_or_password(self) -> None:
+        if self.token:
+            return
+        if self.username and self.password:
+            return
+        raise ValueError("There must be either token or username and password.")
+
+    async def _get_csrf_token(self) -> str:
+        endpoint: str = "csrf-token"
+        headers: dict[str, str] = {}
+
+        url = self._url(endpoint)
+        response = await self._get(
+            url,
+            headers,
+            is_login=True,
+            is_csrf_request=True,
+            skip_check=True,
+        )
+
+        cookie = await self._get_cookie(response)
+        if cookie:
+            self.session = cookie
+
+        response_json = response.json()
+        csrf_token = response_json.get(ApiFields.OBJ)
+        if not isinstance(csrf_token, str) or not csrf_token:
+            raise ValueError("Cannot get CSRF token, something wrong with the login...")
+        self.csrf_token = csrf_token
+
+        return csrf_token
 
     async def login(self, two_factor_code: str | int | None = None) -> None:
         """Logs into the XUI API and sets the session cookie if successful.
+
+        The login flow reads a CSRF token from the `csrf-token' endpoint, then sends that
+        token with the username/password login request.
 
         Arguments:
             two_factor_code (str | int | None): The two-factor authentication code, if required.
 
         Raises:
             ValueError: If the login is unsuccessful."""
-        endpoint = "login"
-        headers: dict[str, str] = {}
 
+        if self._token is not None:
+            raise RuntimeError("No need to login if using the token already.")
+
+        if None in (self._username, self._password):
+            raise ValueError("No username or password entered.")
+
+        # Clear the session before new login
+        self.session = None
+        self.cookie_name = None
+        self.csrf_token = None
+
+        headers: dict[str, str] = {"X-CSRF-Token": await self._get_csrf_token()}
+
+        endpoint = "login"
         url = self._url(endpoint)
-        data = {"username": self.username, "password": self.password}
+
+        data: dict[str, str] = {  # type: ignore # pyright: ignore[reportAssignmentType]
+            "username": self.username,  # type: ignore
+            "password": self.password,  # type: ignore
+        }
 
         if two_factor_code is not None:
             data["twoFactorCode"] = str(two_factor_code)
@@ -258,8 +363,12 @@ class AsyncBaseApi:
         response = await self._post(url, headers, data, is_login=True)
         cookie = await self._get_cookie(response)
         if not cookie:
-            raise ValueError("No session cookie found, something wrong with the login...")
-        self.logger.info("Session cookie successfully retrieved for username: %s", self.username)
+            raise ValueError(
+                "No session cookie found, something wrong with the login..."
+            )
+        self.logger.info(
+            "Session cookie successfully retrieved for username: %s", self.username
+        )
         self.session = cookie
 
     async def _get_cookie(self, response: httpx.Response) -> str | None:
@@ -321,9 +430,18 @@ class AsyncBaseApi:
 
         Returns:
             httpx.Response: The response from the XUI API."""
-        if not kwargs.pop("is_login", False) and not self.session:
-            raise ValueError("Before making a POST request, you must use the login() method.")
-        return await self._request_with_retry(ApiFields.POST, url, headers, json=data, **kwargs)
+        if (
+            not kwargs.pop("is_login", False)
+            and not self.session
+            and self.token is None
+        ):
+            raise ValueError(
+                "Before making a POST request, you must use the login() method. "
+                "Or use token authentication.",
+            )
+        return await self._request_with_retry(
+            ApiFields.POST, url, headers, json=data, **kwargs
+        )
 
     async def _get(self, url: str, headers: dict[str, str], **kwargs) -> httpx.Response:
         """Makes a GET request to the XUI API.
@@ -337,6 +455,13 @@ class AsyncBaseApi:
 
         Returns:
             httpx.Response: The response from the XUI API."""
-        if not kwargs.pop("is_login", False) and not self.session:
-            raise ValueError("Before making a POST request, you must use the login() method.")
+        if (
+            not kwargs.pop("is_login", False)
+            and not self.session
+            and self.token is None
+        ):
+            raise ValueError(
+                "Before making a POST request, you must use the login() method. "
+                "Or use token authentication.",
+            )
         return await self._request_with_retry(ApiFields.GET, url, headers, **kwargs)

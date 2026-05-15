@@ -30,19 +30,23 @@ class BaseApi:
 
     Arguments:
         host (str): The host of the XUI API.
-        username (str): The username for the XUI API.
-        password (str): The password for the XUI API.
+        username (str | None): The username for the XUI API. Required when token is not provided.
+        password (str | None): The password for the XUI API. Required when token is not provided.
+        token (str | None): The bearer token for the XUI API. When provided,
+            login() is not required.
         use_tls_verify (bool): Whether to verify the server TLS certificate.
         custom_certificate_path (str | None): Path to a custom certificate file.
         logger (Any | None): The logger, if not set, a dummy logger is used.
 
     Attributes and Properties:
         host (str): The host of the XUI API.
-        username (str): The username for the XUI API.
-        password (str): The password for the XUI API.
+        username (str | None): The username for the XUI API.
+        password (str | None): The password for the XUI API.
+        token (str | None): The bearer token for the XUI API.
         use_tls_verify (bool): Whether to verify the server TLS certificate.
         custom_certificate_path (str | None): Path to a custom certificate file.
         max_retries (int): The maximum number of retries for a request.
+        csrf_token (str | None): The CSRF token used with session authentication.
         session (str): The session cookie for the XUI API.
         cookie_name (str): The name of the cookie for the XUI API.
 
@@ -61,21 +65,27 @@ class BaseApi:
     def __init__(
         self,
         host: str,
-        username: str,
-        password: str,
+        username: str | None = None,
+        password: str | None = None,
         use_tls_verify: bool = True,
         custom_certificate_path: str | None = None,
         logger: Any | None = None,
+        *,
+        token: str | None = None,
     ):  # pylint: disable=R0913, R0917
-        self._host = host.rstrip("/")
-        self._username = username
-        self._password = password
+        self._host: str = host.rstrip("/")
+        self._username: str | None = username
+        self._password: str | None = password
+        self._token: str | None = token
         self._use_tls_verify = use_tls_verify
         self._custom_certificate_path = custom_certificate_path
+        self._csrf_token: str | None = None
         self._max_retries: int = 3
         self._session: str | None = None
         self._cookie_name: str | None = None
         self.logger = logger or logging.getLogger(__name__)
+
+        self._check_token_or_password()
 
     @property
     def host(self) -> str:
@@ -86,7 +96,7 @@ class BaseApi:
         return self._host
 
     @property
-    def username(self) -> str:
+    def username(self) -> str | None:
         """The username for the XUI API.
 
         Returns:
@@ -94,12 +104,28 @@ class BaseApi:
         return self._username
 
     @property
-    def password(self) -> str:
+    def password(self) -> str | None:
         """The password for the XUI API.
 
         Returns:
             str: The password for the XUI API."""
         return self._password
+
+    @property
+    def token(self) -> str | None:
+        """The token for the XUI API.
+
+        Returns:
+            str | None: The token for the XUI API."""
+        return self._token
+
+    @token.setter
+    def token(self, value: str | None) -> None:
+        """Sets the bearer token for API authentication.
+
+        Arguments:
+            value (str | None): The bearer token to use for requests."""
+        self._token = value
 
     @property
     def use_tls_verify(self) -> bool:
@@ -134,6 +160,22 @@ class BaseApi:
         self._max_retries = value
 
     @property
+    def csrf_token(self) -> str | None:
+        """The CSRF token for session-authenticated requests.
+
+        Returns:
+            str | None: The CSRF token for the XUI API."""
+        return self._csrf_token
+
+    @csrf_token.setter
+    def csrf_token(self, value: str | None) -> None:
+        """Sets the CSRF token for session-authenticated requests.
+
+        Arguments:
+            value (str | None): The CSRF token for the XUI API."""
+        self._csrf_token = value
+
+    @property
     def session(self) -> str | None:
         """The session cookie for the XUI API.
 
@@ -165,19 +207,82 @@ class BaseApi:
             value (str | None): The name of the cookie for the XUI API."""
         self._cookie_name = value
 
+    def _check_token_or_password(self) -> None:
+        """Validates that token auth or username/password auth is configured.
+
+        Raises:
+            ValueError: If neither a token nor username/password credentials are set."""
+        if self.token:
+            return
+        if self.username and self.password:
+            return
+        raise ValueError("There must be either token or username and password.")
+
+    def _get_csrf_token(self) -> str:
+        """Fetches and stores a CSRF token for username/password login.
+
+        Returns:
+            str: The CSRF token returned by the XUI API.
+
+        Raises:
+            ValueError: If the csrf-token endpoint does not return a usable token."""
+        endpoint: str = "csrf-token"
+        headers: dict[str, str] = {}
+
+        url = self._url(endpoint)
+        response = self._get(
+            url,
+            headers,
+            is_login=True,
+            is_csrf_request=True,
+            skip_check=True,
+        )
+
+        cookie: str | None = self._get_cookie(response)
+        if cookie is not None:
+            self.session = cookie
+
+        response_json = response.json()
+        csrf_token = response_json.get(ApiFields.OBJ)
+        if not isinstance(csrf_token, str) or not csrf_token:
+            raise ValueError("Cannot get CSRF code, something wrong with the login...")
+        self.csrf_token = csrf_token
+
+        return csrf_token
+
     def login(self, two_factor_code: str | int | None = None) -> None:
         """Logs into the XUI API and sets the session cookie if successful.
+
+        The login flow first fetches a CSRF token from the csrf-token endpoint, then
+        sends that token with the username/password login request. The saved CSRF token
+        is also sent on later requests when session authentication is used.
 
         Arguments:
             two_factor_code (str | int | None): The two-factor authentication code, if required.
 
         Raises:
+            RuntimeError: If login is called when token authentication is already configured.
             ValueError: If the login is unsuccessful."""
-        endpoint = "login"
-        headers: dict[str, str] = {}
+        if self._token is not None:
+            raise RuntimeError("No need to login if using the token already.")
 
+        if None in (self._username, self._password):
+            raise ValueError("No username or password entered.")
+
+        # Clear the session before new login
+        self.session = None
+        self.cookie_name = None
+        self.csrf_token = None
+
+        headers: dict[str, str] = {"X-CSRF-Token": self._get_csrf_token()}
+
+        endpoint = "login"
         url = self._url(endpoint)
-        data = {"username": self.username, "password": self.password}
+
+        data: dict[str, str] = {  # type: ignore # pyright: ignore[reportAssignmentType]
+            "username": self.username,  # type: ignore
+            "password": self.password,  # type: ignore
+        }
 
         if two_factor_code is not None:
             data["twoFactorCode"] = str(two_factor_code)
@@ -187,8 +292,12 @@ class BaseApi:
         response = self._post(url, headers, data, is_login=True)
         cookie = self._get_cookie(response)
         if not cookie:
-            raise ValueError("No session cookie found, something wrong with the login...")
-        self.logger.info("Session cookie successfully retrieved for username: %s", self.username)
+            raise ValueError(
+                "No session cookie found, something wrong with the login..."
+            )
+        self.logger.info(
+            "Session cookie successfully retrieved for username: %s", self.username
+        )
         self.session = cookie
 
     def _get_cookie(self, response: requests.Response) -> str | None:
@@ -243,6 +352,23 @@ class BaseApi:
             str: The URL for the XUI API."""
         return f"{self._host}/{endpoint}"
 
+    def _generate_headers(self, headers: dict[str, str]) -> dict[str, str]:
+        """Adds authentication headers for token or session based requests.
+
+        Arguments:
+            headers (dict[str, str]): Existing request headers to extend.
+
+        Returns:
+            dict[str, str]: The headers with authentication fields added when available."""
+        if self._token is not None:
+            headers.update(
+                {"Authorization": f"Bearer {self._token}", "Accept": "application/json"}
+            )
+        elif self._csrf_token is not None:
+            headers.update({"X-CSRF-Token": self._csrf_token})
+
+        return headers
+
     def _request_with_retry(
         self,
         method: Callable[..., requests.Response],
@@ -265,6 +391,10 @@ class BaseApi:
             requests.exceptions.RequestException: If the request fails.
             requests.exceptions.RetryError: If the maximum number of retries is exceeded."""
         self.logger.debug("%s request to %s...", method.__name__.upper(), url)
+
+        if not kwargs.pop("is_csrf_request", False):
+            headers = self._generate_headers(headers)
+
         for retry in range(1, self.max_retries + 1):
             try:
                 skip_check = kwargs.pop("skip_check", False)
@@ -297,11 +427,18 @@ class BaseApi:
                     return response
                 self._check_response(response)
                 return response
-            except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
+            except (
+                requests.exceptions.ConnectionError,
+                requests.exceptions.Timeout,
+            ) as e:
                 if retry == self.max_retries:
                     raise e
                 self.logger.warning(
-                    "Request to %s failed: %s, retry %s of %s", url, e, retry, self.max_retries
+                    "Request to %s failed: %s, retry %s of %s",
+                    url,
+                    e,
+                    retry,
+                    self.max_retries,
                 )
                 sleep(1 * (retry + 1))
             except requests.exceptions.RequestException as e:
@@ -326,9 +463,17 @@ class BaseApi:
 
         Returns:
             requests.Response: The response from the XUI API."""
-        if not kwargs.pop("is_login", False) and not self.session:
-            raise ValueError("Before making a POST request, you must use the login() method.")
-        return self._request_with_retry(requests.post, url, headers, json=data, **kwargs)
+        if (
+            not kwargs.pop("is_login", False)
+            and not self.session
+            and self.token is None
+        ):
+            raise ValueError(
+                "Before making a POST request, you must use the login() method or use the token."
+            )
+        return self._request_with_retry(
+            requests.post, url, headers, json=data, **kwargs
+        )
 
     def _get(self, url: str, headers: dict[str, str], **kwargs) -> requests.Response:
         """Makes a GET request to the XUI API.
@@ -343,6 +488,12 @@ class BaseApi:
 
         Returns:
             requests.Response: The response from the XUI API."""
-        if not kwargs.pop("is_login", False) and not self.session:
-            raise ValueError("Before making a GET request, you must use the login() method.")
+        if (
+            not kwargs.pop("is_login", False)
+            and not self.session
+            and self.token is None
+        ):
+            raise ValueError(
+                "Before making a GET request, you must use the login() method or use the token."
+            )
         return self._request_with_retry(requests.get, url, headers, **kwargs)
