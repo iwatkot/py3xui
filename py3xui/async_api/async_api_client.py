@@ -78,7 +78,8 @@ class AsyncClientApi(AsyncBaseApi):
         url = self._url(endpoint)
         self.logger.info("Getting client stats for email: %s", email)
 
-        response = await self._get(url, headers)
+        try: response = await self._get(url, headers)
+        except ValueError: return None
 
         client_json = response.json().get(ApiFields.OBJ)
         if not client_json:
