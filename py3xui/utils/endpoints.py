@@ -19,7 +19,7 @@ class Endpoints(str, Enum):
     # Clients
     CLIENT_GET_BY_EMAIL = "panel/api/inbounds/getClientTraffics/{email}"
     CLIENT_GET_IPS = "panel/api/inbounds/clientIps/{email}"
-    CLIENT_ADD = "panel/api/inbounds/addClient"
+    CLIENT_ADD = "/panel/api/clients/add"
     CLIENT_UPDATE = "panel/api/inbounds/updateClient/{client_uuid}"
     CLIENT_CLEAR_IPS = "panel/api/inbounds/clearClientIps/{email}"
     CLIENT_RESET_TRAFFIC = "panel/api/inbounds/{inbound_id}/resetClientTraffic/{email}"
