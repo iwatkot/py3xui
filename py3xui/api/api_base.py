@@ -4,11 +4,13 @@
 
 import logging
 from time import sleep
-from typing import Any, Callable
+from typing import Any
+from typing import Callable
 
 import requests
 
 from py3xui.utils import COOKIE_NAMES
+from py3xui.utils.endpoints import Endpoints
 
 
 # pylint: disable=too-few-public-methods
@@ -63,15 +65,15 @@ class BaseApi:
     """
 
     def __init__(
-        self,
-        host: str,
-        username: str | None = None,
-        password: str | None = None,
-        use_tls_verify: bool = True,
-        custom_certificate_path: str | None = None,
-        logger: Any | None = None,
-        *,
-        token: str | None = None,
+            self,
+            host: str,
+            username: str | None = None,
+            password: str | None = None,
+            use_tls_verify: bool = True,
+            custom_certificate_path: str | None = None,
+            logger: Any | None = None,
+            *,
+            token: str | None = None,
     ):  # pylint: disable=R0913, R0917
         self._host: str = host.rstrip("/")
         self._username: str | None = username
@@ -226,7 +228,7 @@ class BaseApi:
 
         Raises:
             ValueError: If the csrf-token endpoint does not return a usable token."""
-        endpoint: str = "csrf-token"
+        endpoint: str = Endpoints.CSRF_TOKEN
         headers: dict[str, str] = {}
 
         url = self._url(endpoint)
@@ -276,7 +278,7 @@ class BaseApi:
 
         headers: dict[str, str] = {"X-CSRF-Token": self._get_csrf_token()}
 
-        endpoint = "login"
+        endpoint = Endpoints.LOGIN
         url = self._url(endpoint)
 
         data: dict[str, str] = {  # type: ignore # pyright: ignore[reportAssignmentType]
@@ -342,15 +344,15 @@ class BaseApi:
         if not status:
             raise ValueError(f"Response status is not successful, message: {message}")
 
-    def _url(self, endpoint: str) -> str:
+    def _url(self, endpoint: str | Endpoints) -> str:
         """Returns the URL for the XUI API (adds the endpoint to the host URL).
 
         Arguments:
-            endpoint (str): The endpoint for the XUI API.
+            endpoint (str | Endpoints): The endpoint for the XUI API.
 
         Returns:
             str: The URL for the XUI API."""
-        return f"{self._host}/{endpoint}"
+        return f"{self._host}/{endpoint.value if isinstance(endpoint, Endpoints) else endpoint}"
 
     def _generate_headers(self, headers: dict[str, str]) -> dict[str, str]:
         """Adds authentication headers for token or session based requests.
@@ -370,11 +372,11 @@ class BaseApi:
         return headers
 
     def _request_with_retry(
-        self,
-        method: Callable[..., requests.Response],
-        url: str,
-        headers: dict[str, str],
-        **kwargs: Any,
+            self,
+            method: Callable[..., requests.Response],
+            url: str,
+            headers: dict[str, str],
+            **kwargs: Any,
     ) -> requests.Response:
         """Makes a request to the XUI API with retries.
 
@@ -428,8 +430,8 @@ class BaseApi:
                 self._check_response(response)
                 return response
             except (
-                requests.exceptions.ConnectionError,
-                requests.exceptions.Timeout,
+                    requests.exceptions.ConnectionError,
+                    requests.exceptions.Timeout,
             ) as e:
                 if retry == self.max_retries:
                     raise e
@@ -448,7 +450,7 @@ class BaseApi:
         )
 
     def _post(
-        self, url: str, headers: dict[str, str], data: dict[str, Any], **kwargs
+            self, url: str, headers: dict[str, str], data: dict[str, Any], **kwargs
     ) -> requests.Response:
         """Makes a POST request to the XUI API.
 
@@ -464,9 +466,9 @@ class BaseApi:
         Returns:
             requests.Response: The response from the XUI API."""
         if (
-            not kwargs.pop("is_login", False)
-            and not self.session
-            and self.token is None
+                not kwargs.pop("is_login", False)
+                and not self.session
+                and self.token is None
         ):
             raise ValueError(
                 "Before making a POST request, you must use the login() method or use the token."
@@ -489,9 +491,9 @@ class BaseApi:
         Returns:
             requests.Response: The response from the XUI API."""
         if (
-            not kwargs.pop("is_login", False)
-            and not self.session
-            and self.token is None
+                not kwargs.pop("is_login", False)
+                and not self.session
+                and self.token is None
         ):
             raise ValueError(
                 "Before making a GET request, you must use the login() method or use the token."

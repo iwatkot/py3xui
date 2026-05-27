@@ -7,6 +7,7 @@ from typing import Any
 from py3xui.api.api_base import ApiFields
 from py3xui.async_api.async_api_base import AsyncBaseApi
 from py3xui.client import Client
+from py3xui.utils.endpoints import Endpoints
 
 
 class AsyncClientApi(AsyncBaseApi):
@@ -72,7 +73,7 @@ class AsyncClientApi(AsyncBaseApi):
             ```
         """  # pylint: disable=line-too-long
 
-        endpoint = f"panel/api/inbounds/getClientTraffics/{email}"
+        endpoint = Endpoints.CLIENT_GET_BY_EMAIL.format(email=email)
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
@@ -107,7 +108,7 @@ class AsyncClientApi(AsyncBaseApi):
             ips = await api.client.get_ips("email")
             ```
         """  # pylint: disable=line-too-long
-        endpoint = f"panel/api/inbounds/clientIps/{email}"
+        endpoint = Endpoints.CLIENT_GET_IPS.format(email=email)
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
@@ -140,7 +141,7 @@ class AsyncClientApi(AsyncBaseApi):
 
             await api.client.add(inbound_id, [new_client])
         """  # pylint: disable=line-too-long
-        endpoint = "panel/api/inbounds/addClient"
+        endpoint = Endpoints.CLIENT_ADD
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
@@ -176,7 +177,7 @@ class AsyncClientApi(AsyncBaseApi):
             await api.client.update(client.id, client)
             ```
         """  # pylint: disable=line-too-long
-        endpoint = f"panel/api/inbounds/updateClient/{client_uuid}"
+        endpoint = Endpoints.CLIENT_UPDATE.format(client_uuid=client_uuid)
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
@@ -206,7 +207,7 @@ class AsyncClientApi(AsyncBaseApi):
             await api.client.reset_ips("email")
             ```
         """  # pylint: disable=line-too-long
-        endpoint = f"panel/api/inbounds/clearClientIps/{email}"
+        endpoint = Endpoints.CLIENT_CLEAR_IPS.format(email=email)
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
@@ -237,7 +238,9 @@ class AsyncClientApi(AsyncBaseApi):
             await api.client.reset_stats(inbound_id, "test")
             ```
         """  # pylint: disable=line-too-long
-        endpoint = f"panel/api/inbounds/{inbound_id}/resetClientTraffic/{email}"
+        endpoint = Endpoints.CLIENT_RESET_TRAFFIC.format(
+            inbound_id=inbound_id, email=email
+        )
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
@@ -269,7 +272,9 @@ class AsyncClientApi(AsyncBaseApi):
             await api.client.delete(inbound_id, client.id)
             ```
         """  # pylint: disable=line-too-long
-        endpoint = f"panel/api/inbounds/{inbound_id}/delClient/{client_uuid}"
+        endpoint = Endpoints.CLIENT_DELETE.format(
+            inbound_id=inbound_id, client_uuid=client_uuid
+        )
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
@@ -302,7 +307,7 @@ class AsyncClientApi(AsyncBaseApi):
                 await api.client.delete_depleted(inbound.id)
             ```
         """  # pylint: disable=line-too-long
-        endpoint = f"panel/api/inbounds/delDepletedClients/{inbound_id}"
+        endpoint = Endpoints.CLIENT_DELETE_DEPLETED.format(inbound_id=inbound_id)
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
@@ -331,7 +336,7 @@ class AsyncClientApi(AsyncBaseApi):
             ```
 
         """  # pylint: disable=line-too-long
-        endpoint = "panel/api/inbounds/onlines"
+        endpoint = Endpoints.CLIENT_ONLINE
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
@@ -365,7 +370,7 @@ class AsyncClientApi(AsyncBaseApi):
             print(clients)
             ```
         """
-        endpoint = f"panel/api/inbounds/getClientTrafficsById/{client_uuid}"
+        endpoint = Endpoints.CLIENT_GET_TRAFFIC_BY_ID.format(client_uuid=client_uuid)
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
