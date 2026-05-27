@@ -1,9 +1,12 @@
 """This module contains the ServerApi class for handling server in the XUI API."""
 
-from py3xui.api.api_base import ApiFields, BaseApi
-from py3xui.server.server import RealityKeyPair, Server
-from py3xui.server.config import ServerConfig, XrayVersionUnavailableError
-
+from py3xui.api.api_base import ApiFields
+from py3xui.api.api_base import BaseApi
+from py3xui.server.config import ServerConfig
+from py3xui.server.config import XrayVersionUnavailableError
+from py3xui.server.server import RealityKeyPair
+from py3xui.server.server import Server
+from py3xui.utils.endpoints import Endpoints
 
 
 class ServerApi(BaseApi):
@@ -56,7 +59,7 @@ class ServerApi(BaseApi):
             api.server.get_db(db_save_path)
             ```
         """
-        endpoint = "panel/api/server/getDb"
+        endpoint = Endpoints.SERVER_GET_DB
         headers = {"Accept": "application/octet-stream"}
         url = self._url(endpoint)
         self.logger.info("Getting DB backup...")
@@ -89,7 +92,7 @@ class ServerApi(BaseApi):
             print(f"Memory Used: {status.mem.current}/{status.mem.total} bytes")
             ```
         """
-        endpoint = "panel/api/server/status"
+        endpoint = Endpoints.SERVER_STATUS
         headers = {"Accept": "application/json"}
         url = self._url(endpoint)
         self.logger.info("Getting server status...")
@@ -107,7 +110,7 @@ class ServerApi(BaseApi):
         Returns:
             RealityKeyPair: Generated key pair containing private and public keys.
         """
-        endpoint = "panel/api/server/getNewX25519Cert"
+        endpoint = Endpoints.SERVER_GET_NEW_X25519_CERT
         headers = {"Accept": "application/json"}
         url = self._url(endpoint)
         self.logger.info("Generating new Reality keys...")
@@ -137,7 +140,7 @@ class ServerApi(BaseApi):
             api.server.install_new_xray_version("1.5.0")
             ```
         """
-        endpoint = f"panel/api/server/installXray/{version}"
+        endpoint = Endpoints.SERVER_INSTALL_XRAY.format(version=version)
         headers = {"Accept": "application/json"}
         url = self._url(endpoint)
         self.logger.info("Installing new Xray version %s...", version)
@@ -164,14 +167,13 @@ class ServerApi(BaseApi):
             ```
         """
 
-        endpoint = "panel/api/server/updateGeofile"
+        endpoint = Endpoints.SERVER_UPDATE_GEOFILE
         headers = {"Accept": "application/json"}
         url = self._url(endpoint)
         self.logger.info("Updating geofile...")
 
         self._post(url, headers, data={})
         self.logger.info("Geofile updated successfully.")
-
 
     def get_xray_version(self) -> list[str]:
         """Gets the current version of Xray running on the server.
@@ -190,7 +192,7 @@ class ServerApi(BaseApi):
             print(f"Xray Version: {xray_version}")
             ```
         """
-        endpoint = "panel/api/server/getXrayVersion"
+        endpoint = Endpoints.SERVER_GET_XRAY_VERSION
         headers = {"Accept": "application/json"}
         url = self._url(endpoint)
         self.logger.info("Getting Xray version...")
@@ -222,7 +224,7 @@ class ServerApi(BaseApi):
             print(f"Transport is used: {config.transport}")
             ```
         """
-        endpoint = "panel/api/server/getConfigJson"
+        endpoint = Endpoints.SERVER_GET_CONFIG_JSON
         headers = {"Accept": "application/json"}
         url = self._url(endpoint)
         self.logger.info("Getting server config...")

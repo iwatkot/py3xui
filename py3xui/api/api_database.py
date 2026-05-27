@@ -2,6 +2,7 @@
 in the XUI API."""
 
 from py3xui.api.api_base import BaseApi
+from py3xui.utils.endpoints import Endpoints
 
 
 class DatabaseApi(BaseApi):
@@ -46,7 +47,7 @@ class DatabaseApi(BaseApi):
             api.database.export()
             ```
         """  # pylint: disable=line-too-long
-        endpoint = "panel/api/inbounds/createbackup"
+        endpoint = Endpoints.DATABASE_CREATE_BACKUP
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)

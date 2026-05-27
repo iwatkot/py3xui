@@ -10,6 +10,7 @@ import httpx
 
 from py3xui.api.api_base import ApiFields
 from py3xui.utils import COOKIE_NAMES
+from py3xui.utils.endpoints import Endpoints
 
 
 # pylint: disable=R0902
@@ -47,15 +48,15 @@ class AsyncBaseApi:
     """
 
     def __init__(
-        self,
-        host: str,
-        username: str | None = None,
-        password: str | None = None,
-        use_tls_verify: bool = True,
-        custom_certificate_path: str | None = None,
-        logger: Any | None = None,
-        *,
-        token: str | None = None,
+            self,
+            host: str,
+            username: str | None = None,
+            password: str | None = None,
+            use_tls_verify: bool = True,
+            custom_certificate_path: str | None = None,
+            logger: Any | None = None,
+            *,
+            token: str | None = None,
     ):  # pylint: disable=R0913, R0917
         self._host: str = host.rstrip("/")
         self._username: str | None = username
@@ -187,15 +188,15 @@ class AsyncBaseApi:
             value (str | None): The name of the cookie for the XUI API."""
         self._cookie_name = value
 
-    def _url(self, endpoint: str) -> str:
+    def _url(self, endpoint: str | Endpoints) -> str:
         """Returns the URL for the XUI API (adds the endpoint to the host URL).
 
         Arguments:
-            endpoint (str): The endpoint for the XUI API.
+            endpoint (str | Endpoints): The endpoint for the XUI API.
 
         Returns:
             str: The URL for the XUI API."""
-        return f"{self._host}/{endpoint}"
+        return f"{self._host}/{endpoint.value if isinstance(endpoint, Endpoints) else endpoint}"
 
     def _generate_headers(self, headers: dict[str, str]) -> dict[str, str]:
         if self._token is not None:
@@ -208,11 +209,11 @@ class AsyncBaseApi:
         return headers
 
     async def _request_with_retry(
-        self,
-        method: str,
-        url: str,
-        headers: dict[str, str],
-        **kwargs: Any,
+            self,
+            method: str,
+            url: str,
+            headers: dict[str, str],
+            **kwargs: Any,
     ) -> httpx.Response:
         """Makes a request to the XUI API with retries.
 
@@ -260,7 +261,7 @@ class AsyncBaseApi:
                     verify = True
 
                 async with httpx.AsyncClient(
-                    cookies=self.cookies, verify=verify, follow_redirects=True
+                        cookies=self.cookies, verify=verify, follow_redirects=True
                 ) as client:
                     if method == ApiFields.GET:
                         response = await client.get(url, headers=headers, **kwargs)
@@ -298,7 +299,7 @@ class AsyncBaseApi:
         raise ValueError("There must be either token or username and password.")
 
     async def _get_csrf_token(self) -> str:
-        endpoint: str = "csrf-token"
+        endpoint: str = Endpoints.CSRF_TOKEN
         headers: dict[str, str] = {}
 
         url = self._url(endpoint)
@@ -347,7 +348,7 @@ class AsyncBaseApi:
 
         headers: dict[str, str] = {"X-CSRF-Token": await self._get_csrf_token()}
 
-        endpoint = "login"
+        endpoint = Endpoints.LOGIN
         url = self._url(endpoint)
 
         data: dict[str, str] = {  # type: ignore # pyright: ignore[reportAssignmentType]
@@ -415,7 +416,7 @@ class AsyncBaseApi:
             raise ValueError(f"Response status is not successful, message: {message}")
 
     async def _post(
-        self, url: str, headers: dict[str, str], data: dict[str, Any], **kwargs
+            self, url: str, headers: dict[str, str], data: dict[str, Any], **kwargs
     ) -> httpx.Response:
         """Makes a POST request to the XUI API.
 
@@ -431,9 +432,9 @@ class AsyncBaseApi:
         Returns:
             httpx.Response: The response from the XUI API."""
         if (
-            not kwargs.pop("is_login", False)
-            and not self.session
-            and self.token is None
+                not kwargs.pop("is_login", False)
+                and not self.session
+                and self.token is None
         ):
             raise ValueError(
                 "Before making a POST request, you must use the login() method. "
@@ -456,9 +457,9 @@ class AsyncBaseApi:
         Returns:
             httpx.Response: The response from the XUI API."""
         if (
-            not kwargs.pop("is_login", False)
-            and not self.session
-            and self.token is None
+                not kwargs.pop("is_login", False)
+                and not self.session
+                and self.token is None
         ):
             raise ValueError(
                 "Before making a POST request, you must use the login() method. "

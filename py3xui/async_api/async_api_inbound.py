@@ -6,6 +6,7 @@ from typing import Any
 from py3xui.api.api_base import ApiFields
 from py3xui.async_api.async_api_base import AsyncBaseApi
 from py3xui.inbound import Inbound
+from py3xui.utils.endpoints import Endpoints
 
 
 class AsyncInboundApi(AsyncBaseApi):
@@ -57,7 +58,7 @@ class AsyncInboundApi(AsyncBaseApi):
             inbounds: list[py3xui.Inbound] = await api.inbound.get_list()
             ```
         """  # pylint: disable=line-too-long
-        endpoint = "panel/api/inbounds/list"
+        endpoint = Endpoints.INBOUND_LIST
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
@@ -97,7 +98,7 @@ class AsyncInboundApi(AsyncBaseApi):
 
             inbound = await api.inbound.get_by_id(inbound_id)
         """
-        endpoint = f"panel/api/inbounds/get/{inbound_id}"
+        endpoint = Endpoints.INBOUND_GET.format(inbound_id=inbound_id)
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
@@ -145,7 +146,7 @@ class AsyncInboundApi(AsyncBaseApi):
             await api.inbound.add(inbound)
             ```
         """  # pylint: disable=line-too-long
-        endpoint = "panel/api/inbounds/add"
+        endpoint = Endpoints.INBOUND_ADD
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
@@ -176,7 +177,7 @@ class AsyncInboundApi(AsyncBaseApi):
                 api.inbound.delete(inbound.id)
             ```
         """  # pylint: disable=line-too-long
-        endpoint = f"panel/api/inbounds/del/{inbound_id}"
+        endpoint = Endpoints.INBOUND_DELETE.format(inbound_id=inbound_id)
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
@@ -209,7 +210,7 @@ class AsyncInboundApi(AsyncBaseApi):
             api.inbound.update(inbound.id, inbound)
             ```
         """  # pylint: disable=line-too-long
-        endpoint = f"panel/api/inbounds/update/{inbound_id}"
+        endpoint = Endpoints.INBOUND_UPDATE.format(inbound_id=inbound_id)
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
@@ -233,7 +234,7 @@ class AsyncInboundApi(AsyncBaseApi):
             await api.inbound.reset_stats()
             ```
         """  # pylint: disable=line-too-long
-        endpoint = "panel/api/inbounds/resetAllTraffics"
+        endpoint = Endpoints.INBOUND_RESET_ALL_TRAFFICS
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
@@ -264,7 +265,7 @@ class AsyncInboundApi(AsyncBaseApi):
             await api.inbound.reset_client_stats(inbound.id)
             ```
         """  # pylint: disable=line-too-long
-        endpoint = f"panel/api/inbounds/resetAllClientTraffics/{inbound_id}"
+        endpoint = Endpoints.INBOUND_RESET_CLIENT_TRAFFIC.format(inbound_id=inbound_id)
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)

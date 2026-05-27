@@ -2,6 +2,7 @@
 database in the XUI API asynchronously."""
 
 from py3xui.async_api.async_api_base import AsyncBaseApi
+from py3xui.utils.endpoints import Endpoints
 
 
 class AsyncDatabaseApi(AsyncBaseApi):
@@ -46,7 +47,7 @@ class AsyncDatabaseApi(AsyncBaseApi):
             await api.database.export()
             ```
         """  # pylint: disable=line-too-long
-        endpoint = "panel/api/inbounds/createbackup"
+        endpoint = Endpoints.DATABASE_CREATE_BACKUP
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
