@@ -3,7 +3,6 @@ clients in the XUI API."""
 
 # pylint: disable=R0801
 
-import json
 from typing import Any
 
 from py3xui.api.api_base import ApiFields, BaseApi
@@ -72,7 +71,7 @@ class ClientApi(BaseApi):
             ```
         """  # pylint: disable=line-too-long
 
-        endpoint = f"panel/api/inbounds/getClientTraffics/{email}"
+        endpoint = f"panel/api/clients/get/{email}"
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
@@ -84,6 +83,14 @@ class ClientApi(BaseApi):
         if not client_json:
             self.logger.warning("No client found for email: %s", email)
             return None
+
+        if isinstance(client_json, dict) and isinstance(client_json.get("client"), dict):
+            client_payload = dict(client_json["client"])
+            inbound_ids = client_json.get("inboundIds")
+            if isinstance(inbound_ids, list) and inbound_ids:
+                client_payload.setdefault("inboundId", inbound_ids[0])
+            return Client.model_validate(client_payload)
+
         return Client.model_validate(client_json)
 
     def get_ips(self, email: str) -> list[str]:
@@ -107,7 +114,7 @@ class ClientApi(BaseApi):
             ips = api.client.get_ips("email")
             ```
         """  # pylint: disable=line-too-long
-        endpoint = f"panel/api/inbounds/clientIps/{email}"
+        endpoint = f"panel/api/clients/ips/{email}"
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
@@ -139,19 +146,18 @@ class ClientApi(BaseApi):
 
             api.client.add(inbound_id, [new_client])
         """  # pylint: disable=line-too-long
-        endpoint = "panel/api/inbounds/addClient"
+        endpoint = "panel/api/clients/add"
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
-        settings = {
-            "clients": [
-                client.model_dump(by_alias=True, exclude_defaults=True) for client in clients
-            ]
-        }
-        data = {"id": inbound_id, "settings": json.dumps(settings)}
         self.logger.info("Adding %s clients to inbound with ID: %s", len(clients), inbound_id)
 
-        self._post(url, headers, data)
+        for client in clients:
+            data = {
+                "client": client.model_dump(by_alias=True, exclude_defaults=True),
+                "inboundIds": [inbound_id],
+            }
+            self._post(url, headers, data)
         self.logger.info("Client added successfully.")
 
     def update(self, client_uuid: str, client: Client) -> None:
@@ -175,12 +181,14 @@ class ClientApi(BaseApi):
             api.client.update(client.id, client)
             ```
         """  # pylint: disable=line-too-long
-        endpoint = f"panel/api/inbounds/updateClient/{client_uuid}"
+        target_email = client.email or str(client_uuid)
+        endpoint = f"panel/api/clients/update/{target_email}"
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
-        settings = {"clients": [client.model_dump(by_alias=True, exclude_defaults=True)]}
-        data = {"id": client.inbound_id, "settings": json.dumps(settings)}
+        data = client.model_dump(by_alias=True, exclude_defaults=True)
+        if isinstance(data.get("uuid"), str) and not isinstance(data.get("id"), str):
+            data["id"] = data["uuid"]
 
         self.logger.info("Updating client: %s", client)
         self._post(url, headers, data)
@@ -204,7 +212,7 @@ class ClientApi(BaseApi):
             api.client.reset_ips("email")
             ```
         """  # pylint: disable=line-too-long
-        endpoint = f"panel/api/inbounds/clearClientIps/{email}"
+        endpoint = f"panel/api/clients/clearIps/{email}"
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
@@ -235,12 +243,14 @@ class ClientApi(BaseApi):
             api.client.reset_stats(inbound_id, "test")
             ```
         """  # pylint: disable=line-too-long
-        endpoint = f"panel/api/inbounds/{inbound_id}/resetClientTraffic/{email}"
+        endpoint = f"panel/api/clients/resetTraffic/{email}"
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
         data: dict[str, Any] = {}
-        self.logger.info("Resetting client stats for inbound ID: %s, email: %s", inbound_id, email)
+        self.logger.info(
+            "Resetting client stats for inbound ID: %s, email: %s", inbound_id, email
+        )
 
         self._post(url, headers, data)
         self.logger.info("Client stats reset successfully.")
@@ -267,12 +277,13 @@ class ClientApi(BaseApi):
             api.client.delete(inbound_id, client.id)
             ```
         """  # pylint: disable=line-too-long
-        endpoint = f"panel/api/inbounds/{inbound_id}/delClient/{client_uuid}"
+        email = self._resolve_client_email(inbound_id=inbound_id, client_identifier=client_uuid)
+        endpoint = f"panel/api/clients/del/{email}"
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
         data: dict[str, Any] = {}
-        self.logger.info("Deleting client with ID: %s", client_uuid)
+        self.logger.info("Deleting client by email: %s", email)
 
         self._post(url, headers, data)
         self.logger.info("Client deleted successfully.")
@@ -299,12 +310,14 @@ class ClientApi(BaseApi):
                 api.client.delete_depleted(inbound.id)
             ```
         """  # pylint: disable=line-too-long
-        endpoint = f"panel/api/inbounds/delDepletedClients/{inbound_id}"
+        endpoint = "panel/api/clients/delDepleted"
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
         data: dict[str, Any] = {}
-        self.logger.info("Deleting depleted clients for inbound ID: %s", inbound_id)
+        self.logger.info(
+            "Deleting depleted clients for inbound ID: %s", inbound_id
+        )
 
         self._post(url, headers, data)
         self.logger.info("Depleted clients deleted successfully.")
@@ -328,7 +341,7 @@ class ClientApi(BaseApi):
             ```
 
         """  # pylint: disable=line-too-long
-        endpoint = "panel/api/inbounds/onlines"
+        endpoint = "panel/api/clients/onlines"
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
@@ -339,7 +352,7 @@ class ClientApi(BaseApi):
         online = response.json().get(ApiFields.OBJ)
         return online or []
 
-    def get_traffic_by_id(self, client_uuid: int) -> list[Client]:
+    def get_traffic_by_id(self, client_uuid: int | str) -> list[Client]:
         """This route is used to retrieve information about a specific client based on their UUID.
 
         NOTE: At the moment of writing this, the API documentation does not exist for this route.
@@ -362,20 +375,48 @@ class ClientApi(BaseApi):
             print(clients)
             ```
         """
-        endpoint = f"panel/api/inbounds/getClientTrafficsById/{client_uuid}"
+        endpoint = "panel/api/clients/list"
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
         self.logger.info("Getting client stats for ID: %s", client_uuid)
 
         response = self._get(url, headers)
-        clients_json: list[dict[str, int | bool]] = response.json().get(ApiFields.OBJ)
+        clients_json: list[dict[str, int | bool | str]] = response.json().get(ApiFields.OBJ)
         clients = []
         for client_json in clients_json:
             try:
+                client_id = client_json.get("id")
+                client_uuid_value = client_json.get("uuid")
+                if str(client_uuid) not in {str(client_id), str(client_uuid_value)}:
+                    continue
                 client = Client.model_validate(client_json)
                 clients.append(client)
             except TypeError:
                 self.logger.error("Error parsing client: %s", client_json)
                 continue
         return clients
+
+    def _resolve_client_email(self, inbound_id: int, client_identifier: str) -> str:
+        """Resolves legacy client IDs/UUIDs to client email for delete endpoint."""
+        if "@" in client_identifier:
+            return client_identifier
+
+        endpoint = "panel/api/clients/list"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        response = self._get(url, headers)
+        clients_json = response.json().get(ApiFields.OBJ) or []
+
+        for client_json in clients_json:
+            client_id = client_json.get("id")
+            client_uuid = client_json.get("uuid")
+            if str(client_identifier) in {str(client_id), str(client_uuid)}:
+                email = client_json.get("email")
+                if isinstance(email, str) and email:
+                    return email
+
+        raise ValueError(
+            "Cannot resolve client email from identifier "
+            f"'{client_identifier}' in inbound {inbound_id}."
+        )

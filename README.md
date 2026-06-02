@@ -33,6 +33,12 @@ Used dependencies:
 - `httpx` for asynchronous API
 - `pydantic` for models
 
+## 0.7.0 Migration
+
+If you are upgrading from older versions, review the dedicated migration guide:
+
+- [MIGRATION_0_7_0.md](MIGRATION_0_7_0.md)
+
 Supported Python versions:
 - 3.11
 - 3.12
