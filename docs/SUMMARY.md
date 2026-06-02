@@ -13,5 +13,7 @@
   - [Architecture](technical/architecture.md)
   - [Endpoint Compatibility](technical/endpoint-compatibility.md)
   - [Testing and Quality](technical/testing-quality.md)
+- [Migrations](migrations/README.md)
+  - [0.7.0](migrations/0.7.0.md)
 - [Release Notes]
   - [0.7.0](release-notes/0.7.0.md)
