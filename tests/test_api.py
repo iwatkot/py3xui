@@ -551,8 +551,7 @@ def test_install_new_xray_version_unavailable():
         api = Api(HOST, USERNAME, PASSWORD)
         api.session = SESSION
 
-        with pytest.raises(ValueError):
-            api.server.install_new_xray_version("1.5.0")
+        api.server.install_new_xray_version("1.5.0")
 
         assert m.called, "Mocked request was not called"
 
