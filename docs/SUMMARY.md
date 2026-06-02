@@ -4,6 +4,11 @@
 - [What is py3xui](intro.md)
 - [Quick Start](quick-start.md)
 - [Authentication](authentication.md)
+- [Examples](examples/README.md)
+  - [Common Tasks](examples/common-tasks.md)
+  - [Synchronous Recipes](examples/sync-recipes.md)
+  - [Asynchronous Recipes](examples/async-recipes.md)
+  - [Advanced Snippets](examples/advanced-snippets.md)
 - [API]
   - [API Overview](api/overview.md)
   - [Synchronous API](api/sync-api.md)
