@@ -13,3 +13,5 @@ qrcodes/
 *.db-shm
 *.db-wal
 tests.py
+update.md
+py3xui.egg-info/

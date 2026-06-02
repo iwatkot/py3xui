@@ -111,7 +111,7 @@ async def test_get_client(httpx_mock: HTTPXMock):
 
     httpx_mock.add_response(
         method="GET",
-        url=f"{HOST}/panel/api/inbounds/getClientTraffics/{EMAIL}",
+        url=f"{HOST}/panel/api/clients/get/{EMAIL}",
         json=response_example,
         status_code=200,
     )
@@ -127,6 +127,38 @@ async def test_get_client(httpx_mock: HTTPXMock):
 
 
 @pytest.mark.asyncio
+async def test_get_client_nested_payload_shape(httpx_mock: HTTPXMock):
+    response_example = {
+        ApiFields.SUCCESS: True,
+        ApiFields.MSG: "",
+        ApiFields.OBJ: {
+            "client": {
+                "id": str(uuid.uuid4()),
+                "email": EMAIL,
+                "enable": True,
+                "tgId": "1",
+                "subId": "sub",
+            },
+            "inboundIds": [9],
+        },
+    }
+
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{HOST}/panel/api/clients/get/{EMAIL}",
+        json=response_example,
+        status_code=200,
+    )
+
+    api = AsyncApi(HOST, USERNAME, PASSWORD)
+    api.session = SESSION
+    client = await api.client.get_by_email(EMAIL)
+
+    assert isinstance(client, Client)
+    assert client.inbound_id == 9
+
+
+@pytest.mark.asyncio
 async def test_get_ips(httpx_mock: HTTPXMock):
     response_example = {
         ApiFields.SUCCESS: True,
@@ -136,7 +168,7 @@ async def test_get_ips(httpx_mock: HTTPXMock):
 
     httpx_mock.add_response(
         method="POST",
-        url=f"{HOST}/panel/api/inbounds/clientIps/{EMAIL}",
+        url=f"{HOST}/panel/api/clients/ips/{EMAIL}",
         json=response_example,
         status_code=200,
     )
@@ -149,13 +181,35 @@ async def test_get_ips(httpx_mock: HTTPXMock):
 
 
 @pytest.mark.asyncio
+async def test_get_ips_with_records(httpx_mock: HTTPXMock):
+    response_example = {
+        ApiFields.SUCCESS: True,
+        ApiFields.MSG: "",
+        ApiFields.OBJ: ["1.1.1.1"],
+    }
+
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/clients/ips/{EMAIL}",
+        json=response_example,
+        status_code=200,
+    )
+
+    api = AsyncApi(HOST, USERNAME, PASSWORD)
+    api.session = SESSION
+    ips = await api.client.get_ips(EMAIL)
+
+    assert ips == ["1.1.1.1"]
+
+
+@pytest.mark.asyncio
 async def test_add_clients(httpx_mock: HTTPXMock):
     client = Client(id=str(uuid.uuid4()), email="test", enable=True)
     response_example = {ApiFields.SUCCESS: True}
 
     httpx_mock.add_response(
         method="POST",
-        url=f"{HOST}/panel/api/inbounds/addClient",
+        url=f"{HOST}/panel/api/clients/add",
         json=response_example,
         status_code=200,
     )
@@ -174,7 +228,7 @@ async def test_update_client(httpx_mock: HTTPXMock):
 
     httpx_mock.add_response(
         method="POST",
-        url=f"{HOST}/panel/api/inbounds/updateClient/{client.id}",
+        url=f"{HOST}/panel/api/clients/update/{client.email}",
         json=response_example,
         status_code=200,
     )
@@ -187,12 +241,33 @@ async def test_update_client(httpx_mock: HTTPXMock):
 
 
 @pytest.mark.asyncio
+async def test_update_client_normalizes_id_from_uuid(httpx_mock: HTTPXMock):
+    client = Client(id=1, uuid=str(uuid.uuid4()), email="test", enable=True)
+    response_example = {ApiFields.SUCCESS: True}
+
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/clients/update/{client.email}",
+        json=response_example,
+        status_code=200,
+    )
+
+    api = AsyncApi(HOST, USERNAME, PASSWORD)
+    api.session = SESSION
+    await api.client.update("legacy-id", client)
+
+    request = httpx_mock.get_request()
+    assert request is not None
+    assert json.loads(request.content.decode("utf-8"))["id"] == client.uuid
+
+
+@pytest.mark.asyncio
 async def test_reset_client_ips(httpx_mock: HTTPXMock):
     response_example = {ApiFields.SUCCESS: True}
 
     httpx_mock.add_response(
         method="POST",
-        url=f"{HOST}/panel/api/inbounds/clearClientIps/{EMAIL}",
+        url=f"{HOST}/panel/api/clients/clearIps/{EMAIL}",
         json=response_example,
         status_code=200,
     )
@@ -210,7 +285,7 @@ async def test_reset_client_stats(httpx_mock: HTTPXMock):
 
     httpx_mock.add_response(
         method="POST",
-        url=f"{HOST}/panel/api/inbounds/1/resetClientTraffic/{EMAIL}",
+        url=f"{HOST}/panel/api/clients/resetTraffic/{EMAIL}",
         json=response_example,
         status_code=200,
     )
@@ -225,19 +300,67 @@ async def test_reset_client_stats(httpx_mock: HTTPXMock):
 @pytest.mark.asyncio
 async def test_delete_client(httpx_mock: HTTPXMock):
     response_example = {ApiFields.SUCCESS: True}
+    response_clients = json.load(open(os.path.join(RESPONSES_DIR, "get_client_traffic_by_id.json")))
+    response_clients[ApiFields.OBJ][0]["uuid"] = "d76eb6ed-0697-4cd5-a8c5-8cfeb4d1b209"
+    client_uuid = response_clients[ApiFields.OBJ][0]["uuid"]
+
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{HOST}/panel/api/clients/list",
+        json=response_clients,
+        status_code=200,
+    )
 
     httpx_mock.add_response(
         method="POST",
-        url=f"{HOST}/panel/api/inbounds/1/delClient/1",
+        url=f"{HOST}/panel/api/clients/del/test",
         json=response_example,
         status_code=200,
     )
 
     api = AsyncApi(HOST, USERNAME, PASSWORD)
     api.session = SESSION
-    await api.client.delete(1, "1")
+    await api.client.delete(1, client_uuid)
 
-    assert httpx_mock.get_request(), "Mocked request was not called"
+    assert len(httpx_mock.get_requests()) == 2
+
+
+@pytest.mark.asyncio
+async def test_delete_client_by_email_skips_lookup(httpx_mock: HTTPXMock):
+    email = "user@example.com"
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/clients/del/{email}",
+        json={ApiFields.SUCCESS: True},
+        status_code=200,
+    )
+
+    api = AsyncApi(HOST, USERNAME, PASSWORD)
+    api.session = SESSION
+    await api.client.delete(1, email)
+
+    assert len(httpx_mock.get_requests()) == 1
+
+
+@pytest.mark.asyncio
+async def test_delete_client_unresolvable_identifier_raises(httpx_mock: HTTPXMock):
+    response_clients = {
+        ApiFields.SUCCESS: True,
+        ApiFields.OBJ: [{"id": 2, "uuid": "u2", "email": "e2"}],
+    }
+
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{HOST}/panel/api/clients/list",
+        json=response_clients,
+        status_code=200,
+    )
+
+    api = AsyncApi(HOST, USERNAME, PASSWORD)
+    api.session = SESSION
+
+    with pytest.raises(ValueError):
+        await api.client.delete(1, "unknown-id")
 
 
 @pytest.mark.asyncio
@@ -246,7 +369,7 @@ async def test_delete_depleted_clients(httpx_mock: HTTPXMock):
 
     httpx_mock.add_response(
         method="POST",
-        url=f"{HOST}/panel/api/inbounds/delDepletedClients/1",
+        url=f"{HOST}/panel/api/clients/delDepleted",
         json=response_example,
         status_code=200,
     )
@@ -264,7 +387,7 @@ async def test_client_online(httpx_mock: HTTPXMock):
 
     httpx_mock.add_response(
         method="POST",
-        url=f"{HOST}/panel/api/inbounds/onlines",
+        url=f"{HOST}/panel/api/clients/onlines",
         json=response_example,
         status_code=200,
     )
@@ -277,14 +400,30 @@ async def test_client_online(httpx_mock: HTTPXMock):
 
 
 @pytest.mark.asyncio
+async def test_client_online_empty_obj_returns_empty_list(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/clients/onlines",
+        json={ApiFields.SUCCESS: True, ApiFields.OBJ: None},
+        status_code=200,
+    )
+
+    api = AsyncApi(HOST, USERNAME, PASSWORD)
+    api.session = SESSION
+
+    assert await api.client.online() == []
+
+
+@pytest.mark.asyncio
 async def test_get_client_traffic_by_id(httpx_mock: HTTPXMock):
     response_example = json.load(
         open(os.path.join(RESPONSES_DIR, "get_client_traffic_by_id.json"))
     )
+    response_example[ApiFields.OBJ][0]["uuid"] = "239708ef-487e-4945-829d-ad79a0ce067e"
 
     httpx_mock.add_response(
         method="GET",
-        url=f"{HOST}/panel/api/inbounds/getClientTrafficsById/239708ef-487e-4945-829d-ad79a0ce067e",
+        url=f"{HOST}/panel/api/clients/list",
         json=response_example,
         status_code=200,
     )
@@ -442,8 +581,8 @@ async def test_database_export(httpx_mock: HTTPXMock):
     response_example = {ApiFields.SUCCESS: True}
 
     httpx_mock.add_response(
-        method="GET",
-        url=f"{HOST}/panel/api/inbounds/createbackup",
+        method="POST",
+        url=f"{HOST}/panel/api/backuptotgbot",
         json=response_example,
         status_code=200,
     )
@@ -616,7 +755,7 @@ async def test_reset_inbound_client_stats(httpx_mock: HTTPXMock):
 
     httpx_mock.add_response(
         method="POST",
-        url=f"{HOST}/panel/api/inbounds/resetAllClientTraffics/1",
+        url=f"{HOST}/panel/api/clients/resetAllTraffics",
         json=response_example,
         status_code=200,
     )

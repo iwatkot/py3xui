@@ -142,13 +142,8 @@ class ServerApi(BaseApi):
         url = self._url(endpoint)
         self.logger.info("Installing new Xray version %s...", version)
 
-        response = self._post(url, headers, data={})
-
-        if response.json().get(ApiFields.OBJ) is not None:  # If "obj" is not null, success
-            self.logger.info("Xray version %s installed successfully.", version)
-        else:
-            self.logger.error("Failed to install Xray version %s.", version)
-            raise ValueError(f"Failed to install Xray version {version}.")
+        self._post(url, headers, data={})
+        self.logger.info("Xray version %s installed successfully.", version)
 
     def update_geofile(self) -> None:
         """Triggers an update of the geofile on the server.

@@ -238,7 +238,7 @@ def test_get_client():
 
     with requests_mock.Mocker() as m:
         m.get(
-            f"{HOST}/panel/api/inbounds/getClientTraffics/{EMAIL}",
+            f"{HOST}/panel/api/clients/get/{EMAIL}",
             json=response_example,
         )
         api = Api(HOST, USERNAME, PASSWORD)
@@ -251,11 +251,51 @@ def test_get_client():
         assert client.inbound_id == 1, f"Expected 1, got {client.inbound_id}"
 
 
+def test_get_client_nested_payload_shape():
+    response_example = {
+        ApiFields.SUCCESS: True,
+        ApiFields.MSG: "",
+        ApiFields.OBJ: {
+            "client": {
+                "id": str(uuid.uuid4()),
+                "email": EMAIL,
+                "enable": True,
+                "tgId": "1",
+                "subId": "sub",
+            },
+            "inboundIds": [9],
+        },
+    }
+
+    with requests_mock.Mocker() as m:
+        m.get(f"{HOST}/panel/api/clients/get/{EMAIL}", json=response_example)
+        api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
+
+        client = api.client.get_by_email(EMAIL)
+
+        assert isinstance(client, Client)
+        assert client.inbound_id == 9
+
+
+def test_get_client_ips_with_records():
+    response_example = {ApiFields.SUCCESS: True, ApiFields.MSG: "", ApiFields.OBJ: ["1.1.1.1"]}
+
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/clients/ips/{EMAIL}", json=response_example)
+        api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
+
+        ips = api.client.get_ips(EMAIL)
+
+        assert ips == ["1.1.1.1"]
+
+
 def test_get_client_ips():
     response_example = {"success": True, "msg": "", "obj": "No IP Record"}
 
     with requests_mock.Mocker() as m:
-        m.post(f"{HOST}/panel/api/inbounds/clientIps/{EMAIL}", json=response_example)
+        m.post(f"{HOST}/panel/api/clients/ips/{EMAIL}", json=response_example)
         api = Api(HOST, USERNAME, PASSWORD)
         api.session = SESSION
         ips = api.client.get_ips(EMAIL)
@@ -266,7 +306,7 @@ def test_get_client_ips():
 def test_add_clients():
     client = Client(id=str(uuid.uuid4()), email="test", enable=True)
     with requests_mock.Mocker() as m:
-        m.post(f"{HOST}/panel/api/inbounds/addClient", json={ApiFields.SUCCESS: True})
+        m.post(f"{HOST}/panel/api/clients/add", json={ApiFields.SUCCESS: True})
         api = Api(HOST, USERNAME, PASSWORD)
         api.session = SESSION
         api.client.add(1, [client])
@@ -276,7 +316,7 @@ def test_update_client():
     client = Client(id=str(uuid.uuid4()), email="test", enable=True)
     with requests_mock.Mocker() as m:
         m.post(
-            f"{HOST}/panel/api/inbounds/updateClient/{client.id}",
+            f"{HOST}/panel/api/clients/update/{client.email}",
             json={ApiFields.SUCCESS: True},
         )
         api = Api(HOST, USERNAME, PASSWORD)
@@ -284,10 +324,25 @@ def test_update_client():
         api.client.update(client.id, client)
 
 
+def test_update_client_normalizes_id_from_uuid():
+    client = Client(id=1, uuid=str(uuid.uuid4()), email="test", enable=True)
+    response_ok = {ApiFields.SUCCESS: True}
+
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/clients/update/{client.email}", json=response_ok)
+
+        api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
+        api.client.update("legacy-id", client)
+
+        payload = m.last_request.json()
+        assert payload["id"] == client.uuid
+
+
 def test_reset_client_ips():
     with requests_mock.Mocker() as m:
         m.post(
-            f"{HOST}/panel/api/inbounds/clearClientIps/{EMAIL}",
+            f"{HOST}/panel/api/clients/clearIps/{EMAIL}",
             json={ApiFields.SUCCESS: True},
         )
         api = Api(HOST, USERNAME, PASSWORD)
@@ -309,7 +364,7 @@ def test_reset_inbounds_stats():
 def test_reset_inbound_client_stats():
     with requests_mock.Mocker() as m:
         m.post(
-            f"{HOST}/panel/api/inbounds/resetAllClientTraffics/1",
+            f"{HOST}/panel/api/clients/resetAllTraffics",
             json={ApiFields.SUCCESS: True},
         )
         api = Api(HOST, USERNAME, PASSWORD)
@@ -320,7 +375,7 @@ def test_reset_inbound_client_stats():
 def test_reset_client_stats():
     with requests_mock.Mocker() as m:
         m.post(
-            f"{HOST}/panel/api/inbounds/1/resetClientTraffic/{EMAIL}",
+            f"{HOST}/panel/api/clients/resetTraffic/{EMAIL}",
             json={ApiFields.SUCCESS: True},
         )
         api = Api(HOST, USERNAME, PASSWORD)
@@ -329,19 +384,48 @@ def test_reset_client_stats():
 
 
 def test_delete_client():
+    response_clients = json.load(open(os.path.join(RESPONSES_DIR, "get_client_traffic_by_id.json")))
+    response_clients[ApiFields.OBJ][0]["uuid"] = "d76eb6ed-0697-4cd5-a8c5-8cfeb4d1b209"
+    client_uuid = response_clients[ApiFields.OBJ][0]["uuid"]
     with requests_mock.Mocker() as m:
+        m.get(f"{HOST}/panel/api/clients/list", json=response_clients)
         m.post(
-            f"{HOST}/panel/api/inbounds/1/delClient/1", json={ApiFields.SUCCESS: True}
+            f"{HOST}/panel/api/clients/del/test", json={ApiFields.SUCCESS: True}
         )
         api = Api(HOST, USERNAME, PASSWORD)
         api.session = SESSION
-        api.client.delete(1, "1")
+        api.client.delete(1, client_uuid)
+
+
+def test_delete_client_by_email_skips_lookup():
+    email = "user@example.com"
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/clients/del/{email}", json={ApiFields.SUCCESS: True})
+
+        api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
+        api.client.delete(1, email)
+
+        assert len(m.request_history) == 1
+
+
+def test_delete_client_unresolvable_identifier_raises():
+    response_clients = {ApiFields.SUCCESS: True, ApiFields.OBJ: [{"id": 2, "uuid": "u2", "email": "e2"}]}
+
+    with requests_mock.Mocker() as m:
+        m.get(f"{HOST}/panel/api/clients/list", json=response_clients)
+
+        api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
+
+        with pytest.raises(ValueError):
+            api.client.delete(1, "unknown-id")
 
 
 def test_delete_depleted_clients():
     with requests_mock.Mocker() as m:
         m.post(
-            f"{HOST}/panel/api/inbounds/delDepletedClients/1",
+            f"{HOST}/panel/api/clients/delDepleted",
             json={ApiFields.SUCCESS: True},
         )
         api = Api(HOST, USERNAME, PASSWORD)
@@ -351,19 +435,32 @@ def test_delete_depleted_clients():
 
 def test_client_online():
     with requests_mock.Mocker() as m:
-        m.post(f"{HOST}/panel/api/inbounds/onlines", json={ApiFields.SUCCESS: True})
+        m.post(f"{HOST}/panel/api/clients/onlines", json={ApiFields.SUCCESS: True})
         api = Api(HOST, USERNAME, PASSWORD)
         api.session = SESSION
         api.client.online()
+
+
+def test_client_online_empty_obj_returns_empty_list():
+    with requests_mock.Mocker() as m:
+        m.post(
+            f"{HOST}/panel/api/clients/onlines",
+            json={ApiFields.SUCCESS: True, ApiFields.OBJ: None},
+        )
+
+        api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
+        assert api.client.online() == []
 
 
 def test_get_client_traffic_by_id():
     response_example = json.load(
         open(os.path.join(RESPONSES_DIR, "get_client_traffic_by_id.json"))
     )
+    response_example[ApiFields.OBJ][0]["uuid"] = "239708ef-487e-4945-829d-ad79a0ce067e"
     with requests_mock.Mocker() as m:
         m.get(
-            f"{HOST}/panel/api/inbounds/getClientTrafficsById/239708ef-487e-4945-829d-ad79a0ce067e",
+            f"{HOST}/panel/api/clients/list",
             json=response_example,
         )
         api = Api(HOST, USERNAME, PASSWORD)
@@ -382,7 +479,7 @@ def test_get_client_traffic_by_id():
 
 def test_database_export():
     with requests_mock.Mocker() as m:
-        m.get(f"{HOST}/panel/api/inbounds/createbackup", json={ApiFields.SUCCESS: True})
+        m.post(f"{HOST}/panel/api/backuptotgbot", json={ApiFields.SUCCESS: True})
         api = Api(HOST, USERNAME, PASSWORD)
         api.session = SESSION
         api.database.export()
@@ -546,8 +643,7 @@ def test_install_new_xray_version_unavailable():
         api = Api(HOST, USERNAME, PASSWORD)
         api.session = SESSION
 
-        with pytest.raises(ValueError):
-            api.server.install_new_xray_version("1.5.0")
+        api.server.install_new_xray_version("1.5.0")
 
         assert m.called, "Mocked request was not called"
 

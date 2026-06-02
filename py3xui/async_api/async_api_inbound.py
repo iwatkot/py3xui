@@ -264,12 +264,15 @@ class AsyncInboundApi(AsyncBaseApi):
             await api.inbound.reset_client_stats(inbound.id)
             ```
         """  # pylint: disable=line-too-long
-        endpoint = f"panel/api/inbounds/resetAllClientTraffics/{inbound_id}"
+        endpoint = "panel/api/clients/resetAllTraffics"
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
         data: dict[str, Any] = {}
-        self.logger.info("Resetting inbound client stats for ID: %s", inbound_id)
+        self.logger.info(
+            "Resetting inbound client stats for ID: %s (global clients reset endpoint)",
+            inbound_id,
+        )
 
         await self._post(url, headers, data)
         self.logger.info("Inbound client stats reset successfully.")

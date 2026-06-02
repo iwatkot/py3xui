@@ -31,7 +31,6 @@
     "python.analysis.typeCheckingMode": "off",
     "python.analysis.autoImportCompletions": false,
     "autoDocstring.docstringFormat": "sphinx",
-    "autoDocstring.customTemplatePath": "docs/.mustache",
     "python.testing.pytestArgs": [
         "tests"
     ],

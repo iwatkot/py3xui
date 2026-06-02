@@ -51,13 +51,6 @@
             "request": "launch",
             "preLaunchTask": "pylint",
             "program": "${workspaceFolder}/tests/dummy.py"
-        },
-        {
-            "name": "pdoc",
-            "type": "debugpy",
-            "request": "launch",
-            "preLaunchTask": "pdoc",
-            "program": "${workspaceFolder}/tests/dummy.py"
         }
     ]
 }
