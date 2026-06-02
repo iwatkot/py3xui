@@ -79,6 +79,10 @@ py3xui 0.7.0 updates both sync and async client APIs accordingly.
 - `mypy py3xui`: success
 - `pylint py3xui`: 10.00/10
 
+For live execution evidence against a real 3x-ui panel, see:
+
+- [LIVE_TEST_REPORT_0_7_0.md](LIVE_TEST_REPORT_0_7_0.md)
+
 ## Known Limitation
 
 `get_traffic_by_id` is now implemented by filtering `clients/list` because the old dedicated route is no longer available in latest 3x-ui API docs.

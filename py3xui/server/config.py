@@ -234,19 +234,19 @@ class ServerConfig(BaseModel):
     inbounds: list[Inbound]
     outbounds: list[Outbound]
 
-    metrics: MetricsInfo
-    policy: PolicyInfo
-    stats: Any | None
-    log: LogInfo
+    metrics: MetricsInfo | None = None
+    policy: PolicyInfo | None = None
+    stats: Any | None = None
+    log: LogInfo | None = None
 
-    observatory: Any | None
-    burstObservatory: Any | None
+    observatory: Any | None = None
+    burstObservatory: Any | None = None
 
-    routing: Routing
-    reverse: Any | None
-    transport: Any | None
+    routing: Routing | None = None
+    reverse: Any | None = None
+    transport: Any | None = None
 
-    dns: DNSInfo
+    dns: DNSInfo | None = None
     fakeDns: Any | None = Field(
         default=None,
         validation_alias=AliasChoices(ServerConfigFields.FAKEDNS, "fakedns"),
@@ -282,7 +282,9 @@ class ServerConfig(BaseModel):
             settings = inbound.get("settings")
             if isinstance(settings, dict):
                 clients = settings.get("clients")
-                if isinstance(clients, list):
+                if clients is None:
+                    settings["clients"] = []
+                elif isinstance(clients, list):
                     for client in clients:
                         if isinstance(client, dict):
                             client.setdefault("enable", True)

@@ -46,11 +46,11 @@ class DatabaseApi(BaseApi):
             api.database.export()
             ```
         """  # pylint: disable=line-too-long
-        endpoint = "panel/api/inbounds/createbackup"
+        endpoint = "panel/api/backuptotgbot"
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
         self.logger.info("Exporting database...")
 
-        self._get(url, headers, skip_check=True)
+        self._post(url, headers, data={}, skip_check=True)
         self.logger.info("Database exported successfully.")

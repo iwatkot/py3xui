@@ -453,8 +453,8 @@ async def test_database_export(httpx_mock: HTTPXMock):
     response_example = {ApiFields.SUCCESS: True}
 
     httpx_mock.add_response(
-        method="GET",
-        url=f"{HOST}/panel/api/inbounds/createbackup",
+        method="POST",
+        url=f"{HOST}/panel/api/backuptotgbot",
         json=response_example,
         status_code=200,
     )
@@ -627,7 +627,7 @@ async def test_reset_inbound_client_stats(httpx_mock: HTTPXMock):
 
     httpx_mock.add_response(
         method="POST",
-        url=f"{HOST}/panel/api/inbounds/resetAllClientTraffics/1",
+        url=f"{HOST}/panel/api/clients/resetAllTraffics",
         json=response_example,
         status_code=200,
     )

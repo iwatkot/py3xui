@@ -309,7 +309,7 @@ def test_reset_inbounds_stats():
 def test_reset_inbound_client_stats():
     with requests_mock.Mocker() as m:
         m.post(
-            f"{HOST}/panel/api/inbounds/resetAllClientTraffics/1",
+            f"{HOST}/panel/api/clients/resetAllTraffics",
             json={ApiFields.SUCCESS: True},
         )
         api = Api(HOST, USERNAME, PASSWORD)
@@ -387,7 +387,7 @@ def test_get_client_traffic_by_id():
 
 def test_database_export():
     with requests_mock.Mocker() as m:
-        m.get(f"{HOST}/panel/api/inbounds/createbackup", json={ApiFields.SUCCESS: True})
+        m.post(f"{HOST}/panel/api/backuptotgbot", json={ApiFields.SUCCESS: True})
         api = Api(HOST, USERNAME, PASSWORD)
         api.session = SESSION
         api.database.export()
