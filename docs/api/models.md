@@ -15,3 +15,4 @@ When the upstream panel response shape changes, py3xui adapts parsing logic whil
 Models in `py3xui.server`:
 
 - `Fail2banStatus`, `HistoryPoint`, `CpuHistoryPoint`, `XrayMetricsState`, `ObservatorySnapshot`
+- `PanelUpdateInfo`, `PanelUpdateStatus`

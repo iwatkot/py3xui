@@ -22,3 +22,10 @@ Endpoints used by `api.server`:
 - `GET panel/api/server/xrayMetricsHistory/{metric}/{bucket}`
 - `GET panel/api/server/xrayObservatory`
 - `GET panel/api/server/xrayObservatoryHistory/{tag}/{bucket}`
+- `GET panel/api/server/getPanelUpdateInfo`
+- `GET panel/api/server/getUpdateStatus`
+- `POST panel/api/server/updatePanel`
+- `POST panel/api/server/setUpdateChannel`
+- `POST panel/api/server/stopXrayService`
+- `POST panel/api/server/restartXrayService`
+- `POST panel/api/server/updateGeofile/{fileName}`

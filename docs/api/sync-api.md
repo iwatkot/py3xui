@@ -78,3 +78,9 @@ except Exception as exc:
 - `api.server.get_xray_metrics_history(metric, bucket)`: aggregated history of an Xray metric.
 - `api.server.get_xray_observatory()`: latest Xray observatory results per outbound.
 - `api.server.get_xray_observatory_history(tag, bucket)`: delay history of an observatory outbound.
+- `api.server.get_panel_update_info()`: current and latest version of the panel.
+- `api.server.get_update_status()`: outcome of the most recent panel self-update.
+- `api.server.update_panel(dev=None)`: starts a panel self-update and returns the run ID.
+- `api.server.set_update_channel(dev)`: switches the update channel between stable and dev.
+- `api.server.stop_xray()` / `api.server.restart_xray()`: Xray service control.
+- `api.server.update_geofile(file_name=None)`: updates one geofile, or all of them without an argument.

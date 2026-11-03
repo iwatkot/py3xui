@@ -146,3 +146,120 @@ async def test_get_xray_observatory_history(httpx_mock: HTTPXMock):
     points = await make_api().server.get_xray_observatory_history("out/bound", 60)
 
     assert [(point.t, point.v) for point in points] == [(1700000000, 120.0)]
+
+
+@pytest.mark.asyncio
+async def test_get_panel_update_info(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{SERVER_URL}/getPanelUpdateInfo",
+        json=load_response("panel_update_info"),
+    )
+    info = await make_api().server.get_panel_update_info()
+
+    assert info.channel == "dev"
+    assert info.current_version == "3.11.0-dev"
+    assert info.latest_version == "dev+abc1234"
+    assert info.current_commit == "def5678"
+    assert info.latest_commit == "abc1234"
+    assert info.update_available is True
+
+
+@pytest.mark.asyncio
+async def test_get_panel_update_info_failed(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{SERVER_URL}/getPanelUpdateInfo",
+        json={ApiFields.SUCCESS: False},
+    )
+    with pytest.raises(ValueError):
+        await make_api().server.get_panel_update_info()
+
+
+@pytest.mark.asyncio
+async def test_get_update_status(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{SERVER_URL}/getUpdateStatus",
+        json=load_response("update_status"),
+    )
+    status = await make_api().server.get_update_status()
+
+    assert status.run_id == "1735689600123456789"
+    assert status.state == "success"
+    assert status.exit_code == 0
+    assert status.finished_at == 1735689612
+
+
+@pytest.mark.asyncio
+async def test_update_panel(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{SERVER_URL}/updatePanel",
+        json=load_response("update_panel"),
+    )
+    run_id = await make_api().server.update_panel()
+    assert form_fields(httpx_mock.get_request()) == {}
+
+    assert run_id == "1735689600123456789"
+
+
+@pytest.mark.asyncio
+async def test_update_panel_dev_channel(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{SERVER_URL}/updatePanel",
+        json=load_response("update_panel"),
+    )
+    await make_api().server.update_panel(dev=True)
+    assert form_fields(httpx_mock.get_request()) == {"dev": ["true"]}
+
+
+@pytest.mark.asyncio
+async def test_set_update_channel(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(method="POST", url=f"{SERVER_URL}/setUpdateChannel", json=RESPONSE_OK)
+    await make_api().server.set_update_channel(False)
+    assert form_fields(httpx_mock.get_request()) == {"dev": ["false"]}
+
+
+@pytest.mark.asyncio
+async def test_stop_xray(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(method="POST", url=f"{SERVER_URL}/stopXrayService", json=RESPONSE_OK)
+    await make_api().server.stop_xray()
+    assert httpx_mock.get_request().method == "POST"
+
+
+@pytest.mark.asyncio
+async def test_stop_xray_failed(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{SERVER_URL}/stopXrayService",
+        json=RESPONSE_FAILED,
+    )
+    with pytest.raises(ValueError):
+        await make_api().server.stop_xray()
+
+
+@pytest.mark.asyncio
+async def test_restart_xray(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(method="POST", url=f"{SERVER_URL}/restartXrayService", json=RESPONSE_OK)
+    await make_api().server.restart_xray()
+    assert httpx_mock.get_request().method == "POST"
+
+
+@pytest.mark.asyncio
+async def test_update_geofile_all(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(method="POST", url=f"{SERVER_URL}/updateGeofile", json=RESPONSE_OK)
+    await make_api().server.update_geofile()
+    assert httpx_mock.get_request().method == "POST"
+
+
+@pytest.mark.asyncio
+async def test_update_geofile_by_name(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{SERVER_URL}/updateGeofile/geoip.dat",
+        json=RESPONSE_OK,
+    )
+    await make_api().server.update_geofile("geoip.dat")
+    assert httpx_mock.get_request().method == "POST"

@@ -8,3 +8,4 @@ from py3xui.server.metrics import (
     ObservatorySnapshot,
     XrayMetricsState,
 )
+from py3xui.server.panel_update import PanelUpdateInfo, PanelUpdateStatus

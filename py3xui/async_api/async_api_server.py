@@ -6,6 +6,7 @@ from py3xui.api.api_base import ApiFields
 from py3xui.async_api.async_api_base import AsyncBaseApi
 from py3xui.server.config import ServerConfig, XrayVersionUnavailableError
 from py3xui.server.server import RealityKeyPair, Server
+from py3xui.server.panel_update import PanelUpdateFields, PanelUpdateInfo, PanelUpdateStatus
 from py3xui.server.metrics import (
     CpuHistoryPoint,
     Fail2banStatus,
@@ -43,6 +44,12 @@ class AsyncServerApi(AsyncBaseApi):
         get_xray_metrics_history: Retrieves the aggregated history of an Xray metric.
         get_xray_observatory: Retrieves the latest Xray observatory results.
         get_xray_observatory_history: Retrieves the delay history of an observatory outbound.
+        get_panel_update_info: Retrieves the current and the latest version of the panel.
+        get_update_status: Retrieves the outcome of the most recent panel self-update.
+        update_panel: Starts a panel self-update.
+        set_update_channel: Switches the panel update channel between stable and dev.
+        stop_xray: Stops the Xray service.
+        restart_xray: Restarts the Xray service.
 
     Examples:
         ```python
@@ -159,10 +166,17 @@ class AsyncServerApi(AsyncBaseApi):
 
         self.logger.info("Xray version %s installed successfully.", version)
 
-    async def update_geofile(self) -> None:
-        """Triggers an update of the geofile on the server."""
+    async def update_geofile(self, file_name: str | None = None) -> None:
+        """Triggers an update of the geofile on the server.
+
+        Arguments:
+            file_name (str | None): The geofile to update (e.g. "geoip.dat"). All the geofiles
+                are updated when it is not set.
+        """
 
         endpoint = "panel/api/server/updateGeofile"
+        if file_name is not None:
+            endpoint = f"panel/api/server/updateGeofile/{quote(file_name, safe='')}"
         headers = {"Accept": "application/json"}
         url = self._url(endpoint)
         self.logger.info("Updating geofile...")
@@ -435,3 +449,149 @@ class AsyncServerApi(AsyncBaseApi):
         response = await self._get(url, headers)
         points_json = response.json().get(ApiFields.OBJ) or []
         return [HistoryPoint.model_validate(point) for point in points_json]
+
+    async def get_panel_update_info(self) -> PanelUpdateInfo:
+        """Gets the current and the latest version of the panel.
+
+        Returns:
+            PanelUpdateInfo: The panel versions.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+
+            info = await api.server.get_panel_update_info()
+            print(info.current_version, info.latest_version, info.update_available)
+            ```
+        """
+        endpoint = "panel/api/server/getPanelUpdateInfo"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        self.logger.info("Getting panel update info...")
+
+        response = await self._get(url, headers)
+        return PanelUpdateInfo.model_validate(response.json().get(ApiFields.OBJ))
+
+    async def get_update_status(self) -> PanelUpdateStatus:
+        """Gets the outcome of the most recently launched panel self-update.
+
+        Returns:
+            PanelUpdateStatus: The status of the update.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+
+            status = await api.server.get_update_status()
+            print(status.run_id, status.state)
+            ```
+        """
+        endpoint = "panel/api/server/getUpdateStatus"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        self.logger.info("Getting panel update status...")
+
+        response = await self._get(url, headers)
+        return PanelUpdateStatus.model_validate(response.json().get(ApiFields.OBJ))
+
+    async def update_panel(self, dev: bool | None = None) -> str:
+        """Starts a panel self-update. The panel restarts when the update succeeds.
+
+        Arguments:
+            dev (bool | None): Overrides the update channel for this run: True for the dev channel,
+                False for the stable one. The channel configured on the panel is used when it is
+                not set.
+
+        Returns:
+            str: The ID of the update run, to compare with `get_update_status().run_id`.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+
+            run_id = await api.server.update_panel()
+            print(run_id)
+            ```
+        """
+        endpoint = "panel/api/server/updatePanel"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        self.logger.info("Starting panel update...")
+
+        response = await self._post_form(url, headers, {"dev": dev})
+        return response.json().get(ApiFields.OBJ).get(PanelUpdateFields.RUN_ID)
+
+    async def set_update_channel(self, dev: bool) -> None:
+        """Switches the panel update channel between stable and dev.
+
+        Arguments:
+            dev (bool): True for the dev channel, False for the stable one.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+
+            await api.server.set_update_channel(False)
+            ```
+        """
+        endpoint = "panel/api/server/setUpdateChannel"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        self.logger.info("Setting panel update channel, dev: %s...", dev)
+
+        await self._post_form(url, headers, {"dev": dev})
+        self.logger.info("Panel update channel set successfully.")
+
+    async def stop_xray(self) -> None:
+        """Stops the Xray service. All the proxies go offline immediately.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+
+            await api.server.stop_xray()
+            ```
+        """
+        endpoint = "panel/api/server/stopXrayService"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        self.logger.info("Stopping Xray service...")
+
+        await self._post(url, headers, data={})
+        self.logger.info("Xray service stopped successfully.")
+
+    async def restart_xray(self) -> None:
+        """Restarts the Xray service.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+
+            await api.server.restart_xray()
+            ```
+        """
+        endpoint = "panel/api/server/restartXrayService"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        self.logger.info("Restarting Xray service...")
+
+        await self._post(url, headers, data={})
+        self.logger.info("Xray service restarted successfully.")
