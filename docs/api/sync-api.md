@@ -68,3 +68,13 @@ except Exception as exc:
 
 - [Common Tasks](../examples/common-tasks.md)
 - [Synchronous Recipes](../examples/sync-recipes.md)
+
+## Server API (3x-ui v3.11.0)
+
+- `api.server.get_fail2ban_status()`: availability of Fail2ban, which per-client IP limits depend on.
+- `api.server.get_cpu_history(bucket)`: legacy aggregated CPU history.
+- `api.server.get_history(metric, bucket)`: aggregated history of a system metric.
+- `api.server.get_xray_metrics_state()`: state of the Xray runtime metrics collection.
+- `api.server.get_xray_metrics_history(metric, bucket)`: aggregated history of an Xray metric.
+- `api.server.get_xray_observatory()`: latest Xray observatory results per outbound.
+- `api.server.get_xray_observatory_history(tag, bucket)`: delay history of an observatory outbound.
