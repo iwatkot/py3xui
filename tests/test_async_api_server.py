@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, timezone
 from urllib.parse import parse_qs
 
 import pytest
@@ -444,3 +445,72 @@ async def test_scan_reality_targets_from_settings(httpx_mock: HTTPXMock):
     httpx_mock.add_response(method="POST", url=f"{SERVER_URL}/scanRealityTargets", json=RESPONSE_OK)
     assert await make_api().server.scan_reality_targets() == []
     assert form_fields(httpx_mock.get_request()) == {}
+
+
+@pytest.mark.asyncio
+async def test_get_logs(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(method="POST", url=f"{SERVER_URL}/logs/20", json=load_response("logs"))
+    lines = await make_api().server.get_logs(20)
+    assert form_fields(httpx_mock.get_request()) == {"level": ["info"], "syslog": ["false"]}
+
+    assert lines == [
+        "2025/01/01 12:00:00 INFO - Server started",
+        "2025/01/01 12:00:01 INFO - Xray is running",
+    ]
+
+
+@pytest.mark.asyncio
+async def test_get_logs_syslog(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(method="POST", url=f"{SERVER_URL}/logs/20", json=RESPONSE_OK)
+    assert await make_api().server.get_logs(20, level="err", syslog=True) == []
+    assert form_fields(httpx_mock.get_request()) == {"level": ["err"], "syslog": ["true"]}
+
+
+@pytest.mark.asyncio
+async def test_get_xray_logs(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{SERVER_URL}/xraylogs/20",
+        json=load_response("xray_logs"),
+    )
+    entries = await make_api().server.get_xray_logs(20, keyword="alice", show_blocked=False)
+    assert form_fields(httpx_mock.get_request()) == {
+        "filter": ["alice"],
+        "showDirect": ["true"],
+        "showBlocked": ["false"],
+        "showProxy": ["true"],
+    }
+
+    assert len(entries) == 1
+    assert entries[0].date_time == datetime(2025, 1, 1, 12, 0, 0, 123456, tzinfo=timezone.utc)
+    assert entries[0].from_address == "192.0.2.10:54321"
+    assert entries[0].to_address == "example.com:443"
+    assert entries[0].inbound == "inbound-443"
+    assert entries[0].outbound == "proxy"
+    assert entries[0].email == "alice@example.com"
+    assert entries[0].event == 2
+
+
+@pytest.mark.asyncio
+async def test_get_xray_logs_without_access_log(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(method="POST", url=f"{SERVER_URL}/xraylogs/20", json=RESPONSE_OK)
+    assert await make_api().server.get_xray_logs(20) == []
+
+
+@pytest.mark.asyncio
+async def test_get_amneziawg_logs(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{SERVER_URL}/amneziawglogs/20",
+        json=load_response("amneziawg_logs"),
+    )
+    logs = await make_api().server.get_amneziawg_logs(20, keyword="peer")
+    assert form_fields(httpx_mock.get_request()) == {"filter": ["peer"]}
+
+    assert logs.running is True
+    assert logs.events == ["2025/01/01 12:00:00 amneziawg: started interface awg1 for inbound 1"]
+    assert logs.peers[0].interface == "awg1"
+    assert logs.peers[0].inbound_id == 1
+    assert logs.peers[0].allowed_ips == "10.8.1.2/32"
+    assert logs.peers[0].handshake == 1735732800000
+    assert logs.peers[0].online is True

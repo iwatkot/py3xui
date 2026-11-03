@@ -20,3 +20,4 @@ from py3xui.server.keys import (
     WebCertFiles,
 )
 from py3xui.server.reality_scan import RealityScanResult
+from py3xui.server.logs import AmneziaWGLogs, AmneziaWGPeer, XrayLogEntry

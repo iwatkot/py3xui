@@ -1,0 +1,5 @@
+{
+  "success": true,
+  "msg": "",
+  "obj": [{"DateTime": "2025-01-01T12:00:00.123456Z", "Email": "alice@example.com", "Event": 2, "FromAddress": "192.0.2.10:54321", "Inbound": "inbound-443", "Outbound": "proxy", "ToAddress": "example.com:443"}]
+}

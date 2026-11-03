@@ -93,3 +93,6 @@ except Exception as exc:
 - `api.server.get_remote_cert_hash(server, allow_private=False)`: SHA-256 hash of the certificate of a remote server.
 - `api.server.scan_reality_target(target, sni=None, xver=0, allow_private=False)`: probes a REALITY target.
 - `api.server.scan_reality_targets(targets=None)`: probes several REALITY targets.
+- `api.server.get_logs(count, level="info", syslog=False)`: last lines of the panel log.
+- `api.server.get_xray_logs(count, keyword="", show_direct=True, show_blocked=True, show_proxy=True)`: last lines of the Xray access log.
+- `api.server.get_amneziawg_logs(count, keyword="")`: live AmneziaWG activity and log lines.

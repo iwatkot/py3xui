@@ -39,3 +39,6 @@ Endpoints used by `api.server`:
 - `POST panel/api/server/getRemoteCertHash`
 - `POST panel/api/server/scanRealityTarget`
 - `POST panel/api/server/scanRealityTargets`
+- `POST panel/api/server/logs/{count}`
+- `POST panel/api/server/xraylogs/{count}`
+- `POST panel/api/server/amneziawglogs/{count}`

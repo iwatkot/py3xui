@@ -17,3 +17,4 @@ Models in `py3xui.server`:
 - `Fail2banStatus`, `HistoryPoint`, `CpuHistoryPoint`, `XrayMetricsState`, `ObservatorySnapshot`
 - `PanelUpdateInfo`, `PanelUpdateStatus`
 - `Mldsa65KeyPair`, `Mlkem768KeyPair`, `VlessEncryptionAuth`, `EchCert`, `WebCertFiles`, `RealityScanResult`
+- `XrayLogEntry`, `AmneziaWGLogs`, `AmneziaWGPeer`

@@ -1,5 +1,7 @@
 """This module contains the ServerApi class for handling server in the XUI API."""
 
+# pylint: disable=too-many-lines
+
 from urllib.parse import quote
 
 from py3xui.api.api_base import ApiFields
@@ -16,6 +18,7 @@ from py3xui.server.keys import (
 from py3xui.server.reality_scan import RealityScanResult
 from py3xui.server.server import RealityKeyPair, Server
 from py3xui.server.panel_update import PanelUpdateFields, PanelUpdateInfo, PanelUpdateStatus
+from py3xui.server.logs import AmneziaWGLogs, XrayLogEntry
 from py3xui.server.metrics import (
     CpuHistoryPoint,
     Fail2banStatus,
@@ -69,6 +72,9 @@ class AsyncServerApi(AsyncBaseApi):  # pylint: disable=too-many-public-methods
         get_remote_cert_hash: Retrieves the SHA-256 hash of the certificate of a remote server.
         scan_reality_target: Probes a candidate REALITY target.
         scan_reality_targets: Probes several candidate REALITY targets.
+        get_logs: Retrieves the last lines of the panel log.
+        get_xray_logs: Retrieves the last lines of the Xray access log.
+        get_amneziawg_logs: Retrieves the live AmneziaWG activity.
 
     Examples:
         ```python
@@ -898,3 +904,108 @@ class AsyncServerApi(AsyncBaseApi):  # pylint: disable=too-many-public-methods
         response = await self._post_form(url, headers, data)
         results_json = response.json().get(ApiFields.OBJ) or []
         return [RealityScanResult.model_validate(result) for result in results_json]
+
+    async def get_logs(self, count: int, level: str = "info", syslog: bool = False) -> list[str]:
+        """Gets the last lines of the panel log.
+
+        Arguments:
+            count (int): The number of lines to return.
+            level (str): The minimum level: debug, info, notice, warning or err.
+            syslog (bool): Whether to read the system journal instead of the panel log.
+
+        Returns:
+            list[str]: The log lines.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+
+            for line in await api.server.get_logs(100, level="warning"):
+                print(line)
+            ```
+        """
+        endpoint = f"panel/api/server/logs/{count}"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        self.logger.info("Getting %s lines of the panel log...", count)
+
+        response = await self._post_form(url, headers, {"level": level, "syslog": syslog})
+        return response.json().get(ApiFields.OBJ) or []
+
+    async def get_xray_logs(
+        self,
+        count: int,
+        keyword: str = "",
+        show_direct: bool = True,
+        show_blocked: bool = True,
+        show_proxy: bool = True,
+    ) -> list[XrayLogEntry]:  # pylint: disable=R0913, R0917
+        """Gets the last lines of the Xray access log.
+
+        Arguments:
+            count (int): The number of lines to return.
+            keyword (str): Returns only the lines that contain this string.
+            show_direct (bool): Whether to include the direct traffic.
+            show_blocked (bool): Whether to include the blocked traffic.
+            show_proxy (bool): Whether to include the proxied traffic.
+
+        Returns:
+            list[XrayLogEntry]: The log lines. The list is empty when the access log is disabled.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+
+            for entry in await api.server.get_xray_logs(100, show_direct=False):
+                print(entry.date_time, entry.email, entry.to_address)
+            ```
+        """
+        endpoint = f"panel/api/server/xraylogs/{count}"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        self.logger.info("Getting %s lines of the Xray log...", count)
+
+        data = {
+            "filter": keyword,
+            "showDirect": show_direct,
+            "showBlocked": show_blocked,
+            "showProxy": show_proxy,
+        }
+        response = await self._post_form(url, headers, data)
+        entries_json = response.json().get(ApiFields.OBJ) or []
+        return [XrayLogEntry.model_validate(entry) for entry in entries_json]
+
+    async def get_amneziawg_logs(self, count: int, keyword: str = "") -> AmneziaWGLogs:
+        """Gets the live AmneziaWG activity and the AmneziaWG lines of the panel log.
+
+        Arguments:
+            count (int): The maximum number of peers and of log lines to return.
+            keyword (str): Returns only the peers and the lines that contain this string.
+
+        Returns:
+            AmneziaWGLogs: The AmneziaWG activity.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+
+            logs = await api.server.get_amneziawg_logs(100)
+            print(logs.running, len(logs.peers), len(logs.events))
+            ```
+        """
+        endpoint = f"panel/api/server/amneziawglogs/{count}"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        self.logger.info("Getting %s lines of the AmneziaWG log...", count)
+
+        response = await self._post_form(url, headers, {"filter": keyword})
+        return AmneziaWGLogs.model_validate(response.json().get(ApiFields.OBJ))
