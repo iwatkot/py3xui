@@ -11,3 +11,14 @@ Examples:
 - Online clients: `panel/api/clients/onlines`
 
 Compatibility behavior is implemented in both sync and async clients.
+
+## Clients API (3x-ui v3.11.0)
+
+- `GET panel/api/clients/list/paged`: `get_list_paged`
+- `GET panel/api/clients/get/subId/{subId}`: `get_details_by_sub_id`
+- `GET panel/api/clients/get/tgId/{tgId}`: `get_details_by_tg_id`
+- `POST panel/api/clients/renewalPreview`: `get_renewal_preview`
+- `GET panel/api/clients/traffic/{email}`: `get_traffic`
+- `GET panel/api/clients/subLinks/{subId}`: `get_sub_links`
+- `GET panel/api/clients/links/{email}`: `get_links`
+- `POST panel/api/clients/happLink/{id}`: `get_happ_link`

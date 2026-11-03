@@ -19,3 +19,11 @@ UUID in `uuid` while `id` holds the record ID.
 `external_links`, `used_traffic` and `tunnel_allowed_ips`.
 
 When the upstream panel response shape changes, py3xui adapts parsing logic while preserving stable public methods where possible.
+
+## Clients API models (3x-ui v3.11.0)
+
+- `ClientPage`: result of `get_list_paged`: `items` (`ClientSlim`), `total`, `filtered`, `page`, `page_size`, `summary` (`ClientsSummary`), `groups`.
+- `ClientSlim`: compact row without credentials, it can not be passed to `update`.
+- `ClientsSummary`: client counters over the whole panel; the email lists stop at 200 entries.
+- `ClientTraffic`: traffic counters of a client.
+- `ClientRenewalPreview`: result of `get_renewal_preview`.

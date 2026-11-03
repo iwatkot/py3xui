@@ -84,3 +84,16 @@ except Exception as exc:
 
 - [Common Tasks](../examples/common-tasks.md)
 - [Synchronous Recipes](../examples/sync-recipes.md)
+
+## Clients API (3x-ui v3.11.0)
+
+All methods live on `api.client`.
+
+- `get_list_paged(page, page_size, *, search, statuses, protocols, inbound_ids, groups, sort, order, expiry_from, expiry_to, usage_from, usage_to, auto_renew, has_tg_id, has_comment)`: one page of clients, filtered and sorted by the panel.
+- `get_details_by_sub_id(sub_id)`: full details of all clients with a subscription ID. The panel reports an unknown ID as an error, so this raises `ValueError`.
+- `get_details_by_tg_id(tg_id)`: full details of all clients with a Telegram ID.
+- `get_renewal_preview(expiry_time, *, reset, reset_day, reset_weekday, reset_max, reset_count)`: auto-renewal dates, nothing is saved.
+- `get_traffic(email)`: traffic counters of a client, `None` if there are none.
+- `get_sub_links(sub_id)`: share links of a subscription.
+- `get_links(email)`: share links of a client.
+- `get_happ_link(client_id)`: encrypted Happ link, by client record ID.

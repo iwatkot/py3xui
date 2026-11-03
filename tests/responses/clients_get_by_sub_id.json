@@ -1,0 +1,137 @@
+{
+  "success": true,
+  "msg": "",
+  "obj": [
+    {
+      "client": {
+        "id": 42,
+        "email": "alice+wg@example.com",
+        "subId": "fake-sub-id",
+        "uuid": "6f0f4c4e-7d4c-4b9e-9a51-2c1f4e8d7a10",
+        "password": "",
+        "auth": "",
+        "flow": "",
+        "security": "auto",
+        "reverse": {
+          "tag": "reverse-out"
+        },
+        "clientHostRuleIds": [
+          1,
+          2
+        ],
+        "privateKey": "fake-private-key",
+        "publicKey": "fake-public-key",
+        "allowedIPs": "10.66.0.2/32, fd00:66::2/128",
+        "preSharedKey": "fake-pre-shared-key",
+        "keepAlive": 25,
+        "forwardedPorts": "8080",
+        "secret": "",
+        "adTag": "",
+        "limitIp": 2,
+        "limitHwid": 3,
+        "totalGB": 107374182400,
+        "expiryTime": 1767225600000,
+        "enable": true,
+        "tgId": 123456789,
+        "group": "staff",
+        "comment": "board member",
+        "reset": 30,
+        "resetDay": 0,
+        "resetWeekday": 0,
+        "resetMax": 0,
+        "trafficReset": "monthly",
+        "trafficResetDay": 1,
+        "createdAt": 1735689600000,
+        "updatedAt": 1738368000000,
+        "futureField": {
+          "nested": [
+            1,
+            2,
+            3
+          ]
+        }
+      },
+      "inboundIds": [
+        3,
+        5
+      ],
+      "externalLinks": [
+        {
+          "id": 7,
+          "clientId": 42,
+          "kind": "link",
+          "value": "vless://example",
+          "remark": "backup",
+          "enable": true,
+          "expiryTime": 0,
+          "namePrefix": "",
+          "lastFetchAt": 0,
+          "lastFetchError": "",
+          "sortIndex": 0,
+          "createdAt": 1735689600000
+        }
+      ],
+      "usedTraffic": 1073741824,
+      "tunnelAllowedIPs": {
+        "3": "10.66.0.2/32",
+        "5": "10.77.0.2/32"
+      }
+    },
+    {
+      "client": {
+        "id": 43,
+        "email": "alice-phone@example.com",
+        "subId": "fake-sub-id",
+        "uuid": "6f0f4c4e-7d4c-4b9e-9a51-2c1f4e8d7a10",
+        "password": "",
+        "auth": "",
+        "flow": "",
+        "security": "auto",
+        "reverse": {
+          "tag": "reverse-out"
+        },
+        "clientHostRuleIds": [
+          1,
+          2
+        ],
+        "privateKey": "fake-private-key",
+        "publicKey": "fake-public-key",
+        "allowedIPs": "10.66.0.2/32, fd00:66::2/128",
+        "preSharedKey": "fake-pre-shared-key",
+        "keepAlive": 25,
+        "forwardedPorts": "8080",
+        "secret": "",
+        "adTag": "",
+        "limitIp": 2,
+        "limitHwid": 3,
+        "totalGB": 107374182400,
+        "expiryTime": 1767225600000,
+        "enable": true,
+        "tgId": 123456789,
+        "group": "staff",
+        "comment": "board member",
+        "reset": 30,
+        "resetDay": 0,
+        "resetWeekday": 0,
+        "resetMax": 0,
+        "trafficReset": "monthly",
+        "trafficResetDay": 1,
+        "createdAt": 1735689600000,
+        "updatedAt": 1738368000000,
+        "futureField": {
+          "nested": [
+            1,
+            2,
+            3
+          ]
+        }
+      },
+      "inboundIds": [
+        7
+      ],
+      "externalLinks": null,
+      "usedTraffic": 0,
+      "tunnelAllowedIPs": {}
+    }
+  ]
+}

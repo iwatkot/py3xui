@@ -7,10 +7,16 @@ from typing import Any
 from urllib.parse import quote
 
 from py3xui.api.api_base import ApiFields, BaseApi
-from py3xui.client import Client, ClientDetails
+from py3xui.client import (
+    Client,
+    ClientDetails,
+    ClientPage,
+    ClientRenewalPreview,
+    ClientTraffic,
+)
 
 
-class ClientApi(BaseApi):
+class ClientApi(BaseApi):  # pylint: disable=too-many-public-methods
     """This class provides methods to interact with the clients in the XUI API.
 
     Attributes and Properties:
@@ -33,6 +39,14 @@ class ClientApi(BaseApi):
         delete: Deletes a client.
         delete_depleted: Deletes depleted clients.
         online: Retrieves online clients.
+        get_list_paged: Retrieves one page of clients, filtered and sorted.
+        get_details_by_sub_id: Retrieves full client details by subscription ID.
+        get_details_by_tg_id: Retrieves full client details by Telegram ID.
+        get_renewal_preview: Previews the auto-renewal dates of a client.
+        get_traffic: Retrieves the traffic counters of a client.
+        get_sub_links: Retrieves the share links of a subscription.
+        get_links: Retrieves the share links of a client.
+        get_happ_link: Generates an encrypted Happ link for a client.
 
     Examples:
         ```python
@@ -438,6 +452,332 @@ class ClientApi(BaseApi):
                 self.logger.error("Error parsing client: %s", client_json)
                 continue
         return clients
+
+    def get_list_paged(  # pylint: disable=too-many-arguments,too-many-locals
+        self,
+        page: int = 1,
+        page_size: int = 25,
+        *,
+        search: str | None = None,
+        statuses: list[str] | None = None,
+        protocols: list[str] | None = None,
+        inbound_ids: list[int] | None = None,
+        groups: list[str] | None = None,
+        sort: str | None = None,
+        order: str | None = None,
+        expiry_from: int | None = None,
+        expiry_to: int | None = None,
+        usage_from: int | None = None,
+        usage_to: int | None = None,
+        auto_renew: bool | None = None,
+        has_tg_id: bool | None = None,
+        has_comment: bool | None = None,
+    ) -> ClientPage:
+        """This route is used to retrieve one page of clients, filtered and sorted on the panel
+        side. The items are compact rows without credentials; use `get_details` for the full
+        client. Filters that are left as None are not applied.
+
+        Arguments:
+            page (int): The page number, starting from 1. Defaults to 1.
+            page_size (int): The number of clients per page, at most 200. Defaults to 25.
+            search (str | None): A case-insensitive substring of the email, sub ID, comment, UUID,
+                password, auth or Telegram ID.
+            statuses (list[str] | None): The status buckets: "online", "active", "deactive",
+                "depleted", "expiring".
+            protocols (list[str] | None): The inbound protocols, e.g. "vless", "trojan".
+            inbound_ids (list[int] | None): The IDs of the inbounds.
+            groups (list[str] | None): The group names.
+            sort (str | None): The sort key: "enable", "email", "inboundIds", "traffic",
+                "remaining", "expiryTime", "createdAt", "updatedAt" or "lastOnline".
+            order (str | None): The sort order: "ascend" or "descend".
+            expiry_from (int | None): The minimum expiry time in milliseconds.
+            expiry_to (int | None): The maximum expiry time in milliseconds.
+            usage_from (int | None): The minimum used traffic (up + down) in bytes.
+            usage_to (int | None): The maximum used traffic (up + down) in bytes.
+            auto_renew (bool | None): Only clients with (True) or without (False) auto-renew.
+            has_tg_id (bool | None): Only clients with (True) or without (False) a Telegram ID.
+            has_comment (bool | None): Only clients with (True) or without (False) a comment.
+
+        Returns:
+            ClientPage: The page of clients.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+            page = api.client.get_list_paged(page=1, page_size=50, statuses=["depleted"])
+            print(page.filtered, [item.email for item in page.items])
+            ```
+        """
+        endpoint = "panel/api/clients/list/paged"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        flags = {True: "yes", False: "no"}
+        params: dict[str, Any] = {
+            "page": page,
+            "pageSize": page_size,
+            "search": search,
+            "filter": ",".join(statuses) if statuses else None,
+            "protocol": ",".join(protocols) if protocols else None,
+            "inbound": ",".join(str(inbound_id) for inbound_id in inbound_ids)
+            if inbound_ids
+            else None,
+            "group": ",".join(groups) if groups else None,
+            "sort": sort,
+            "order": order,
+            "expiryFrom": expiry_from,
+            "expiryTo": expiry_to,
+            "usageFrom": usage_from,
+            "usageTo": usage_to,
+            "autoRenew": None if auto_renew is None else ("on" if auto_renew else "off"),
+            "hasTgId": None if has_tg_id is None else flags[has_tg_id],
+            "hasComment": None if has_comment is None else flags[has_comment],
+        }
+        params = {key: value for key, value in params.items() if value is not None}
+        self.logger.info("Getting clients page %s (page size %s)", page, page_size)
+
+        response = self._get(url, headers, params=params)
+        return ClientPage.model_validate(response.json().get(ApiFields.OBJ) or {})
+
+    def get_details_by_sub_id(self, sub_id: str) -> list[ClientDetails]:
+        """This route is used to retrieve the full information about all clients that share the
+        given subscription ID, in the same shape as `get_details`.
+
+        Arguments:
+            sub_id (str): The subscription ID.
+
+        Returns:
+            list[ClientDetails]: The details of the clients, ordered by client ID.
+
+        Raises:
+            ValueError: If no client has this subscription ID.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+            details = api.client.get_details_by_sub_id("k2v9xq7m1p4r8s3t")
+            ```
+        """
+        endpoint = f"panel/api/clients/get/subId/{quote(sub_id, safe='')}"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        self.logger.info("Getting client details for sub ID: %s", sub_id)
+
+        response = self._get(url, headers)
+        details_json = response.json().get(ApiFields.OBJ) or []
+        return [ClientDetails.model_validate(details) for details in details_json]
+
+    def get_details_by_tg_id(self, tg_id: int) -> list[ClientDetails]:
+        """This route is used to retrieve the full information about all clients bound to the
+        given Telegram user ID, in the same shape as `get_details`.
+
+        Arguments:
+            tg_id (int): The Telegram user ID.
+
+        Returns:
+            list[ClientDetails]: The details of the clients, empty if there are none.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+            details = api.client.get_details_by_tg_id(123456789)
+            ```
+        """
+        endpoint = f"panel/api/clients/get/tgId/{tg_id}"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        self.logger.info("Getting client details for Telegram ID: %s", tg_id)
+
+        response = self._get(url, headers)
+        details_json = response.json().get(ApiFields.OBJ) or []
+        return [ClientDetails.model_validate(details) for details in details_json]
+
+    def get_renewal_preview(  # pylint: disable=too-many-arguments
+        self,
+        expiry_time: int,
+        *,
+        reset: int = 0,
+        reset_day: int = 0,
+        reset_weekday: int = 0,
+        reset_max: int = 0,
+        reset_count: int = 0,
+    ) -> ClientRenewalPreview:
+        """This route is used to preview the auto-renewal dates of a client without saving
+        anything. Only one renewal mode (reset, reset_day or reset_weekday) can be set.
+
+        Arguments:
+            expiry_time (int): The current expiry time in milliseconds; 0 means unlimited, a
+                negative value is a duration that starts on first use.
+            reset (int): The renewal interval in days, 0 disables it. Defaults to 0.
+            reset_day (int): The monthly renewal day 1-31, 0 disables it. Defaults to 0.
+            reset_weekday (int): The weekly renewal day 1-7 (Monday-Sunday), 0 disables it.
+                Defaults to 0.
+            reset_max (int): The maximum number of renewals, 0 means unlimited. Defaults to 0.
+            reset_count (int): The number of renewals already done. Defaults to 0.
+
+        Returns:
+            ClientRenewalPreview: The renewal preview.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+            preview = api.client.get_renewal_preview(1893456000000, reset_day=1)
+            print(preview.renew_at, preview.next_expiry)
+            ```
+        """
+        endpoint = "panel/api/clients/renewalPreview"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data = {
+            "expiryTime": expiry_time,
+            "reset": reset,
+            "resetDay": reset_day,
+            "resetWeekday": reset_weekday,
+            "resetMax": reset_max,
+            "resetCount": reset_count,
+        }
+        self.logger.info("Getting renewal preview for expiry time: %s", expiry_time)
+
+        response = self._post(url, headers, data)
+        return ClientRenewalPreview.model_validate(response.json().get(ApiFields.OBJ) or {})
+
+    def get_traffic(self, email: str) -> ClientTraffic | None:
+        """This route is used to retrieve the traffic counters of a client identified by email.
+
+        Arguments:
+            email (str): The email of the client.
+
+        Returns:
+            ClientTraffic | None: The traffic counters if found, otherwise None.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+            traffic = api.client.get_traffic("email")
+            print(traffic.up, traffic.down)
+            ```
+        """
+        endpoint = f"panel/api/clients/traffic/{quote(email, safe='')}"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        self.logger.info("Getting client traffic for email: %s", email)
+
+        response = self._get(url, headers)
+        traffic_json = response.json().get(ApiFields.OBJ)
+        if not traffic_json:
+            self.logger.warning("No traffic found for email: %s", email)
+            return None
+        return ClientTraffic.model_validate(traffic_json)
+
+    def get_sub_links(self, sub_id: str) -> list[str]:
+        """This route is used to retrieve the share links (vless://, vmess://, ...) of all
+        enabled clients with the given subscription ID, as plain strings.
+
+        Arguments:
+            sub_id (str): The subscription ID.
+
+        Returns:
+            list[str]: The share links, empty if there are none.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+            links = api.client.get_sub_links("k2v9xq7m1p4r8s3t")
+            ```
+        """
+        endpoint = f"panel/api/clients/subLinks/{quote(sub_id, safe='')}"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        self.logger.info("Getting subscription links for sub ID: %s", sub_id)
+
+        response = self._get(url, headers)
+        return response.json().get(ApiFields.OBJ) or []
+
+    def get_links(self, email: str) -> list[str]:
+        """This route is used to retrieve the share links of a client across all inbounds it is
+        attached to, one per advertised endpoint.
+
+        Arguments:
+            email (str): The email of the client.
+
+        Returns:
+            list[str]: The share links, empty if there are none.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+            links = api.client.get_links("email")
+            ```
+        """
+        endpoint = f"panel/api/clients/links/{quote(email, safe='')}"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        self.logger.info("Getting client links for email: %s", email)
+
+        response = self._get(url, headers)
+        return response.json().get(ApiFields.OBJ) or []
+
+    def get_happ_link(self, client_id: int) -> str:
+        """This route is used to generate a fresh encrypted Happ link (happ://crypt5/...) for the
+        subscription of a client. Happ link generation must be enabled in the panel settings.
+
+        Arguments:
+            client_id (int): The client record ID (`ClientDetails.client.id`), not the UUID.
+
+        Returns:
+            str: The encrypted Happ link.
+
+        Raises:
+            ValueError: If the link can not be generated, e.g. the feature is disabled or the
+                subscription URL is longer than 8192 bytes (message "happ_source_too_long").
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+            details = api.client.get_details("email")
+            link = api.client.get_happ_link(details.client.id)
+            ```
+        """
+        endpoint = f"panel/api/clients/happLink/{client_id}"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data: dict[str, Any] = {}
+        self.logger.info("Generating Happ link for client ID: %s", client_id)
+
+        response = self._post(url, headers, data)
+        result = response.json().get(ApiFields.OBJ) or {}
+        return result.get("encryptedLink", "")
 
     def _resolve_client_email(self, inbound_id: int, client_identifier: str) -> str:
         """Resolves legacy client IDs/UUIDs to client email for delete endpoint."""
