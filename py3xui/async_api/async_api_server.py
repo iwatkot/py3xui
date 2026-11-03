@@ -5,6 +5,15 @@ from urllib.parse import quote
 from py3xui.api.api_base import ApiFields
 from py3xui.async_api.async_api_base import AsyncBaseApi
 from py3xui.server.config import ServerConfig, XrayVersionUnavailableError
+from py3xui.server.keys import (
+    EchCert,
+    KeysFields,
+    Mldsa65KeyPair,
+    Mlkem768KeyPair,
+    VlessEncryptionAuth,
+    WebCertFiles,
+)
+from py3xui.server.reality_scan import RealityScanResult
 from py3xui.server.server import RealityKeyPair, Server
 from py3xui.server.panel_update import PanelUpdateFields, PanelUpdateInfo, PanelUpdateStatus
 from py3xui.server.metrics import (
@@ -16,7 +25,7 @@ from py3xui.server.metrics import (
 )
 
 
-class AsyncServerApi(AsyncBaseApi):
+class AsyncServerApi(AsyncBaseApi):  # pylint: disable=too-many-public-methods
     """This class provides methods to interact with the server in the XUI API in an asynchronous
     manner.
 
@@ -50,6 +59,16 @@ class AsyncServerApi(AsyncBaseApi):
         set_update_channel: Switches the panel update channel between stable and dev.
         stop_xray: Stops the Xray service.
         restart_xray: Restarts the Xray service.
+        generate_uuid: Generates a new UUID on the server.
+        generate_mldsa65_keys: Generates a new ML-DSA-65 key pair on the server.
+        generate_mlkem768_keys: Generates a new ML-KEM-768 key pair on the server.
+        generate_vless_encryption: Generates new VLESS encryption options on the server.
+        generate_ech_cert: Generates a new ECH key set on the server.
+        get_web_cert_files: Retrieves the paths of the web TLS files of the panel.
+        get_cert_hash: Computes the SHA-256 hash of a certificate.
+        get_remote_cert_hash: Retrieves the SHA-256 hash of the certificate of a remote server.
+        scan_reality_target: Probes a candidate REALITY target.
+        scan_reality_targets: Probes several candidate REALITY targets.
 
     Examples:
         ```python
@@ -595,3 +614,287 @@ class AsyncServerApi(AsyncBaseApi):
 
         await self._post(url, headers, data={})
         self.logger.info("Xray service restarted successfully.")
+
+    async def generate_uuid(self) -> str:
+        """Generates a new UUID on the server.
+
+        Returns:
+            str: The generated UUID.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+
+            print(await api.server.generate_uuid())
+            ```
+        """
+        endpoint = "panel/api/server/getNewUUID"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        self.logger.info("Generating new UUID...")
+
+        response = await self._get(url, headers)
+        return response.json().get(ApiFields.OBJ).get(KeysFields.UUID)
+
+    async def generate_mldsa65_keys(self) -> Mldsa65KeyPair:
+        """Generates a new ML-DSA-65 key pair on the server.
+
+        Returns:
+            Mldsa65KeyPair: The generated key pair.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+
+            keys = await api.server.generate_mldsa65_keys()
+            print(keys.seed, keys.verify)
+            ```
+        """
+        endpoint = "panel/api/server/getNewmldsa65"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        self.logger.info("Generating new ML-DSA-65 keys...")
+
+        response = await self._get(url, headers)
+        return Mldsa65KeyPair.model_validate(response.json().get(ApiFields.OBJ))
+
+    async def generate_mlkem768_keys(self) -> Mlkem768KeyPair:
+        """Generates a new ML-KEM-768 key pair on the server.
+
+        Returns:
+            Mlkem768KeyPair: The generated key pair.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+
+            keys = await api.server.generate_mlkem768_keys()
+            print(keys.seed, keys.client)
+            ```
+        """
+        endpoint = "panel/api/server/getNewmlkem768"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        self.logger.info("Generating new ML-KEM-768 keys...")
+
+        response = await self._get(url, headers)
+        return Mlkem768KeyPair.model_validate(response.json().get(ApiFields.OBJ))
+
+    async def generate_vless_encryption(self) -> list[VlessEncryptionAuth]:
+        """Generates new VLESS encryption options on the server.
+
+        Returns:
+            list[VlessEncryptionAuth]: The generated options.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+
+            for auth in await api.server.generate_vless_encryption():
+                print(auth.id, auth.decryption, auth.encryption)
+            ```
+        """
+        endpoint = "panel/api/server/getNewVlessEnc"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        self.logger.info("Generating new VLESS encryption options...")
+
+        response = await self._get(url, headers)
+        auths_json = response.json().get(ApiFields.OBJ).get(KeysFields.AUTHS) or []
+        return [VlessEncryptionAuth.model_validate(auth) for auth in auths_json]
+
+    async def generate_ech_cert(self, sni: str) -> EchCert:
+        """Generates a new ECH (Encrypted Client Hello) key set on the server.
+
+        Arguments:
+            sni (str): The server name to generate the key set for.
+
+        Returns:
+            EchCert: The generated key set.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+
+            cert = await api.server.generate_ech_cert("example.com")
+            print(cert.ech_config_list)
+            ```
+        """
+        endpoint = "panel/api/server/getNewEchCert"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        self.logger.info("Generating new ECH key set for %s...", sni)
+
+        response = await self._post_form(url, headers, {"sni": sni})
+        return EchCert.model_validate(response.json().get(ApiFields.OBJ))
+
+    async def get_web_cert_files(self) -> WebCertFiles:
+        """Gets the paths of the web TLS certificate and key files of the panel.
+
+        Returns:
+            WebCertFiles: The paths on the host of the panel.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+
+            files = await api.server.get_web_cert_files()
+            print(files.web_cert_file, files.web_key_file)
+            ```
+        """
+        endpoint = "panel/api/server/getWebCertFiles"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        self.logger.info("Getting web certificate files...")
+
+        response = await self._get(url, headers)
+        return WebCertFiles.model_validate(response.json().get(ApiFields.OBJ))
+
+    async def get_cert_hash(
+        self, cert_file: str | None = None, cert_content: str | None = None
+    ) -> list[str]:
+        """Computes the hex SHA-256 hash of a certificate for pinning.
+
+        Arguments:
+            cert_file (str | None): The path to a certificate file on the server, which must be
+                referenced by an inbound or by the panel settings. Takes precedence over
+                `cert_content`.
+            cert_content (str | None): The inline PEM (or DER) certificate content.
+
+        Returns:
+            list[str]: The hashes of the certificates.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+
+            print(await api.server.get_cert_hash(cert_file="/root/cert/fullchain.pem"))
+            ```
+        """
+        endpoint = "panel/api/server/getCertHash"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        self.logger.info("Getting certificate hash...")
+
+        data = {"certFile": cert_file, "certContent": cert_content}
+        response = await self._post_form(url, headers, data)
+        return response.json().get(ApiFields.OBJ) or []
+
+    async def get_remote_cert_hash(self, server: str, allow_private: bool = False) -> list[str]:
+        """Gets the live SHA-256 hashes of the certificate of a remote server for pinning.
+
+        Arguments:
+            server (str): The remote server as domain or domain:port (the default port is 443).
+            allow_private (bool): Whether a private or loopback server may be pinged. The panel
+                rejects such a server otherwise.
+
+        Returns:
+            list[str]: The hashes of the certificates.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+
+            print(await api.server.get_remote_cert_hash("cloudflare-dns.com"))
+            ```
+        """
+        endpoint = "panel/api/server/getRemoteCertHash"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        self.logger.info("Getting certificate hash of %s...", server)
+
+        data = {"server": server, "allowPrivate": allow_private}
+        response = await self._post_form(url, headers, data)
+        return response.json().get(ApiFields.OBJ) or []
+
+    async def scan_reality_target(
+        self, target: str, sni: str | None = None, xver: int = 0, allow_private: bool = False
+    ) -> RealityScanResult:
+        """Probes a candidate REALITY target and returns a feasibility verdict.
+
+        Arguments:
+            target (str): The target as host or host:port (the default port is 443).
+            sni (str | None): The SNI for the handshake, defaults to the host of the target.
+            xver (int): The PROXY protocol version the target expects, 0 for none.
+            allow_private (bool): Whether a private or loopback target may be probed.
+
+        Returns:
+            RealityScanResult: The verdict.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+
+            result = await api.server.scan_reality_target("www.cloudflare.com:443")
+            print(result.feasible, result.reason)
+            ```
+        """
+        endpoint = "panel/api/server/scanRealityTarget"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        self.logger.info("Scanning REALITY target %s...", target)
+
+        data = {"target": target, "sni": sni, "xver": xver, "allowPrivate": allow_private}
+        response = await self._post_form(url, headers, data)
+        return RealityScanResult.model_validate(response.json().get(ApiFields.OBJ))
+
+    async def scan_reality_targets(
+        self, targets: list[str] | None = None
+    ) -> list[RealityScanResult]:
+        """Probes several candidate REALITY targets.
+
+        Arguments:
+            targets (list[str] | None): The targets: domain[:port], IP[:port] or CIDR. The
+                candidates from the panel settings are probed when it is not set.
+
+        Returns:
+            list[RealityScanResult]: The verdicts ranked by feasibility, then by latency.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+
+            targets = ["www.cloudflare.com", "104.16.0.0/24"]
+            for result in await api.server.scan_reality_targets(targets):
+                print(result.target, result.feasible)
+            ```
+        """
+        endpoint = "panel/api/server/scanRealityTargets"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        self.logger.info("Scanning REALITY targets...")
+
+        data = {"targets": ",".join(targets) if targets else None}
+        response = await self._post_form(url, headers, data)
+        results_json = response.json().get(ApiFields.OBJ) or []
+        return [RealityScanResult.model_validate(result) for result in results_json]

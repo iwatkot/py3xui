@@ -29,3 +29,13 @@ Endpoints used by `api.server`:
 - `POST panel/api/server/stopXrayService`
 - `POST panel/api/server/restartXrayService`
 - `POST panel/api/server/updateGeofile/{fileName}`
+- `GET panel/api/server/getNewUUID`
+- `GET panel/api/server/getNewmldsa65`
+- `GET panel/api/server/getNewmlkem768`
+- `GET panel/api/server/getNewVlessEnc`
+- `GET panel/api/server/getWebCertFiles`
+- `POST panel/api/server/getNewEchCert`
+- `POST panel/api/server/getCertHash`
+- `POST panel/api/server/getRemoteCertHash`
+- `POST panel/api/server/scanRealityTarget`
+- `POST panel/api/server/scanRealityTargets`

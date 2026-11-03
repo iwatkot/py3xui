@@ -263,3 +263,184 @@ async def test_update_geofile_by_name(httpx_mock: HTTPXMock):
     )
     await make_api().server.update_geofile("geoip.dat")
     assert httpx_mock.get_request().method == "POST"
+
+
+@pytest.mark.asyncio
+async def test_generate_uuid(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{SERVER_URL}/getNewUUID",
+        json=load_response("new_uuid"),
+    )
+    assert await make_api().server.generate_uuid() == "550e8400-e29b-41d4-a716-446655440000"
+
+
+@pytest.mark.asyncio
+async def test_generate_mldsa65_keys(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{SERVER_URL}/getNewmldsa65",
+        json=load_response("new_mldsa65"),
+    )
+    keys = await make_api().server.generate_mldsa65_keys()
+
+    assert keys.seed == "mldsa65-seed"
+    assert keys.verify == "mldsa65-verify"
+
+
+@pytest.mark.asyncio
+async def test_generate_mlkem768_keys(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{SERVER_URL}/getNewmlkem768",
+        json=load_response("new_mlkem768"),
+    )
+    keys = await make_api().server.generate_mlkem768_keys()
+
+    assert keys.seed == "mlkem768-seed"
+    assert keys.client == "mlkem768-client"
+
+
+@pytest.mark.asyncio
+async def test_generate_vless_encryption(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{SERVER_URL}/getNewVlessEnc",
+        json=load_response("new_vless_enc"),
+    )
+    auths = await make_api().server.generate_vless_encryption()
+
+    assert [auth.id for auth in auths] == ["x25519", "x25519_random"]
+    assert auths[0].label == "X25519, not Post-Quantum"
+    assert auths[0].decryption == "mlkem768x25519plus.native.600s.dec"
+    assert auths[0].encryption == "mlkem768x25519plus.native.0rtt.enc"
+
+
+@pytest.mark.asyncio
+async def test_generate_ech_cert(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{SERVER_URL}/getNewEchCert",
+        json=load_response("new_ech_cert"),
+    )
+    cert = await make_api().server.generate_ech_cert("example.com")
+    assert form_fields(httpx_mock.get_request()) == {"sni": ["example.com"]}
+
+    assert cert.ech_server_keys == "server-keys"
+    assert cert.ech_config_list == "config-list"
+
+
+@pytest.mark.asyncio
+async def test_get_web_cert_files(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{SERVER_URL}/getWebCertFiles",
+        json=load_response("web_cert_files"),
+    )
+    files = await make_api().server.get_web_cert_files()
+
+    assert files.web_cert_file == "/root/cert/example.com/fullchain.pem"
+    assert files.web_key_file == "/root/cert/example.com/privkey.pem"
+
+
+@pytest.mark.asyncio
+async def test_get_cert_hash_by_file(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{SERVER_URL}/getCertHash",
+        json=load_response("cert_hash"),
+    )
+    hashes = await make_api().server.get_cert_hash(cert_file="/root/cert.pem")
+    assert form_fields(httpx_mock.get_request()) == {"certFile": ["/root/cert.pem"]}
+
+    assert hashes == ["e8e2d3"]
+
+
+@pytest.mark.asyncio
+async def test_get_cert_hash_by_content(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{SERVER_URL}/getCertHash",
+        json=load_response("cert_hash"),
+    )
+    await make_api().server.get_cert_hash(cert_content="PEM")
+    assert form_fields(httpx_mock.get_request()) == {"certContent": ["PEM"]}
+
+
+@pytest.mark.asyncio
+async def test_get_remote_cert_hash(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{SERVER_URL}/getRemoteCertHash",
+        json=load_response("cert_hash"),
+    )
+    hashes = await make_api().server.get_remote_cert_hash("cloudflare-dns.com")
+    assert form_fields(httpx_mock.get_request()) == {
+        "server": ["cloudflare-dns.com"],
+        "allowPrivate": ["false"],
+    }
+
+    assert hashes == ["e8e2d3"]
+
+
+@pytest.mark.asyncio
+async def test_get_remote_cert_hash_private_blocked(httpx_mock: HTTPXMock):
+    response = {
+        ApiFields.SUCCESS: False,
+        ApiFields.MSG: "get remote cert hash (private address blocked)",
+        ApiFields.OBJ: {"privateTarget": True},
+    }
+    httpx_mock.add_response(method="POST", url=f"{SERVER_URL}/getRemoteCertHash", json=response)
+    with pytest.raises(ValueError):
+        await make_api().server.get_remote_cert_hash("10.0.0.1")
+
+
+@pytest.mark.asyncio
+async def test_scan_reality_target(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{SERVER_URL}/scanRealityTarget",
+        json=load_response("reality_scan"),
+    )
+    result = await make_api().server.scan_reality_target(
+        "www.cloudflare.com:443", sni="cloudflare.com", xver=1, allow_private=True
+    )
+    assert form_fields(httpx_mock.get_request()) == {
+        "target": ["www.cloudflare.com:443"],
+        "sni": ["cloudflare.com"],
+        "xver": ["1"],
+        "allowPrivate": ["true"],
+    }
+
+    assert result.target == "www.cloudflare.com:443"
+    assert result.feasible is True
+    assert result.private_target is False
+    assert result.tls_version == "1.3"
+    assert result.curve_id == "X25519"
+    assert result.cert_chain_valid is True
+    assert result.cert_chain_bytes == 3427
+    assert result.not_after == "2026-08-01T00:00:00Z"
+    assert result.server_names == ["www.cloudflare.com"]
+    assert result.latency_ms == 180
+
+
+@pytest.mark.asyncio
+async def test_scan_reality_targets(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{SERVER_URL}/scanRealityTargets",
+        json=load_response("reality_scans"),
+    )
+    results = await make_api().server.scan_reality_targets(["www.cloudflare.com", "10.0.0.0/99"])
+    assert form_fields(httpx_mock.get_request()) == {"targets": ["www.cloudflare.com,10.0.0.0/99"]}
+
+    assert [result.feasible for result in results] == [True, False]
+    assert results[1].server_names is None
+    assert results[1].reason == "invalid CIDR: bad mask"
+
+
+@pytest.mark.asyncio
+async def test_scan_reality_targets_from_settings(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(method="POST", url=f"{SERVER_URL}/scanRealityTargets", json=RESPONSE_OK)
+    assert await make_api().server.scan_reality_targets() == []
+    assert form_fields(httpx_mock.get_request()) == {}

@@ -213,3 +213,140 @@ def test_update_geofile_by_name():
         m.post(f"{SERVER_URL}/updateGeofile/geoip.dat", json=RESPONSE_OK)
         make_api().server.update_geofile("geoip.dat")
         assert m.last_request.method == "POST"
+
+
+def test_generate_uuid():
+    with requests_mock.Mocker() as m:
+        m.get(f"{SERVER_URL}/getNewUUID", json=load_response("new_uuid"))
+        assert make_api().server.generate_uuid() == "550e8400-e29b-41d4-a716-446655440000"
+
+
+def test_generate_mldsa65_keys():
+    with requests_mock.Mocker() as m:
+        m.get(f"{SERVER_URL}/getNewmldsa65", json=load_response("new_mldsa65"))
+        keys = make_api().server.generate_mldsa65_keys()
+
+    assert keys.seed == "mldsa65-seed"
+    assert keys.verify == "mldsa65-verify"
+
+
+def test_generate_mlkem768_keys():
+    with requests_mock.Mocker() as m:
+        m.get(f"{SERVER_URL}/getNewmlkem768", json=load_response("new_mlkem768"))
+        keys = make_api().server.generate_mlkem768_keys()
+
+    assert keys.seed == "mlkem768-seed"
+    assert keys.client == "mlkem768-client"
+
+
+def test_generate_vless_encryption():
+    with requests_mock.Mocker() as m:
+        m.get(f"{SERVER_URL}/getNewVlessEnc", json=load_response("new_vless_enc"))
+        auths = make_api().server.generate_vless_encryption()
+
+    assert [auth.id for auth in auths] == ["x25519", "x25519_random"]
+    assert auths[0].label == "X25519, not Post-Quantum"
+    assert auths[0].decryption == "mlkem768x25519plus.native.600s.dec"
+    assert auths[0].encryption == "mlkem768x25519plus.native.0rtt.enc"
+
+
+def test_generate_ech_cert():
+    with requests_mock.Mocker() as m:
+        m.post(f"{SERVER_URL}/getNewEchCert", json=load_response("new_ech_cert"))
+        cert = make_api().server.generate_ech_cert("example.com")
+        assert form_fields(m.last_request) == {"sni": ["example.com"]}
+
+    assert cert.ech_server_keys == "server-keys"
+    assert cert.ech_config_list == "config-list"
+
+
+def test_get_web_cert_files():
+    with requests_mock.Mocker() as m:
+        m.get(f"{SERVER_URL}/getWebCertFiles", json=load_response("web_cert_files"))
+        files = make_api().server.get_web_cert_files()
+
+    assert files.web_cert_file == "/root/cert/example.com/fullchain.pem"
+    assert files.web_key_file == "/root/cert/example.com/privkey.pem"
+
+
+def test_get_cert_hash_by_file():
+    with requests_mock.Mocker() as m:
+        m.post(f"{SERVER_URL}/getCertHash", json=load_response("cert_hash"))
+        hashes = make_api().server.get_cert_hash(cert_file="/root/cert.pem")
+        assert form_fields(m.last_request) == {"certFile": ["/root/cert.pem"]}
+
+    assert hashes == ["e8e2d3"]
+
+
+def test_get_cert_hash_by_content():
+    with requests_mock.Mocker() as m:
+        m.post(f"{SERVER_URL}/getCertHash", json=load_response("cert_hash"))
+        make_api().server.get_cert_hash(cert_content="PEM")
+        assert form_fields(m.last_request) == {"certContent": ["PEM"]}
+
+
+def test_get_remote_cert_hash():
+    with requests_mock.Mocker() as m:
+        m.post(f"{SERVER_URL}/getRemoteCertHash", json=load_response("cert_hash"))
+        hashes = make_api().server.get_remote_cert_hash("cloudflare-dns.com")
+        assert form_fields(m.last_request) == {
+            "server": ["cloudflare-dns.com"],
+            "allowPrivate": ["false"],
+        }
+
+    assert hashes == ["e8e2d3"]
+
+
+def test_get_remote_cert_hash_private_blocked():
+    response = {
+        ApiFields.SUCCESS: False,
+        ApiFields.MSG: "get remote cert hash (private address blocked)",
+        ApiFields.OBJ: {"privateTarget": True},
+    }
+    with requests_mock.Mocker() as m:
+        m.post(f"{SERVER_URL}/getRemoteCertHash", json=response)
+        with pytest.raises(ValueError):
+            make_api().server.get_remote_cert_hash("10.0.0.1")
+
+
+def test_scan_reality_target():
+    with requests_mock.Mocker() as m:
+        m.post(f"{SERVER_URL}/scanRealityTarget", json=load_response("reality_scan"))
+        result = make_api().server.scan_reality_target(
+            "www.cloudflare.com:443", sni="cloudflare.com", xver=1, allow_private=True
+        )
+        assert form_fields(m.last_request) == {
+            "target": ["www.cloudflare.com:443"],
+            "sni": ["cloudflare.com"],
+            "xver": ["1"],
+            "allowPrivate": ["true"],
+        }
+
+    assert result.target == "www.cloudflare.com:443"
+    assert result.feasible is True
+    assert result.private_target is False
+    assert result.tls_version == "1.3"
+    assert result.curve_id == "X25519"
+    assert result.cert_chain_valid is True
+    assert result.cert_chain_bytes == 3427
+    assert result.not_after == "2026-08-01T00:00:00Z"
+    assert result.server_names == ["www.cloudflare.com"]
+    assert result.latency_ms == 180
+
+
+def test_scan_reality_targets():
+    with requests_mock.Mocker() as m:
+        m.post(f"{SERVER_URL}/scanRealityTargets", json=load_response("reality_scans"))
+        results = make_api().server.scan_reality_targets(["www.cloudflare.com", "10.0.0.0/99"])
+        assert form_fields(m.last_request) == {"targets": ["www.cloudflare.com,10.0.0.0/99"]}
+
+    assert [result.feasible for result in results] == [True, False]
+    assert results[1].server_names is None
+    assert results[1].reason == "invalid CIDR: bad mask"
+
+
+def test_scan_reality_targets_from_settings():
+    with requests_mock.Mocker() as m:
+        m.post(f"{SERVER_URL}/scanRealityTargets", json=RESPONSE_OK)
+        assert make_api().server.scan_reality_targets() == []
+        assert form_fields(m.last_request) == {}

@@ -81,3 +81,12 @@ except Exception as exc:
 - `await api.server.set_update_channel(dev)`: switches the update channel between stable and dev.
 - `await api.server.stop_xray()` / `await api.server.restart_xray()`: Xray service control.
 - `await api.server.update_geofile(file_name=None)`: updates one geofile, or all of them without an argument.
+- `await api.server.generate_uuid()`: generates a new UUID.
+- `await api.server.generate_mldsa65_keys()` / `await api.server.generate_mlkem768_keys()`: generate post-quantum key pairs.
+- `await api.server.generate_vless_encryption()`: generates VLESS encryption options.
+- `await api.server.generate_ech_cert(sni)`: generates an ECH key set.
+- `await api.server.get_web_cert_files()`: paths of the web TLS files of the panel.
+- `await api.server.get_cert_hash(cert_file=None, cert_content=None)`: SHA-256 hash of a certificate for pinning.
+- `await api.server.get_remote_cert_hash(server, allow_private=False)`: SHA-256 hash of the certificate of a remote server.
+- `await api.server.scan_reality_target(target, sni=None, xver=0, allow_private=False)`: probes a REALITY target.
+- `await api.server.scan_reality_targets(targets=None)`: probes several REALITY targets.

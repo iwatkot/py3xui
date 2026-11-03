@@ -1,0 +1,5 @@
+{
+  "success": true,
+  "msg": "",
+  "obj": {"webCertFile": "/root/cert/example.com/fullchain.pem", "webKeyFile": "/root/cert/example.com/privkey.pem"}
+}
