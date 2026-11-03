@@ -22,6 +22,7 @@ class ApiFields:
     NO_IP_RECORD = "No IP Record"
     GET = "GET"
     POST = "POST"
+    DELETE = "DELETE"
 
 
 # pylint: disable=R0902
@@ -59,6 +60,8 @@ class BaseApi:
         _request_with_retry: Makes a request to the XUI API with retries.
         _post: Makes a POST request to the XUI API.
         _get: Makes a GET request to the XUI API.
+        _post_form: Makes a form-encoded (or multipart) POST request to the XUI API.
+        _delete: Makes a DELETE request to the XUI API.
 
     """
 
@@ -497,3 +500,64 @@ class BaseApi:
                 "Before making a GET request, you must use the login() method or use the token."
             )
         return self._request_with_retry(requests.get, url, headers, **kwargs)
+
+    @staticmethod
+    def _form_fields(data: dict[str, Any]) -> dict[str, Any]:
+        """Converts request data to form fields: booleans are sent as "true" / "false" and
+        None values are skipped.
+
+        Arguments:
+            data (dict[str, Any]): The request data.
+
+        Returns:
+            dict[str, Any]: The form fields."""
+        fields: dict[str, Any] = {}
+        for key, value in data.items():
+            if value is None:
+                continue
+            fields[key] = str(value).lower() if isinstance(value, bool) else value
+        return fields
+
+    def _post_form(
+        self, url: str, headers: dict[str, str], data: dict[str, Any], **kwargs
+    ) -> requests.Response:
+        """Makes a form-encoded POST request to the XUI API. Used for the endpoints that read
+        their arguments as form fields. Pass `files` in kwargs to make a multipart request.
+
+        Arguments:
+            url (str): The URL for the XUI API.
+            headers (dict[str, str]): The headers for the request.
+            data (dict[str, Any]): The form fields for the request.
+            **kwargs (Any): Additional keyword arguments for the request.
+
+        Raises:
+            ValueError: If the session cookie is not set and the token is not provided.
+
+        Returns:
+            requests.Response: The response from the XUI API."""
+        if not self.session and self.token is None:
+            raise ValueError(
+                "Before making a POST request, you must use the login() method or use the token."
+            )
+        return self._request_with_retry(
+            requests.post, url, headers, data=self._form_fields(data), **kwargs
+        )
+
+    def _delete(self, url: str, headers: dict[str, str], **kwargs) -> requests.Response:
+        """Makes a DELETE request to the XUI API.
+
+        Arguments:
+            url (str): The URL for the XUI API.
+            headers (dict[str, str]): The headers for the request.
+            **kwargs (Any): Additional keyword arguments for the request.
+
+        Raises:
+            ValueError: If the session cookie is not set and the token is not provided.
+
+        Returns:
+            requests.Response: The response from the XUI API."""
+        if not self.session and self.token is None:
+            raise ValueError(
+                "Before making a DELETE request, you must use the login() method or use the token."
+            )
+        return self._request_with_retry(requests.delete, url, headers, **kwargs)

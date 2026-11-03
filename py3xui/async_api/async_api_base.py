@@ -43,6 +43,8 @@ class AsyncBaseApi:
         _request_with_retry: Makes a request to the XUI API with retries.
         _post: Makes a POST request to the XUI API.
         _get: Makes a GET request to the XUI API.
+        _post_form: Makes a form-encoded (or multipart) POST request to the XUI API.
+        _delete: Makes a DELETE request to the XUI API.
 
     """
 
@@ -207,7 +209,7 @@ class AsyncBaseApi:
 
         return headers
 
-    async def _request_with_retry(
+    async def _request_with_retry(  # pylint: disable=too-many-branches
         self,
         method: str,
         url: str,
@@ -266,6 +268,8 @@ class AsyncBaseApi:
                         response = await client.get(url, headers=headers, **kwargs)
                     elif method == ApiFields.POST:
                         response = await client.post(url, headers=headers, **kwargs)
+                    elif method == ApiFields.DELETE:
+                        response = await client.delete(url, headers=headers, **kwargs)
                     else:
                         raise ValueError(f"Invalid method: {method}")
                 response.raise_for_status()
@@ -465,3 +469,64 @@ class AsyncBaseApi:
                 "Or use token authentication.",
             )
         return await self._request_with_retry(ApiFields.GET, url, headers, **kwargs)
+
+    @staticmethod
+    def _form_fields(data: dict[str, Any]) -> dict[str, Any]:
+        """Converts request data to form fields: booleans are sent as "true" / "false" and
+        None values are skipped.
+
+        Arguments:
+            data (dict[str, Any]): The request data.
+
+        Returns:
+            dict[str, Any]: The form fields."""
+        fields: dict[str, Any] = {}
+        for key, value in data.items():
+            if value is None:
+                continue
+            fields[key] = str(value).lower() if isinstance(value, bool) else value
+        return fields
+
+    async def _post_form(
+        self, url: str, headers: dict[str, str], data: dict[str, Any], **kwargs
+    ) -> httpx.Response:
+        """Makes a form-encoded POST request to the XUI API. Used for the endpoints that read
+        their arguments as form fields. Pass `files` in kwargs to make a multipart request.
+
+        Arguments:
+            url (str): The URL for the XUI API.
+            headers (dict[str, str]): The headers for the request.
+            data (dict[str, Any]): The form fields for the request.
+            **kwargs (Any): Additional keyword arguments for the request.
+
+        Raises:
+            ValueError: If the session cookie is not set and the token is not provided.
+
+        Returns:
+            httpx.Response: The response from the XUI API."""
+        if not self.session and self.token is None:
+            raise ValueError(
+                "Before making a POST request, you must use the login() method or use the token."
+            )
+        return await self._request_with_retry(
+            ApiFields.POST, url, headers, data=self._form_fields(data), **kwargs
+        )
+
+    async def _delete(self, url: str, headers: dict[str, str], **kwargs) -> httpx.Response:
+        """Makes a DELETE request to the XUI API.
+
+        Arguments:
+            url (str): The URL for the XUI API.
+            headers (dict[str, str]): The headers for the request.
+            **kwargs (Any): Additional keyword arguments for the request.
+
+        Raises:
+            ValueError: If the session cookie is not set and the token is not provided.
+
+        Returns:
+            httpx.Response: The response from the XUI API."""
+        if not self.session and self.token is None:
+            raise ValueError(
+                "Before making a DELETE request, you must use the login() method or use the token."
+            )
+        return await self._request_with_retry(ApiFields.DELETE, url, headers, **kwargs)
