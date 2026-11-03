@@ -1,0 +1,5 @@
+{
+    "success": true,
+    "msg": "",
+    "obj": "{\"private_key\": \"fake-private-key\", \"token\": \"fake-token\"}"
+}

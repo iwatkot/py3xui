@@ -1,0 +1,5 @@
+{
+    "success": true,
+    "msg": "",
+    "obj": "{\n  \"access_token\": \"fake-access-token\",\n  \"device_id\": \"fake-device-id\",\n  \"license_key\": \"fake-license\",\n  \"private_key\": \"fake-private-key\",\n  \"client_id\": \"AbCd\"\n}"
+}

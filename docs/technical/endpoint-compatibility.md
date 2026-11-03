@@ -16,3 +16,5 @@ Compatibility behavior is implemented in both sync and async clients.
 - `POST xray/` returns its payload as a JSON string in `obj`; `get_settings()` parses it into `XraySettings`.
 - `xray/update` replaces the outbound test URL on every call: when `outboundTestUrl` is absent the panel resets it to the default one.
 - `update()` and the outbound test methods take the Xray JSON as a string, exactly as the form fields expect it.
+- `warp/*` and `nord/*` return JSON strings in `obj`; the methods parse them, an empty value gives an empty `dict`. `pia/*` return plain objects.
+- The `warp`, `nord` and `pia` routes take an `{action}` path parameter; every action has its own method with typed arguments.

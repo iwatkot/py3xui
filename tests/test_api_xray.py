@@ -6,7 +6,16 @@ from urllib.parse import parse_qs, urlsplit
 import pytest
 import requests_mock
 
-from py3xui import Api, GeodataSource, OutboundTraffic, XraySettings
+from py3xui import (
+    Api,
+    GeodataSource,
+    OutboundTraffic,
+    PiaAccount,
+    PiaCountry,
+    PiaKey,
+    PiaServers,
+    XraySettings,
+)
 from py3xui.api import XrayApi
 
 RESPONSES_DIR = "tests/responses"
@@ -147,3 +156,229 @@ def test_reset_outbound_stats(m, api):
     check(m, "POST", "resetOutboundsTraffic")
     assert form(m) == {"tag": ["direct"]}
     assert result is None
+
+
+def test_warp_get_data(m, api):
+    mock(m, "POST", "warp/data", load("warp_data"))
+
+    data = api.xray.warp_get_data()
+
+    check(m, "POST", "warp/data")
+    assert data["device_id"] == "fake-device-id"
+
+
+def test_warp_get_data_empty(m, api):
+    mock(m, "POST", "warp/data")
+
+    assert api.xray.warp_get_data() == {}
+
+
+def test_warp_delete(m, api):
+    mock(m, "POST", "warp/del")
+
+    result = api.xray.warp_delete()
+
+    check(m, "POST", "warp/del")
+    assert result is None
+
+
+def test_warp_get_config(m, api):
+    mock(m, "POST", "warp/config", load("warp_config"))
+
+    config = api.xray.warp_get_config()
+
+    check(m, "POST", "warp/config")
+    assert config["id"] == "fake-device-id"
+
+
+def test_warp_register(m, api):
+    mock(m, "POST", "warp/reg", load("warp_register"))
+
+    result = api.xray.warp_register("fake-private-key", "fake-public-key")
+
+    check(m, "POST", "warp/reg")
+    assert form(m) == {
+        "privateKey": ["fake-private-key"],
+        "publicKey": ["fake-public-key"],
+    }
+    assert result["data"]["private_key"] == "fake-private-key"
+    assert result["config"]["id"] == "fake-device-id"
+
+
+def test_warp_register_masque(m, api):
+    mock(m, "POST", "warp/regMasque", load("warp_masque"))
+
+    result = api.xray.warp_register_masque()
+
+    check(m, "POST", "warp/regMasque")
+    assert result["publicKey"] == "fake-public-key"
+    assert result["address"] == ["172.16.0.2/32", "2606:4700::2/128"]
+
+
+def test_warp_change_ip(m, api):
+    mock(m, "POST", "warp/changeIp", load("warp_change_ip"))
+
+    result = api.xray.warp_change_ip()
+
+    check(m, "POST", "warp/changeIp")
+    assert result["data"]["device_id"] == "fake-device-id"
+    assert "warning" in result
+
+
+def test_warp_set_license(m, api):
+    mock(m, "POST", "warp/license", load("warp_data"))
+
+    data = api.xray.warp_set_license("fake-license")
+
+    check(m, "POST", "warp/license")
+    assert form(m) == {"license": ["fake-license"]}
+    assert data["license_key"] == "fake-license"
+
+
+def test_warp_set_interval(m, api):
+    mock(m, "POST", "warp/interval")
+
+    result = api.xray.warp_set_interval(24)
+
+    check(m, "POST", "warp/interval")
+    assert form(m) == {"interval": ["24"]}
+    assert result is None
+
+
+def test_warp_set_interval_zero_is_sent(m, api):
+    mock(m, "POST", "warp/interval")
+
+    api.xray.warp_set_interval(0)
+
+    assert form(m) == {"interval": ["0"]}
+
+
+def test_nord_get_countries(m, api):
+    mock(m, "POST", "nord/countries", load("nord_countries"))
+
+    countries = api.xray.nord_get_countries()
+
+    check(m, "POST", "nord/countries")
+    assert countries == [{"id": 1, "name": "Albania", "code": "AL"}]
+
+
+def test_nord_get_servers(m, api):
+    mock(m, "POST", "nord/servers", load("nord_servers"))
+
+    servers = api.xray.nord_get_servers(1)
+
+    check(m, "POST", "nord/servers")
+    assert form(m) == {"countryId": ["1"]}
+    assert servers["servers"][0]["hostname"] == "al1.example.com"
+    assert servers["locations"][0]["id"] == 5
+
+
+def test_nord_register(m, api):
+    mock(m, "POST", "nord/reg", load("nord_data"))
+
+    data = api.xray.nord_register("fake-token")
+
+    check(m, "POST", "nord/reg")
+    assert form(m) == {"token": ["fake-token"]}
+    assert data == {"private_key": "fake-private-key", "token": "fake-token"}
+
+
+def test_nord_set_key(m, api):
+    mock(m, "POST", "nord/setKey", load("nord_data"))
+
+    data = api.xray.nord_set_key("fake-private-key")
+
+    check(m, "POST", "nord/setKey")
+    assert form(m) == {"key": ["fake-private-key"]}
+    assert data["private_key"] == "fake-private-key"
+
+
+def test_nord_get_data(m, api):
+    mock(m, "POST", "nord/data", load("nord_data"))
+
+    data = api.xray.nord_get_data()
+
+    check(m, "POST", "nord/data")
+    assert data["token"] == "fake-token"
+
+
+def test_nord_get_data_empty(m, api):
+    mock(m, "POST", "nord/data")
+
+    assert api.xray.nord_get_data() == {}
+
+
+def test_nord_delete(m, api):
+    mock(m, "POST", "nord/del")
+
+    result = api.xray.nord_delete()
+
+    check(m, "POST", "nord/del")
+    assert result is None
+
+
+def test_pia_get_countries(m, api):
+    mock(m, "POST", "pia/countries", load("pia_countries"))
+
+    countries = api.xray.pia_get_countries()
+
+    check(m, "POST", "pia/countries")
+    assert countries == [PiaCountry(code="AL"), PiaCountry(code="US")]
+
+
+def test_pia_get_servers(m, api):
+    mock(m, "POST", "pia/servers", load("pia_servers"))
+
+    servers = api.xray.pia_get_servers("US")
+
+    check(m, "POST", "pia/servers")
+    assert form(m) == {"countryCode": ["US"]}
+    assert isinstance(servers, PiaServers)
+    assert servers.regions[0].name == "US East"
+    assert servers.servers[0].region_id == "us_east"
+
+
+def test_pia_register(m, api):
+    mock(m, "POST", "pia/reg", load("pia_account"))
+
+    account = api.xray.pia_register("fake-user", "fake-password")
+
+    check(m, "POST", "pia/reg")
+    assert form(m) == {"username": ["fake-user"], "password": ["fake-password"]}
+    assert account == PiaAccount(username="fake-user", account_hint="fa***")
+
+
+def test_pia_get_data(m, api):
+    mock(m, "POST", "pia/data", load("pia_account"))
+
+    account = api.xray.pia_get_data()
+
+    check(m, "POST", "pia/data")
+    assert account == PiaAccount(username="fake-user", account_hint="fa***")
+
+
+def test_pia_get_data_without_account(m, api):
+    mock(m, "POST", "pia/data", {"success": True, "msg": "", "obj": None})
+
+    assert api.xray.pia_get_data() is None
+
+
+def test_pia_delete(m, api):
+    mock(m, "POST", "pia/del", {"success": True, "msg": "", "obj": None})
+
+    result = api.xray.pia_delete()
+
+    check(m, "POST", "pia/del")
+    assert result is None
+
+
+def test_pia_add_key(m, api):
+    mock(m, "POST", "pia/addKey", load("pia_key"))
+
+    key = api.xray.pia_add_key("server.example.com")
+
+    check(m, "POST", "pia/addKey")
+    assert form(m) == {"hostname": ["server.example.com"]}
+    assert isinstance(key, PiaKey)
+    assert key.secret_key == "fake-secret-key"
+    assert key.endpoint == "192.0.2.1:1337"

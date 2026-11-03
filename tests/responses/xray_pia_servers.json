@@ -1,0 +1,20 @@
+{
+    "success": true,
+    "msg": "",
+    "obj": {
+        "regions": [
+            {
+                "id": "us_east",
+                "name": "US East"
+            }
+        ],
+        "servers": [
+            {
+                "hostname": "server.example.com",
+                "ip": "192.0.2.1",
+                "regionId": "us_east",
+                "regionName": "US East"
+            }
+        ]
+    }
+}

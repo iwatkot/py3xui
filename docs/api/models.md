@@ -15,3 +15,4 @@ When the upstream panel response shape changes, py3xui adapts parsing logic whil
 Models of `api.xray`, exported from `py3xui`:
 
 - `XraySettings`, `GeodataSource`, `OutboundTraffic`
+- `PiaAccount`, `PiaCountry`, `PiaRegion`, `PiaServer`, `PiaServers`, `PiaKey`

@@ -7,7 +7,16 @@ from urllib.parse import parse_qs
 import pytest
 from pytest_httpx import HTTPXMock
 
-from py3xui import AsyncApi, GeodataSource, OutboundTraffic, XraySettings
+from py3xui import (
+    AsyncApi,
+    GeodataSource,
+    OutboundTraffic,
+    PiaAccount,
+    PiaCountry,
+    PiaKey,
+    PiaServers,
+    XraySettings,
+)
 from py3xui.async_api import AsyncXrayApi
 
 RESPONSES_DIR = "tests/responses"
@@ -156,3 +165,253 @@ async def test_reset_outbound_stats(m, api):
     check(m, "POST", "resetOutboundsTraffic")
     assert form(m) == {"tag": ["direct"]}
     assert result is None
+
+
+@pytest.mark.asyncio
+async def test_warp_get_data(m, api):
+    mock(m, "POST", "warp/data", load("warp_data"))
+
+    data = await api.xray.warp_get_data()
+
+    check(m, "POST", "warp/data")
+    assert data["device_id"] == "fake-device-id"
+
+
+@pytest.mark.asyncio
+async def test_warp_get_data_empty(m, api):
+    mock(m, "POST", "warp/data")
+
+    assert await api.xray.warp_get_data() == {}
+
+
+@pytest.mark.asyncio
+async def test_warp_delete(m, api):
+    mock(m, "POST", "warp/del")
+
+    result = await api.xray.warp_delete()
+
+    check(m, "POST", "warp/del")
+    assert result is None
+
+
+@pytest.mark.asyncio
+async def test_warp_get_config(m, api):
+    mock(m, "POST", "warp/config", load("warp_config"))
+
+    config = await api.xray.warp_get_config()
+
+    check(m, "POST", "warp/config")
+    assert config["id"] == "fake-device-id"
+
+
+@pytest.mark.asyncio
+async def test_warp_register(m, api):
+    mock(m, "POST", "warp/reg", load("warp_register"))
+
+    result = await api.xray.warp_register("fake-private-key", "fake-public-key")
+
+    check(m, "POST", "warp/reg")
+    assert form(m) == {
+        "privateKey": ["fake-private-key"],
+        "publicKey": ["fake-public-key"],
+    }
+    assert result["data"]["private_key"] == "fake-private-key"
+    assert result["config"]["id"] == "fake-device-id"
+
+
+@pytest.mark.asyncio
+async def test_warp_register_masque(m, api):
+    mock(m, "POST", "warp/regMasque", load("warp_masque"))
+
+    result = await api.xray.warp_register_masque()
+
+    check(m, "POST", "warp/regMasque")
+    assert result["publicKey"] == "fake-public-key"
+    assert result["address"] == ["172.16.0.2/32", "2606:4700::2/128"]
+
+
+@pytest.mark.asyncio
+async def test_warp_change_ip(m, api):
+    mock(m, "POST", "warp/changeIp", load("warp_change_ip"))
+
+    result = await api.xray.warp_change_ip()
+
+    check(m, "POST", "warp/changeIp")
+    assert result["data"]["device_id"] == "fake-device-id"
+    assert "warning" in result
+
+
+@pytest.mark.asyncio
+async def test_warp_set_license(m, api):
+    mock(m, "POST", "warp/license", load("warp_data"))
+
+    data = await api.xray.warp_set_license("fake-license")
+
+    check(m, "POST", "warp/license")
+    assert form(m) == {"license": ["fake-license"]}
+    assert data["license_key"] == "fake-license"
+
+
+@pytest.mark.asyncio
+async def test_warp_set_interval(m, api):
+    mock(m, "POST", "warp/interval")
+
+    result = await api.xray.warp_set_interval(24)
+
+    check(m, "POST", "warp/interval")
+    assert form(m) == {"interval": ["24"]}
+    assert result is None
+
+
+@pytest.mark.asyncio
+async def test_warp_set_interval_zero_is_sent(m, api):
+    mock(m, "POST", "warp/interval")
+
+    await api.xray.warp_set_interval(0)
+
+    assert form(m) == {"interval": ["0"]}
+
+
+@pytest.mark.asyncio
+async def test_nord_get_countries(m, api):
+    mock(m, "POST", "nord/countries", load("nord_countries"))
+
+    countries = await api.xray.nord_get_countries()
+
+    check(m, "POST", "nord/countries")
+    assert countries == [{"id": 1, "name": "Albania", "code": "AL"}]
+
+
+@pytest.mark.asyncio
+async def test_nord_get_servers(m, api):
+    mock(m, "POST", "nord/servers", load("nord_servers"))
+
+    servers = await api.xray.nord_get_servers(1)
+
+    check(m, "POST", "nord/servers")
+    assert form(m) == {"countryId": ["1"]}
+    assert servers["servers"][0]["hostname"] == "al1.example.com"
+    assert servers["locations"][0]["id"] == 5
+
+
+@pytest.mark.asyncio
+async def test_nord_register(m, api):
+    mock(m, "POST", "nord/reg", load("nord_data"))
+
+    data = await api.xray.nord_register("fake-token")
+
+    check(m, "POST", "nord/reg")
+    assert form(m) == {"token": ["fake-token"]}
+    assert data == {"private_key": "fake-private-key", "token": "fake-token"}
+
+
+@pytest.mark.asyncio
+async def test_nord_set_key(m, api):
+    mock(m, "POST", "nord/setKey", load("nord_data"))
+
+    data = await api.xray.nord_set_key("fake-private-key")
+
+    check(m, "POST", "nord/setKey")
+    assert form(m) == {"key": ["fake-private-key"]}
+    assert data["private_key"] == "fake-private-key"
+
+
+@pytest.mark.asyncio
+async def test_nord_get_data(m, api):
+    mock(m, "POST", "nord/data", load("nord_data"))
+
+    data = await api.xray.nord_get_data()
+
+    check(m, "POST", "nord/data")
+    assert data["token"] == "fake-token"
+
+
+@pytest.mark.asyncio
+async def test_nord_get_data_empty(m, api):
+    mock(m, "POST", "nord/data")
+
+    assert await api.xray.nord_get_data() == {}
+
+
+@pytest.mark.asyncio
+async def test_nord_delete(m, api):
+    mock(m, "POST", "nord/del")
+
+    result = await api.xray.nord_delete()
+
+    check(m, "POST", "nord/del")
+    assert result is None
+
+
+@pytest.mark.asyncio
+async def test_pia_get_countries(m, api):
+    mock(m, "POST", "pia/countries", load("pia_countries"))
+
+    countries = await api.xray.pia_get_countries()
+
+    check(m, "POST", "pia/countries")
+    assert countries == [PiaCountry(code="AL"), PiaCountry(code="US")]
+
+
+@pytest.mark.asyncio
+async def test_pia_get_servers(m, api):
+    mock(m, "POST", "pia/servers", load("pia_servers"))
+
+    servers = await api.xray.pia_get_servers("US")
+
+    check(m, "POST", "pia/servers")
+    assert form(m) == {"countryCode": ["US"]}
+    assert isinstance(servers, PiaServers)
+    assert servers.regions[0].name == "US East"
+    assert servers.servers[0].region_id == "us_east"
+
+
+@pytest.mark.asyncio
+async def test_pia_register(m, api):
+    mock(m, "POST", "pia/reg", load("pia_account"))
+
+    account = await api.xray.pia_register("fake-user", "fake-password")
+
+    check(m, "POST", "pia/reg")
+    assert form(m) == {"username": ["fake-user"], "password": ["fake-password"]}
+    assert account == PiaAccount(username="fake-user", account_hint="fa***")
+
+
+@pytest.mark.asyncio
+async def test_pia_get_data(m, api):
+    mock(m, "POST", "pia/data", load("pia_account"))
+
+    account = await api.xray.pia_get_data()
+
+    check(m, "POST", "pia/data")
+    assert account == PiaAccount(username="fake-user", account_hint="fa***")
+
+
+@pytest.mark.asyncio
+async def test_pia_get_data_without_account(m, api):
+    mock(m, "POST", "pia/data", {"success": True, "msg": "", "obj": None})
+
+    assert await api.xray.pia_get_data() is None
+
+
+@pytest.mark.asyncio
+async def test_pia_delete(m, api):
+    mock(m, "POST", "pia/del", {"success": True, "msg": "", "obj": None})
+
+    result = await api.xray.pia_delete()
+
+    check(m, "POST", "pia/del")
+    assert result is None
+
+
+@pytest.mark.asyncio
+async def test_pia_add_key(m, api):
+    mock(m, "POST", "pia/addKey", load("pia_key"))
+
+    key = await api.xray.pia_add_key("server.example.com")
+
+    check(m, "POST", "pia/addKey")
+    assert form(m) == {"hostname": ["server.example.com"]}
+    assert isinstance(key, PiaKey)
+    assert key.secret_key == "fake-secret-key"
+    assert key.endpoint == "192.0.2.1:1337"

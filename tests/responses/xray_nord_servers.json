@@ -1,0 +1,5 @@
+{
+    "success": true,
+    "msg": "",
+    "obj": "{\"servers\": [{\"id\": 10, \"hostname\": \"al1.example.com\", \"location_ids\": [5]}], \"locations\": [{\"id\": 5, \"country\": {\"city\": {\"id\": 7, \"name\": \"Tirana\"}}}]}"
+}
