@@ -44,3 +44,11 @@ Compatibility behavior is implemented in both sync and async clients.
 - `POST panel/api/clients/groups/resetTraffic`: `reset_group_stats`
 - `POST panel/api/clients/groups/bulkAdd`: `bulk_add_to_group`
 - `POST panel/api/clients/groups/bulkRemove`: `bulk_remove_from_group`
+- `POST panel/api/clients/updateTraffic/{email}`: `update_traffic`
+- `POST panel/api/clients/hwids/{email}`: `get_hwids`
+- `DELETE panel/api/clients/hwids/{email}`: `delete_hwids`
+- `DELETE panel/api/clients/hwids/{email}/{id}`: `delete_hwid`
+- `POST panel/api/clients/onlinesByGuid`: `online_by_guid`
+- `POST panel/api/clients/clientIpsByGuid`: `get_ips_by_guid`
+- `POST panel/api/clients/activeInbounds`: `get_active_inbounds`
+- `POST panel/api/clients/lastOnline`: `get_last_online`

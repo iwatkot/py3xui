@@ -1,5 +1,6 @@
 """This module contains the read-only models returned by the client endpoints of the XUI API:
-traffic counters, paged client lists, renewal previews, bulk operation results and groups."""
+traffic counters, paged client lists, renewal previews, bulk operation results, groups, devices
+and IP records."""
 
 from typing import Any
 
@@ -74,6 +75,16 @@ class ClientInfoFields:
     NAME = "name"
     CLIENT_COUNT = "clientCount"
     TRAFFIC_USED = "trafficUsed"
+
+    FIRST_SEEN = "firstSeen"
+    LAST_SEEN = "lastSeen"
+    USER_AGENT = "userAgent"
+    DEVICE_OS = "deviceOs"
+    OS_VERSION = "osVersion"
+    DEVICE_MODEL = "deviceModel"
+    FINGERPRINT = "fingerprint"
+    IP = "ip"
+    TIMESTAMP = "timestamp"
 
 
 def _empty_list(value: Any) -> Any:
@@ -379,3 +390,42 @@ class ClientGroup(BaseModel):
     down: int = 0
 
     model_config = ConfigDict(populate_by_name=True)
+
+
+class ClientHwid(BaseModel):
+    """Represents a device (HWID) registered for a client. The full hash of the device is not
+    exposed by the panel.
+
+    Attributes:
+        id (int): The ID of the device.
+        first_seen (int): When the device was first seen, in milliseconds.
+        last_seen (int): When the device was last seen, in milliseconds.
+        user_agent (str): The user agent of the device.
+        device_os (str): The operating system of the device.
+        os_version (str): The operating system version of the device.
+        device_model (str): The model of the device.
+        fingerprint (str): The short fingerprint of the device.
+    """
+
+    id: int
+    first_seen: int = Field(default=0, alias=ClientInfoFields.FIRST_SEEN)  # type: ignore
+    last_seen: int = Field(default=0, alias=ClientInfoFields.LAST_SEEN)  # type: ignore
+    user_agent: str = Field(default="", alias=ClientInfoFields.USER_AGENT)  # type: ignore
+    device_os: str = Field(default="", alias=ClientInfoFields.DEVICE_OS)  # type: ignore
+    os_version: str = Field(default="", alias=ClientInfoFields.OS_VERSION)  # type: ignore
+    device_model: str = Field(default="", alias=ClientInfoFields.DEVICE_MODEL)  # type: ignore
+    fingerprint: str = ""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class ClientIpEntry(BaseModel):
+    """Represents a source IP observed for a client.
+
+    Attributes:
+        ip (str): The IP address.
+        timestamp (int): When the IP was last seen, in Unix seconds.
+    """
+
+    ip: str
+    timestamp: int = 0

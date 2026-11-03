@@ -17,6 +17,8 @@ from py3xui.client import (
     ClientEntry,
     ClientExternalLink,
     ClientGroup,
+    ClientHwid,
+    ClientIpEntry,
     ClientPage,
     ClientRenewalPreview,
     ClientTraffic,
@@ -76,6 +78,14 @@ class ClientApi(BaseApi):  # pylint: disable=too-many-public-methods
         reset_group_stats: Resets the traffic counter of a client group.
         bulk_add_to_group: Adds many clients to a group.
         bulk_remove_from_group: Clears the group of many clients.
+        update_traffic: Sets the traffic counters of a client.
+        get_hwids: Retrieves the devices of a client.
+        delete_hwids: Deletes all devices of a client.
+        delete_hwid: Deletes one device of a client.
+        online_by_guid: Retrieves online clients by panel GUID.
+        get_ips_by_guid: Retrieves client IPs by panel GUID.
+        get_active_inbounds: Retrieves active inbound tags by panel GUID.
+        get_last_online: Retrieves the last online time of clients.
 
     Examples:
         ```python
@@ -1472,6 +1482,225 @@ class ClientApi(BaseApi):  # pylint: disable=too-many-public-methods
         response = self._post(url, headers, data)
         result = response.json().get(ApiFields.OBJ) or {}
         return result.get("affected", 0)
+
+    def update_traffic(self, email: str, up: int, down: int) -> None:
+        """This route is used to set the traffic counters of a client. The given values replace
+        the stored ones, they are not added to them.
+
+        Arguments:
+            email (str): The email of the client.
+            up (int): The new uploaded traffic in bytes.
+            down (int): The new downloaded traffic in bytes.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+            api.client.update_traffic("email", 1073741824, 5368709120)
+            ```
+        """
+        endpoint = f"panel/api/clients/updateTraffic/{quote(email, safe='')}"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data = {"upload": up, "download": down}
+        self.logger.info("Updating client traffic for email: %s", email)
+
+        self._post(url, headers, data)
+        self.logger.info("Client traffic updated successfully.")
+
+    def get_hwids(self, email: str) -> list[ClientHwid]:
+        """This route is used to retrieve the devices (HWIDs) registered for a client.
+
+        Arguments:
+            email (str): The email of the client.
+
+        Returns:
+            list[ClientHwid]: The devices, most recently seen first.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+            devices = api.client.get_hwids("email")
+            ```
+        """
+        endpoint = f"panel/api/clients/hwids/{quote(email, safe='')}"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data: dict[str, Any] = {}
+        self.logger.info("Getting devices of client: %s", email)
+
+        response = self._post(url, headers, data)
+        hwids_json = response.json().get(ApiFields.OBJ) or []
+        return [ClientHwid.model_validate(hwid) for hwid in hwids_json]
+
+    def delete_hwids(self, email: str) -> None:
+        """This route is used to delete all devices (HWIDs) registered for a client, so new
+        devices can register again.
+
+        Arguments:
+            email (str): The email of the client.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+            api.client.delete_hwids("email")
+            ```
+        """
+        endpoint = f"panel/api/clients/hwids/{quote(email, safe='')}"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        self.logger.info("Deleting devices of client: %s", email)
+
+        self._delete(url, headers)
+        self.logger.info("Client devices deleted successfully.")
+
+    def delete_hwid(self, email: str, hwid_id: int) -> None:
+        """This route is used to delete one device (HWID) of a client, freeing one slot under the
+        device limit.
+
+        Arguments:
+            email (str): The email of the client.
+            hwid_id (int): The ID of the device, `ClientHwid.id`.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+            api.client.delete_hwid("email", 1)
+            ```
+        """
+        endpoint = f"panel/api/clients/hwids/{quote(email, safe='')}/{hwid_id}"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        self.logger.info("Deleting device %s of client: %s", hwid_id, email)
+
+        self._delete(url, headers)
+        self.logger.info("Client device deleted successfully.")
+
+    def online_by_guid(self) -> dict[str, list[str]]:
+        """This route is used to retrieve the emails of online clients, grouped by the panel GUID
+        of the node that hosts them.
+
+        Returns:
+            dict[str, list[str]]: The online emails by panel GUID.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+            online = api.client.online_by_guid()
+            ```
+        """
+        endpoint = "panel/api/clients/onlinesByGuid"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data: dict[str, Any] = {}
+        self.logger.info("Getting online clients by panel GUID")
+
+        response = self._post(url, headers, data)
+        return response.json().get(ApiFields.OBJ) or {}
+
+    def get_ips_by_guid(self) -> dict[str, dict[str, list[ClientIpEntry]]]:
+        """This route is used to retrieve the recent source IPs of clients, grouped by the panel
+        GUID of the node that observed them and by client email.
+
+        Returns:
+            dict[str, dict[str, list[ClientIpEntry]]]: The IPs by panel GUID and email.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+            ips = api.client.get_ips_by_guid()
+            ```
+        """
+        endpoint = "panel/api/clients/clientIpsByGuid"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data: dict[str, Any] = {}
+        self.logger.info("Getting client IPs by panel GUID")
+
+        response = self._post(url, headers, data)
+        ips_json = response.json().get(ApiFields.OBJ) or {}
+        return {
+            guid: {
+                email: [ClientIpEntry.model_validate(entry) for entry in entries or []]
+                for email, entries in per_email.items()
+            }
+            for guid, per_email in ips_json.items()
+        }
+
+    def get_active_inbounds(self) -> dict[str, list[str]]:
+        """This route is used to retrieve the tags of the inbounds that recently carried traffic,
+        grouped by the panel GUID of the node that hosts them. Nodes that do not report this are
+        absent.
+
+        Returns:
+            dict[str, list[str]]: The inbound tags by panel GUID.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+            active = api.client.get_active_inbounds()
+            ```
+        """
+        endpoint = "panel/api/clients/activeInbounds"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data: dict[str, Any] = {}
+        self.logger.info("Getting active inbounds by panel GUID")
+
+        response = self._post(url, headers, data)
+        return response.json().get(ApiFields.OBJ) or {}
+
+    def get_last_online(self) -> dict[str, int]:
+        """This route is used to retrieve the last time each client was online.
+
+        Returns:
+            dict[str, int]: The last online time in milliseconds by client email, 0 means never.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+            last_online = api.client.get_last_online()
+            ```
+        """
+        endpoint = "panel/api/clients/lastOnline"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data: dict[str, Any] = {}
+        self.logger.info("Getting last online time of clients")
+
+        response = self._post(url, headers, data)
+        return response.json().get(ApiFields.OBJ) or {}
 
     def _resolve_client_email(self, inbound_id: int, client_identifier: str) -> str:
         """Resolves legacy client IDs/UUIDs to client email for delete endpoint."""

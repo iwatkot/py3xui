@@ -116,3 +116,10 @@ All methods live on `api.client`.
 - `delete_group(name)`: deletes a group, the clients are kept. Returns the number of affected clients.
 - `reset_group_stats(name)`: resets the traffic counter of a group, client counters are not changed.
 - `bulk_add_to_group(group, emails)` / `bulk_remove_from_group(emails)`: sets or clears the group of many clients, returns the number of affected clients.
+- `update_traffic(email, up, down)`: sets the traffic counters of a client (absolute values).
+- `get_hwids(email)`: devices registered for a client.
+- `delete_hwids(email)` / `delete_hwid(email, hwid_id)`: deletes all devices of a client or one of them.
+- `online_by_guid()`: online emails by panel GUID.
+- `get_ips_by_guid()`: client IPs by panel GUID and email.
+- `get_active_inbounds()`: inbound tags with recent traffic by panel GUID.
+- `get_last_online()`: last online time in milliseconds by email.

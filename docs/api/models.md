@@ -32,3 +32,5 @@ When the upstream panel response shape changes, py3xui adapts parsing logic whil
 - `BulkResult`: `count` (created, adjusted, deleted or changed clients) and `skipped` (`BulkSkip` with `email` and `reason`).
 - `BulkAttachResult` / `BulkDetachResult`: `attached` or `detached`, `skipped` and `errors` as lists of strings.
 - `ClientGroup`: `name`, `client_count`, `traffic_used`, `up`, `down`.
+- `ClientHwid`: registered device: `id`, `first_seen`, `last_seen`, `user_agent`, `device_os`, `os_version`, `device_model`, `fingerprint`.
+- `ClientIpEntry`: `ip` and `timestamp` (Unix seconds).

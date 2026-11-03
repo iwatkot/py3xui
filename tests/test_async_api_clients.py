@@ -16,6 +16,8 @@ from py3xui import (
     ClientEntryTraffic,
     ClientExternalLink,
     ClientGroup,
+    ClientHwid,
+    ClientIpEntry,
     ClientPage,
     ClientRenewalPreview,
     ClientTraffic,
@@ -632,3 +634,118 @@ async def test_bulk_remove_from_group(httpx_mock: HTTPXMock):
 
     assert _json_body(httpx_mock.get_request()) == {"emails": ["alice", "bob"]}
     assert affected == 2
+
+
+@pytest.mark.asyncio
+async def test_update_traffic(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/clients/updateTraffic/{EMAIL_QUOTED}",
+        json=OK_RESPONSE,
+    )
+
+    result = await _api().client.update_traffic(EMAIL, 1073741824, 5368709120)
+
+    assert _json_body(httpx_mock.get_request()) == {
+        "upload": 1073741824,
+        "download": 5368709120,
+    }
+    assert result is None
+
+
+@pytest.mark.asyncio
+async def test_get_hwids(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/clients/hwids/{EMAIL_QUOTED}",
+        json=_response("clients_hwids"),
+    )
+
+    hwids = await _api().client.get_hwids(EMAIL)
+
+    assert len(hwids) == 1
+    assert isinstance(hwids[0], ClientHwid)
+    assert hwids[0].device_os == "android"
+    assert hwids[0].fingerprint == "6ad17c93e821"
+
+
+@pytest.mark.asyncio
+async def test_get_hwids_empty(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST", url=f"{HOST}/panel/api/clients/hwids/{EMAIL_QUOTED}", json=OK_RESPONSE
+    )
+
+    assert await _api().client.get_hwids(EMAIL) == []
+
+
+@pytest.mark.asyncio
+async def test_delete_hwids(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="DELETE", url=f"{HOST}/panel/api/clients/hwids/{EMAIL_QUOTED}", json=OK_RESPONSE
+    )
+
+    assert await _api().client.delete_hwids(EMAIL) is None
+
+
+@pytest.mark.asyncio
+async def test_delete_hwid(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="DELETE", url=f"{HOST}/panel/api/clients/hwids/{EMAIL_QUOTED}/7", json=OK_RESPONSE
+    )
+
+    assert await _api().client.delete_hwid(EMAIL, 7) is None
+
+
+@pytest.mark.asyncio
+async def test_online_by_guid(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/clients/onlinesByGuid",
+        json=_response("clients_onlines_by_guid"),
+    )
+
+    online = await _api().client.online_by_guid()
+
+    assert online == {"a1b2-...": ["user1"], "c3d4-...": ["user1", "user2"]}
+
+
+@pytest.mark.asyncio
+async def test_get_ips_by_guid(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/clients/clientIpsByGuid",
+        json=_response("clients_ips_by_guid"),
+    )
+
+    ips = await _api().client.get_ips_by_guid()
+
+    entry = ips["a1b2-..."]["user1"][0]
+    assert isinstance(entry, ClientIpEntry)
+    assert entry.ip == "1.2.3.4"
+    assert entry.timestamp == 1700000000
+
+
+@pytest.mark.asyncio
+async def test_get_active_inbounds(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/clients/activeInbounds",
+        json=_response("clients_active_inbounds"),
+    )
+
+    active = await _api().client.get_active_inbounds()
+
+    assert active == {"a1b2-...": ["in-443-tcp", "in-8443-tcp"]}
+
+
+@pytest.mark.asyncio
+async def test_get_last_online(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/clients/lastOnline",
+        json=_response("clients_last_online"),
+    )
+
+    last_online = await _api().client.get_last_online()
+
+    assert last_online == {"user1": 1735680000000, "user2": 0}

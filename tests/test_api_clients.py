@@ -16,6 +16,8 @@ from py3xui import (
     ClientEntryTraffic,
     ClientExternalLink,
     ClientGroup,
+    ClientHwid,
+    ClientIpEntry,
     ClientPage,
     ClientRenewalPreview,
     ClientTraffic,
@@ -584,3 +586,95 @@ def test_bulk_remove_from_group():
         assert m.last_request.method == "POST"
         assert m.last_request.json() == {"emails": ["alice", "bob"]}
     assert affected == 2
+
+
+def test_update_traffic():
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/clients/updateTraffic/{EMAIL_QUOTED}", json=OK_RESPONSE)
+        result = _api().client.update_traffic(EMAIL, 1073741824, 5368709120)
+
+        assert m.last_request.method == "POST"
+        assert m.last_request.json() == {"upload": 1073741824, "download": 5368709120}
+    assert result is None
+
+
+def test_get_hwids():
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/clients/hwids/{EMAIL_QUOTED}", json=_response("clients_hwids"))
+        hwids = _api().client.get_hwids(EMAIL)
+
+        assert m.last_request.method == "POST"
+    assert len(hwids) == 1
+    assert isinstance(hwids[0], ClientHwid)
+    assert hwids[0].id == 1
+    assert hwids[0].first_seen == 1735000000000
+    assert hwids[0].device_os == "android"
+    assert hwids[0].fingerprint == "6ad17c93e821"
+
+
+def test_get_hwids_empty():
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/clients/hwids/{EMAIL_QUOTED}", json=OK_RESPONSE)
+
+        assert _api().client.get_hwids(EMAIL) == []
+
+
+def test_delete_hwids():
+    with requests_mock.Mocker() as m:
+        m.delete(f"{HOST}/panel/api/clients/hwids/{EMAIL_QUOTED}", json=OK_RESPONSE)
+        result = _api().client.delete_hwids(EMAIL)
+
+        assert m.last_request.method == "DELETE"
+    assert result is None
+
+
+def test_delete_hwid():
+    with requests_mock.Mocker() as m:
+        m.delete(f"{HOST}/panel/api/clients/hwids/{EMAIL_QUOTED}/7", json=OK_RESPONSE)
+        result = _api().client.delete_hwid(EMAIL, 7)
+
+        assert m.last_request.method == "DELETE"
+    assert result is None
+
+
+def test_online_by_guid():
+    with requests_mock.Mocker() as m:
+        m.post(
+            f"{HOST}/panel/api/clients/onlinesByGuid", json=_response("clients_onlines_by_guid")
+        )
+        online = _api().client.online_by_guid()
+
+        assert m.last_request.method == "POST"
+    assert online == {"a1b2-...": ["user1"], "c3d4-...": ["user1", "user2"]}
+
+
+def test_get_ips_by_guid():
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/clients/clientIpsByGuid", json=_response("clients_ips_by_guid"))
+        ips = _api().client.get_ips_by_guid()
+
+        assert m.last_request.method == "POST"
+    entry = ips["a1b2-..."]["user1"][0]
+    assert isinstance(entry, ClientIpEntry)
+    assert entry.ip == "1.2.3.4"
+    assert entry.timestamp == 1700000000
+
+
+def test_get_active_inbounds():
+    with requests_mock.Mocker() as m:
+        m.post(
+            f"{HOST}/panel/api/clients/activeInbounds", json=_response("clients_active_inbounds")
+        )
+        active = _api().client.get_active_inbounds()
+
+        assert m.last_request.method == "POST"
+    assert active == {"a1b2-...": ["in-443-tcp", "in-8443-tcp"]}
+
+
+def test_get_last_online():
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/clients/lastOnline", json=_response("clients_last_online"))
+        last_online = _api().client.get_last_online()
+
+        assert m.last_request.method == "POST"
+    assert last_online == {"user1": 1735680000000, "user2": 0}
