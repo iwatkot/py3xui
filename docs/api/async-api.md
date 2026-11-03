@@ -65,3 +65,14 @@ except Exception as exc:
 
 - [Common Tasks](../examples/common-tasks.md)
 - [Asynchronous Recipes](../examples/async-recipes.md)
+
+## Timeouts and Retries
+
+```python
+api = AsyncApi("http://your-host:2053", token="token", timeout=15)
+api.max_retries = 1
+```
+
+`timeout` is in seconds and applies to every request. Without it the default of the HTTP library is
+used. `max_retries` is the number of attempts on connection errors, 3 by default. Retried requests
+include POST.

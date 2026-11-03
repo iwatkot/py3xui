@@ -31,6 +31,8 @@ class AsyncBaseApi:
         use_tls_verify (bool): Whether to verify the server TLS certificate.
         custom_certificate_path (str | None): Path to a custom certificate file.
         max_retries (int): The maximum number of retries for a request.
+        timeout (float | None): The request timeout in seconds. None keeps the default of the
+            HTTP library.
         session (str): The session cookie for the XUI API.
         cookie_name (str): The name of the cookie for the XUI API.
 
@@ -65,6 +67,7 @@ class AsyncBaseApi:
         self._custom_certificate_path = custom_certificate_path
         self._csrf_token: str | None = None
         self._max_retries: int = 3
+        self._timeout: float | None = None
         self._session: str | None = None
         self._cookie_name: str | None = None
         self.logger = logger or logging.getLogger(__name__)
@@ -94,6 +97,23 @@ class AsyncBaseApi:
         Returns:
             str: The password for the XUI API."""
         return self._password
+
+    @property
+    def timeout(self) -> float | None:
+        """The request timeout in seconds.
+
+        Returns:
+            float | None: The timeout, None keeps the default of the HTTP library."""
+        return self._timeout
+
+    @timeout.setter
+    def timeout(self, value: float | None) -> None:
+        """Sets the request timeout.
+
+        Arguments:
+            value (float | None): The timeout in seconds, None keeps the default of the HTTP
+                library."""
+        self._timeout = value
 
     @property
     def csrf_token(self) -> str | None:
@@ -207,7 +227,7 @@ class AsyncBaseApi:
 
         return headers
 
-    async def _request_with_retry(
+    async def _request_with_retry(  # pylint: disable=too-many-branches
         self,
         method: str,
         url: str,
@@ -230,6 +250,9 @@ class AsyncBaseApi:
             httpx.RequestError: If the request fails.
             httpx.HTTPStatusError: If the maximum number of retries is exceeded."""
         self.logger.debug("%s request to %s...", method, url)
+
+        if self._timeout is not None:
+            kwargs.setdefault("timeout", self._timeout)
 
         if not kwargs.pop("is_csrf_request", False):
             headers = self._generate_headers(headers)

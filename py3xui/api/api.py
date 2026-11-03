@@ -8,6 +8,7 @@ from typing import Any
 
 from py3xui.api import ClientApi, DatabaseApi, InboundApi, ServerApi
 from py3xui.utils import env
+from py3xui.api.api_base import BaseApi
 
 
 class Api:
@@ -32,6 +33,8 @@ class Api:
         use_tls_verify (bool): Whether to verify the server TLS certificate.
         custom_certificate_path (str | None): Path to a custom certificate file.
         logger (Any | None): The logger, if not set, default logger is used.
+        timeout (float | None): The request timeout in seconds. None keeps the default of the
+            HTTP library.
 
     Attributes and Properties:
         client (ClientApi): The client API.
@@ -77,6 +80,7 @@ class Api:
         logger: Any | None = None,
         *,
         token: str | None = None,  # The token is keyword for old version compatibility
+        timeout: float | None = None,
     ):  # pylint: disable=R0913, R0917
         self.logger = logger or logging.getLogger(__name__)
 
@@ -120,6 +124,8 @@ class Api:
         self._csrf_token: str | None = None
         self._session: str | None = None
         self._cookie_name: str | None = None
+        if timeout is not None:
+            self.timeout = timeout
 
     @property
     def csrf_token(self) -> str | None:
@@ -273,3 +279,45 @@ class Api:
         self.cookie_name = self.client.cookie_name
         self.csrf_token = self.client.csrf_token
         self.logger.info("Logged in successfully.")
+
+    def _sub_apis(self) -> list[BaseApi]:
+        """Returns the API groups of this facade.
+
+        Returns:
+            list[BaseApi]: The API groups."""
+        return [value for value in vars(self).values() if isinstance(value, BaseApi)]
+
+    @property
+    def timeout(self) -> float | None:
+        """The request timeout of the API groups, in seconds.
+
+        Returns:
+            float | None: The timeout, None keeps the default of the HTTP library."""
+        return self._sub_apis()[0].timeout
+
+    @timeout.setter
+    def timeout(self, value: float | None) -> None:
+        """Sets the request timeout for all API groups.
+
+        Arguments:
+            value (float | None): The timeout in seconds, None keeps the default of the HTTP
+                library."""
+        for sub_api in self._sub_apis():
+            sub_api.timeout = value
+
+    @property
+    def max_retries(self) -> int:
+        """The maximum number of attempts of a request in the API groups.
+
+        Returns:
+            int: The maximum number of attempts."""
+        return self._sub_apis()[0].max_retries
+
+    @max_retries.setter
+    def max_retries(self, value: int) -> None:
+        """Sets the maximum number of attempts of a request for all API groups.
+
+        Arguments:
+            value (int): The maximum number of attempts."""
+        for sub_api in self._sub_apis():
+            sub_api.max_retries = value
