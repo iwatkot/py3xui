@@ -22,3 +22,9 @@ Compatibility behavior is implemented in both sync and async clients.
 - `GET panel/api/clients/subLinks/{subId}`: `get_sub_links`
 - `GET panel/api/clients/links/{email}`: `get_links`
 - `POST panel/api/clients/happLink/{id}`: `get_happ_link`
+- `POST panel/api/clients/{email}/attach`: `attach`
+- `POST panel/api/clients/{email}/detach`: `detach`
+- `POST panel/api/clients/{email}/externalLinks`: `set_external_links`
+- `POST panel/api/clients/delOrphans`: `delete_orphans`
+- `GET panel/api/clients/export`: `export_clients`
+- `POST panel/api/clients/import`: `import_clients`

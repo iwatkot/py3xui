@@ -7,7 +7,12 @@ from pytest_httpx import HTTPXMock
 
 from py3xui import (
     AsyncApi,
+    BulkResult,
+    Client,
     ClientDetails,
+    ClientEntry,
+    ClientEntryTraffic,
+    ClientExternalLink,
     ClientPage,
     ClientRenewalPreview,
     ClientTraffic,
@@ -228,3 +233,120 @@ async def test_get_happ_link(httpx_mock: HTTPXMock):
     link = await _api().client.get_happ_link(42)
 
     assert link == "happ://crypt5/example"
+
+
+@pytest.mark.asyncio
+async def test_attach(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST", url=f"{HOST}/panel/api/clients/{EMAIL_QUOTED}/attach", json=OK_RESPONSE
+    )
+
+    result = await _api().client.attach(EMAIL, [7, 9])
+
+    assert _json_body(httpx_mock.get_request()) == {"inboundIds": [7, 9]}
+    assert result is None
+
+
+@pytest.mark.asyncio
+async def test_detach(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST", url=f"{HOST}/panel/api/clients/{EMAIL_QUOTED}/detach", json=OK_RESPONSE
+    )
+
+    result = await _api().client.detach(EMAIL, [5])
+
+    assert _json_body(httpx_mock.get_request()) == {"inboundIds": [5]}
+    assert result is None
+
+
+@pytest.mark.asyncio
+async def test_set_external_links(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/clients/{EMAIL_QUOTED}/externalLinks",
+        json=OK_RESPONSE,
+    )
+    links = [
+        ClientExternalLink(kind="link", value="vless://example", remark="DE", enable=True),
+        ClientExternalLink(
+            kind="subscription",
+            value="https://provider.example/sub/abc",
+            enable=False,
+            expiry_time=1767225600000,
+            name_prefix="[zjh] ",
+        ),
+    ]
+
+    result = await _api().client.set_external_links(EMAIL, links)
+
+    assert _json_body(httpx_mock.get_request()) == {
+        "externalLinks": [
+            {"kind": "link", "value": "vless://example", "remark": "DE", "enable": True},
+            {
+                "kind": "subscription",
+                "value": "https://provider.example/sub/abc",
+                "enable": False,
+                "expiryTime": 1767225600000,
+                "namePrefix": "[zjh] ",
+            },
+        ]
+    }
+    assert result is None
+
+
+@pytest.mark.asyncio
+async def test_delete_orphans(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/clients/delOrphans",
+        json=_response("clients_del_orphans"),
+    )
+
+    assert await _api().client.delete_orphans() == 0
+
+
+@pytest.mark.asyncio
+async def test_export_clients(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="GET", url=f"{HOST}/panel/api/clients/export", json=_response("clients_export")
+    )
+
+    entries = await _api().client.export_clients()
+
+    assert len(entries) == 1
+    assert isinstance(entries[0], ClientEntry)
+    assert entries[0].client.limit_hwid == 2
+    assert entries[0].inbound_ids == [7, 9]
+    assert isinstance(entries[0].traffic, ClientEntryTraffic)
+    assert entries[0].traffic.down == 2097152
+
+
+@pytest.mark.asyncio
+async def test_import_clients(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST", url=f"{HOST}/panel/api/clients/import", json=_response("clients_import")
+    )
+    entries = [
+        ClientEntry(
+            client=Client(email="alice@example.com", enable=False, limit_hwid=2),
+            inbound_ids=[7],
+            traffic=ClientEntryTraffic(up=10, down=20),
+        ),
+        ClientEntry(client=Client(email="bob@example.com", enable=True)),
+    ]
+
+    result = await _api().client.import_clients(entries)
+
+    body = _json_body(httpx_mock.get_request())
+    assert set(body) == {"data"}
+    assert json.loads(body["data"]) == [
+        {
+            "client": {"email": "alice@example.com", "enable": False, "limitHwid": 2},
+            "inboundIds": [7],
+            "traffic": {"up": 10, "down": 20},
+        },
+        {"client": {"email": "bob@example.com", "enable": True}},
+    ]
+    assert isinstance(result, BulkResult)
+    assert result.count == 2
+    assert result.skipped[0].email == "alice@example.com"

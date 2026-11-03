@@ -7,7 +7,12 @@ import requests_mock
 
 from py3xui import (
     Api,
+    BulkResult,
+    Client,
     ClientDetails,
+    ClientEntry,
+    ClientEntryTraffic,
+    ClientExternalLink,
     ClientPage,
     ClientRenewalPreview,
     ClientTraffic,
@@ -210,3 +215,137 @@ def test_get_happ_link():
 
         assert m.last_request.method == "POST"
     assert link == "happ://crypt5/example"
+
+
+def test_attach():
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/clients/{EMAIL_QUOTED}/attach", json=OK_RESPONSE)
+        result = _api().client.attach(EMAIL, [7, 9])
+
+        assert m.last_request.method == "POST"
+        assert m.last_request.json() == {"inboundIds": [7, 9]}
+    assert result is None
+
+
+def test_detach():
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/clients/{EMAIL_QUOTED}/detach", json=OK_RESPONSE)
+        result = _api().client.detach(EMAIL, [5])
+
+        assert m.last_request.method == "POST"
+        assert m.last_request.json() == {"inboundIds": [5]}
+    assert result is None
+
+
+def test_set_external_links():
+    links = [
+        ClientExternalLink(kind="link", value="vless://example", remark="DE", enable=True),
+        ClientExternalLink(
+            kind="subscription",
+            value="https://provider.example/sub/abc",
+            enable=False,
+            expiry_time=1767225600000,
+            name_prefix="[zjh] ",
+        ),
+    ]
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/clients/{EMAIL_QUOTED}/externalLinks", json=OK_RESPONSE)
+        result = _api().client.set_external_links(EMAIL, links)
+
+        assert m.last_request.method == "POST"
+        assert m.last_request.json() == {
+            "externalLinks": [
+                {"kind": "link", "value": "vless://example", "remark": "DE", "enable": True},
+                {
+                    "kind": "subscription",
+                    "value": "https://provider.example/sub/abc",
+                    "enable": False,
+                    "expiryTime": 1767225600000,
+                    "namePrefix": "[zjh] ",
+                },
+            ]
+        }
+    assert result is None
+
+
+def test_external_link_from_details_round_trip():
+    details = _response("clients_get_by_tg_id")[ApiFields.OBJ][0]
+    link = ClientExternalLink.model_validate(details["externalLinks"][0])
+
+    assert link.remark == "backup"
+    assert link.client_id == 42
+    dumped = link.model_dump(by_alias=True, exclude_defaults=True)
+    assert dumped["kind"] == "link"
+    assert dumped["value"] == "vless://example"
+    assert dumped["enable"] is True
+
+
+def test_delete_orphans():
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/clients/delOrphans", json=_response("clients_del_orphans"))
+        deleted = _api().client.delete_orphans()
+
+        assert m.last_request.method == "POST"
+    assert deleted == 0
+
+
+def test_export_clients():
+    with requests_mock.Mocker() as m:
+        m.get(f"{HOST}/panel/api/clients/export", json=_response("clients_export"))
+        entries = _api().client.export_clients()
+
+        assert m.last_request.method == "GET"
+    assert len(entries) == 1
+    assert isinstance(entries[0], ClientEntry)
+    assert entries[0].client.email == "alice@example.com"
+    assert entries[0].client.limit_hwid == 2
+    assert entries[0].inbound_ids == [7, 9]
+    assert isinstance(entries[0].traffic, ClientEntryTraffic)
+    assert entries[0].traffic.down == 2097152
+    assert entries[0].traffic.last_online == 1735680000000
+
+
+def test_import_clients():
+    entries = [
+        ClientEntry(
+            client=Client(email="alice@example.com", enable=False, limit_hwid=2),
+            inbound_ids=[7],
+            traffic=ClientEntryTraffic(up=10, down=20),
+        ),
+        ClientEntry(client=Client(email="bob@example.com", enable=True)),
+    ]
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/clients/import", json=_response("clients_import"))
+        result = _api().client.import_clients(entries)
+
+        assert m.last_request.method == "POST"
+        body = m.last_request.json()
+        assert set(body) == {"data"}
+        assert json.loads(body["data"]) == [
+            {
+                "client": {"email": "alice@example.com", "enable": False, "limitHwid": 2},
+                "inboundIds": [7],
+                "traffic": {"up": 10, "down": 20},
+            },
+            {"client": {"email": "bob@example.com", "enable": True}},
+        ]
+    assert isinstance(result, BulkResult)
+    assert result.count == 2
+    assert result.skipped[0].email == "alice@example.com"
+    assert result.skipped[0].reason == "email already in use: alice@example.com"
+
+
+def test_export_import_round_trip():
+    export = _response("clients_export")
+    with requests_mock.Mocker() as m:
+        m.get(f"{HOST}/panel/api/clients/export", json=export)
+        m.post(f"{HOST}/panel/api/clients/import", json=_response("clients_import"))
+        api = _api()
+        api.client.import_clients(api.client.export_clients())
+
+        sent = json.loads(m.last_request.json()["data"])
+    # Zero values are left out: the panel reads an absent number as 0.
+    expected = export[ApiFields.OBJ]
+    del expected[0]["client"]["expiryTime"]
+    del expected[0]["traffic"]["resetCount"]
+    assert sent == expected

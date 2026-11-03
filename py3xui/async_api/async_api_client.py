@@ -1,14 +1,18 @@
 """This module contains the ClientApi class which provides methods to interact with the
 clients in the XUI API."""
 
+import json
 from typing import Any
 from urllib.parse import quote
 
 from py3xui.api.api_base import ApiFields
 from py3xui.async_api.async_api_base import AsyncBaseApi
 from py3xui.client import (
+    BulkResult,
     Client,
     ClientDetails,
+    ClientEntry,
+    ClientExternalLink,
     ClientPage,
     ClientRenewalPreview,
     ClientTraffic,
@@ -46,6 +50,12 @@ class AsyncClientApi(AsyncBaseApi):  # pylint: disable=too-many-public-methods
         get_sub_links: Retrieves the share links of a subscription.
         get_links: Retrieves the share links of a client.
         get_happ_link: Generates an encrypted Happ link for a client.
+        attach: Attaches a client to inbounds.
+        detach: Detaches a client from inbounds.
+        set_external_links: Replaces the external links of a client.
+        delete_orphans: Deletes clients without inbounds.
+        export_clients: Exports all clients.
+        import_clients: Imports clients.
 
     Examples:
         ```python
@@ -784,6 +794,177 @@ class AsyncClientApi(AsyncBaseApi):  # pylint: disable=too-many-public-methods
         response = await self._post(url, headers, data)
         result = response.json().get(ApiFields.OBJ) or {}
         return result.get("encryptedLink", "")
+
+    async def attach(self, email: str, inbound_ids: list[int]) -> None:
+        """This route is used to attach an existing client to one or more additional inbounds.
+
+        Arguments:
+            email (str): The email of the client.
+            inbound_ids (list[int]): The IDs of the inbounds to attach the client to.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+            await api.client.attach("email", [7, 9])
+            ```
+        """
+        endpoint = f"panel/api/clients/{quote(email, safe='')}/attach"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data = {"inboundIds": inbound_ids}
+        self.logger.info("Attaching client %s to inbounds: %s", email, inbound_ids)
+
+        await self._post(url, headers, data)
+        self.logger.info("Client attached successfully.")
+
+    async def detach(self, email: str, inbound_ids: list[int]) -> None:
+        """This route is used to detach a client from one or more inbounds without deleting the
+        client. If the call fails for one inbound, the other inbounds are still processed.
+
+        Arguments:
+            email (str): The email of the client.
+            inbound_ids (list[int]): The IDs of the inbounds to detach the client from.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+            await api.client.detach("email", [5])
+            ```
+        """
+        endpoint = f"panel/api/clients/{quote(email, safe='')}/detach"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data = {"inboundIds": inbound_ids}
+        self.logger.info("Detaching client %s from inbounds: %s", email, inbound_ids)
+
+        await self._post(url, headers, data)
+        self.logger.info("Client detached successfully.")
+
+    async def set_external_links(self, email: str, links: list[ClientExternalLink]) -> None:
+        """This route is used to replace the external links and subscriptions of a client. The
+        panel replaces all stored rows with the given list, an empty list removes them all.
+
+        Arguments:
+            email (str): The email of the client.
+            links (list[ClientExternalLink]): The full list of external links.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+            link = py3xui.ClientExternalLink(kind="link", value="vless://...", remark="DE")
+            await api.client.set_external_links("email", [link])
+            ```
+        """
+        endpoint = f"panel/api/clients/{quote(email, safe='')}/externalLinks"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data = {
+            "externalLinks": [
+                link.model_dump(by_alias=True, exclude_defaults=True) for link in links
+            ]
+        }
+        self.logger.info("Setting %s external links for client: %s", len(links), email)
+
+        await self._post(url, headers, data)
+        self.logger.info("External links set successfully.")
+
+    async def delete_orphans(self) -> int:
+        """This route is used to delete every client that is not attached to any inbound, with
+        its traffic record, IP log, devices and external links. This can not be undone.
+
+        Returns:
+            int: The number of deleted clients.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+            deleted = await api.client.delete_orphans()
+            ```
+        """
+        endpoint = "panel/api/clients/delOrphans"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data: dict[str, Any] = {}
+        self.logger.info("Deleting orphan clients")
+
+        response = await self._post(url, headers, data)
+        result = response.json().get(ApiFields.OBJ) or {}
+        return result.get("deleted", 0)
+
+    async def export_clients(self) -> list[ClientEntry]:
+        """This route is used to export every client with its inbounds and usage counters. The
+        result can be passed straight to `import_clients`.
+
+        Returns:
+            list[ClientEntry]: The exported clients.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+            entries = await api.client.export_clients()
+            ```
+        """
+        endpoint = "panel/api/clients/export"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        self.logger.info("Exporting clients")
+
+        response = await self._get(url, headers)
+        entries_json = response.json().get(ApiFields.OBJ) or []
+        return [ClientEntry.model_validate(entry) for entry in entries_json]
+
+    async def import_clients(self, entries: list[ClientEntry]) -> BulkResult:
+        """This route is used to import clients, usually the result of `export_clients`. Entries
+        with empty `inbound_ids` are restored as unattached clients. Existing emails are never
+        overwritten: they are returned in `skipped`.
+
+        Arguments:
+            entries (list[ClientEntry]): The clients to import.
+
+        Returns:
+            BulkResult: The number of created clients and the skipped ones.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+            entries = await api.client.export_clients()
+            result = await api.client.import_clients(entries)
+            print(result.count, result.skipped)
+            ```
+        """
+        endpoint = "panel/api/clients/import"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        items = [entry.model_dump(by_alias=True, exclude_defaults=True) for entry in entries]
+        data = {"data": json.dumps(items)}
+        self.logger.info("Importing %s clients", len(entries))
+
+        response = await self._post(url, headers, data)
+        return BulkResult.model_validate(response.json().get(ApiFields.OBJ) or {})
 
     async def _resolve_client_email(self, inbound_id: int, client_identifier: str) -> str:
         """Resolves legacy client IDs/UUIDs to client email for delete endpoint."""

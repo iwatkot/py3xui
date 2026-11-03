@@ -27,3 +27,6 @@ When the upstream panel response shape changes, py3xui adapts parsing logic whil
 - `ClientsSummary`: client counters over the whole panel; the email lists stop at 200 entries.
 - `ClientTraffic`: traffic counters of a client.
 - `ClientRenewalPreview`: result of `get_renewal_preview`.
+- `ClientExternalLink`: external link or subscription, argument of `set_external_links`. `ClientDetails.external_links` items can be loaded with `ClientExternalLink.model_validate`.
+- `ClientEntry`: `client`, `inbound_ids` and `traffic` (`ClientEntryTraffic`). Returned by `export_clients`, accepted by `import_clients`.
+- `BulkResult`: `count` (created, adjusted, deleted or changed clients) and `skipped` (`BulkSkip` with `email` and `reason`).

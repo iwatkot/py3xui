@@ -94,3 +94,9 @@ All methods live on `api.client` and match the sync API in names, arguments and 
 - `get_sub_links(sub_id)`: share links of a subscription.
 - `get_links(email)`: share links of a client.
 - `get_happ_link(client_id)`: encrypted Happ link, by client record ID.
+- `attach(email, inbound_ids)`: attaches a client to more inbounds.
+- `detach(email, inbound_ids)`: detaches a client from inbounds, the client is kept.
+- `set_external_links(email, links)`: replaces all external links and subscriptions of a client.
+- `delete_orphans()`: deletes clients without inbounds, returns the number of deleted clients.
+- `export_clients()`: all clients with their inbounds and usage counters.
+- `import_clients(entries)`: imports the result of `export_clients`, existing emails are skipped.

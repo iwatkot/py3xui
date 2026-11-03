@@ -1,9 +1,9 @@
 """This module contains the read-only models returned by the client endpoints of the XUI API:
-traffic counters, paged client lists and renewal previews."""
+traffic counters, paged client lists, renewal previews and bulk operation results."""
 
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
 
 
 # pylint: disable=too-few-public-methods
@@ -63,6 +63,13 @@ class ClientInfoFields:
     RENEWALS = "renewals"
     CAN_RENEW = "canRenew"
     DELAYED_START = "delayedStart"
+
+    REASON = "reason"
+    CREATED = "created"
+    ADJUSTED = "adjusted"
+    DELETED = "deleted"
+    CHANGED = "changed"
+    SKIPPED = "skipped"
 
 
 def _empty_list(value: Any) -> Any:
@@ -266,3 +273,45 @@ class ClientRenewalPreview(BaseModel):
     delayed_start: bool = Field(default=False, alias=ClientInfoFields.DELAYED_START)  # type: ignore
 
     model_config = ConfigDict(populate_by_name=True)
+
+
+class BulkSkip(BaseModel):
+    """Represents a client that a bulk operation skipped.
+
+    Attributes:
+        email (str): The email of the client.
+        reason (str): Why the client was skipped.
+    """
+
+    email: str = ""
+    reason: str = ""
+
+
+class BulkResult(BaseModel):
+    """Represents the result of a bulk operation on clients.
+
+    Attributes:
+        count (int): The number of processed clients: created, adjusted, deleted or changed,
+            depending on the operation.
+        skipped (list[BulkSkip]): The clients that were skipped, with reasons.
+    """
+
+    count: int = Field(  # type: ignore
+        default=0,
+        validation_alias=AliasChoices(
+            "count",
+            ClientInfoFields.CREATED,
+            ClientInfoFields.ADJUSTED,
+            ClientInfoFields.DELETED,
+            ClientInfoFields.CHANGED,
+        ),
+    )
+    skipped: list[BulkSkip] = Field(default_factory=list)
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    @field_validator("skipped", mode="before")
+    @classmethod
+    def replace_null(cls, value: Any) -> Any:
+        """Replaces JSON null with an empty list."""
+        return _empty_list(value)

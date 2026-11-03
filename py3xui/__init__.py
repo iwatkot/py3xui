@@ -1,8 +1,16 @@
 # pylint: disable=missing-module-docstring
 from py3xui.api.api import Api
 from py3xui.async_api.async_api import AsyncApi
-from py3xui.client.client import Client, ClientDetails
+from py3xui.client.client import (
+    Client,
+    ClientDetails,
+    ClientEntry,
+    ClientEntryTraffic,
+    ClientExternalLink,
+)
 from py3xui.client.client_info import (
+    BulkResult,
+    BulkSkip,
     ClientPage,
     ClientRenewalPreview,
     ClientsSummary,

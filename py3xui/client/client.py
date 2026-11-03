@@ -69,6 +69,20 @@ class ClientFields:
     USED_TRAFFIC = "usedTraffic"
     TUNNEL_ALLOWED_IPS = "tunnelAllowedIPs"
 
+    TRAFFIC = "traffic"
+    RESET_COUNT = "resetCount"
+    LAST_ONLINE = "lastOnline"
+    LAST_SUB_FETCH = "lastSubFetch"
+
+    KIND = "kind"
+    VALUE = "value"
+    REMARK = "remark"
+    NAME_PREFIX = "namePrefix"
+    CLIENT_ID = "clientId"
+    LAST_FETCH_AT = "lastFetchAt"
+    LAST_FETCH_ERROR = "lastFetchError"
+    SORT_INDEX = "sortIndex"
+
 
 class Client(BaseModel):
     """Represents a client in the XUI API.
@@ -241,3 +255,96 @@ class ClientDetails(BaseModel):
         if value is None:
             return {} if info.field_name == "tunnel_allowed_ips" else []
         return value
+
+
+class ClientExternalLink(BaseModel):
+    """Represents an external link or subscription of a client. The panel merges these into the
+    client's subscription.
+
+    Attributes:
+        kind (str): "link" for a single share link, "subscription" for a remote subscription URL.
+        value (str): The share link or the subscription URL.
+        remark (str): The node name that overrides the one in a share link. Optional.
+        enable (bool | None): Whether the link is emitted in subscriptions; None means True.
+            Optional.
+        expiry_time (int): The expiry time of the link in milliseconds, 0 means none. Optional.
+        name_prefix (str): The prefix of the node names of a subscription. Optional.
+        id (int): The ID of the link. Ignored by the panel on write. Optional.
+        client_id (int): The record ID of the client. Ignored by the panel on write. Optional.
+        last_fetch_at (int): The last subscription fetch time. Read-only. Optional.
+        last_fetch_error (str): The last subscription fetch error. Read-only. Optional.
+        sort_index (int): The position of the link. Read-only. Optional.
+        created_at (int): The creation time in milliseconds. Read-only. Optional.
+    """
+
+    kind: str
+    value: str
+    remark: str = ""
+    enable: bool | None = None
+    expiry_time: int = Field(default=0, alias=ClientFields.EXPIRY_TIME)  # type: ignore
+    name_prefix: str = Field(default="", alias=ClientFields.NAME_PREFIX)  # type: ignore
+    id: int = 0
+    client_id: int = Field(default=0, alias=ClientFields.CLIENT_ID)  # type: ignore
+    last_fetch_at: int = Field(default=0, alias=ClientFields.LAST_FETCH_AT)  # type: ignore
+    last_fetch_error: str = Field(default="", alias=ClientFields.LAST_FETCH_ERROR)  # type: ignore
+    sort_index: int = Field(default=0, alias=ClientFields.SORT_INDEX)  # type: ignore
+    created_at: int = Field(default=0, alias=ClientFields.CREATED_AT_RECORD)  # type: ignore
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        extra="allow",
+    )
+
+
+class ClientEntryTraffic(BaseModel):
+    """Represents the usage counters carried by a `ClientEntry`. On import, they are restored
+    only for the clients that the import creates.
+
+    Attributes:
+        up (int): The uploaded traffic in bytes. Optional.
+        down (int): The downloaded traffic in bytes. Optional.
+        reset_count (int): The number of renewals already done. Optional.
+        last_online (int): The last time the client was online, in milliseconds. Optional.
+        last_sub_fetch (int): The last subscription fetch time, in milliseconds. Optional.
+    """
+
+    up: int = 0
+    down: int = 0
+    reset_count: int = Field(default=0, alias=ClientFields.RESET_COUNT)  # type: ignore
+    last_online: int = Field(default=0, alias=ClientFields.LAST_ONLINE)  # type: ignore
+    last_sub_fetch: int = Field(default=0, alias=ClientFields.LAST_SUB_FETCH)  # type: ignore
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        extra="allow",
+    )
+
+
+class ClientEntry(BaseModel):
+    """Represents a client together with its inbounds: an item of `export_clients`, and the input
+    of `import_clients` and `bulk_add`.
+
+    Attributes:
+        client (Client): The client.
+        inbound_ids (list[int]): The IDs of the inbounds the client is attached to. Optional.
+        traffic (ClientEntryTraffic | None): The usage counters of the client. Optional.
+    """
+
+    client: Client = Field(alias=ClientFields.CLIENT)  # type: ignore
+    inbound_ids: list[int] = Field(  # type: ignore
+        default_factory=list, alias=ClientFields.INBOUND_IDS
+    )
+    traffic: ClientEntryTraffic | None = Field(  # type: ignore
+        default=None, alias=ClientFields.TRAFFIC
+    )
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        extra="allow",
+    )
+
+    @field_validator("inbound_ids", mode="before")
+    @classmethod
+    def replace_null(cls, value: Any) -> Any:
+        """Replaces JSON null (a nil slice in the panel) with an empty list."""
+        return [] if value is None else value
