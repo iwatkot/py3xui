@@ -13,6 +13,7 @@ from py3xui.xray import (
     GeoEntry,
     GeoEntryPage,
     GeoFile,
+    OutboundSub,
     OutboundTestEgress,
     OutboundTestEndpoint,
     OutboundTestResult,

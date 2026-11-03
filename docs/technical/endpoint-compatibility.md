@@ -19,3 +19,6 @@ Compatibility behavior is implemented in both sync and async clients.
 - `warp/*` and `nord/*` return JSON strings in `obj`; the methods parse them, an empty value gives an empty `dict`. `pia/*` return plain objects.
 - The `warp`, `nord` and `pia` routes take an `{action}` path parameter; every action has its own method with typed arguments.
 - `balancerStatus` reports `selected: null` for a balancer that is not running; `BalancerStatus.selected` is an empty list then.
+- `outbound-subs/{id}` also accepts DELETE; `delete_outbound_sub()` uses the POST `.../{id}/del` alias.
+- `outbound-subs/{id}` replaces the editable fields: fields which are absent in the form get their defaults.
+- Creating a subscription only stores it. Call `refresh_outbound_sub()` to fetch its outbounds.

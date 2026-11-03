@@ -18,3 +18,4 @@ Models of `api.xray`, exported from `py3xui`:
 - `PiaAccount`, `PiaCountry`, `PiaRegion`, `PiaServer`, `PiaServers`, `PiaKey`
 - `OutboundTestResult`, `OutboundTestEndpoint`, `OutboundTestEgress`, `BalancerStatus`, `RouteTestResult`
 - `GeoFile`, `GeoCategory`, `GeoCategoryPage`, `GeoEntry`, `GeoEntryPage`, `GeodataTokenIssue`
+- `OutboundSub` (keeps unknown fields, is sent back to the panel)

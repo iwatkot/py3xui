@@ -1,0 +1,26 @@
+{
+    "success": true,
+    "msg": "",
+    "obj": [
+        {
+            "id": 1,
+            "remark": "example",
+            "url": "https://example.com/sub",
+            "enabled": true,
+            "allowPrivate": true,
+            "allowInsecure": false,
+            "userAgent": "agent",
+            "tagPrefix": "sub1-",
+            "updateInterval": 300,
+            "priority": 0,
+            "prepend": false,
+            "lastUpdated": 1769558400,
+            "lastError": "",
+            "lastFetchedOutbounds": "",
+            "createdAt": 1769558400000,
+            "updatedAt": 1769558400000,
+            "outboundCount": 3,
+            "futureField": "kept"
+        }
+    ]
+}

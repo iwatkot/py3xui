@@ -16,6 +16,7 @@ from py3xui import (
     GeoEntry,
     GeoEntryPage,
     GeoFile,
+    OutboundSub,
     OutboundTestEgress,
     OutboundTestEndpoint,
     OutboundTestResult,
@@ -594,3 +595,138 @@ def test_validate_geodata(m, api):
             code="blabla",
         )
     ]
+
+
+def test_get_outbound_subs(m, api):
+    mock(m, "GET", "outbound-subs", load("outbound_subs"))
+
+    subs = api.xray.get_outbound_subs()
+
+    check(m, "GET", "outbound-subs")
+    assert len(subs) == 1
+    assert isinstance(subs[0], OutboundSub)
+    assert subs[0].id == 1
+    assert subs[0].url == "https://example.com/sub"
+    assert subs[0].tag_prefix == "sub1-"
+    assert subs[0].outbound_count == 3
+    assert subs[0].allow_private is True
+
+
+def test_get_outbound_subs_keeps_unknown_fields(m, api):
+    mock(m, "GET", "outbound-subs", load("outbound_subs"))
+
+    subs = api.xray.get_outbound_subs()
+    sub = subs[0]
+
+    assert sub.model_dump(by_alias=True)["futureField"] == "kept"
+    assert sub.to_form_fields()["futureField"] == "kept"
+
+
+def test_add_outbound_sub(m, api):
+    mock(m, "POST", "outbound-subs", load("outbound_sub"))
+
+    created = api.xray.add_outbound_sub(
+        OutboundSub(
+            url="https://example.com/sub",
+            remark="example",
+            tag_prefix="sub1-",
+            user_agent="agent",
+            update_interval=300,
+            enabled=False,
+            allow_private=True,
+            allow_insecure=True,
+            prepend=True,
+        )
+    )
+
+    check(m, "POST", "outbound-subs")
+    assert form(m) == {
+        "url": ["https://example.com/sub"],
+        "remark": ["example"],
+        "tagPrefix": ["sub1-"],
+        "userAgent": ["agent"],
+        "updateInterval": ["300"],
+        "enabled": ["false"],
+        "allowPrivate": ["true"],
+        "allowInsecure": ["true"],
+        "prepend": ["true"],
+    }
+    assert created.id == 1
+    assert created.enabled is True
+
+
+def test_add_outbound_sub_sends_only_url_by_default(m, api):
+    mock(m, "POST", "outbound-subs", load("outbound_sub"))
+
+    api.xray.add_outbound_sub(OutboundSub(url="https://example.com/sub"))
+
+    assert form(m) == {"url": ["https://example.com/sub"]}
+
+
+def test_update_outbound_sub(m, api):
+    mock(m, "POST", "outbound-subs/1")
+    sub = OutboundSub.model_validate(load("outbound_sub")["obj"])
+    sub.remark = "new remark"
+
+    result = api.xray.update_outbound_sub(sub.id, sub)
+
+    check(m, "POST", "outbound-subs/1")
+    assert form(m) == {
+        "url": ["https://example.com/sub"],
+        "remark": ["new remark"],
+        "tagPrefix": ["sub1-"],
+        "userAgent": ["agent"],
+        "updateInterval": ["300"],
+    }
+    assert result is None
+
+
+def test_delete_outbound_sub(m, api):
+    mock(m, "POST", "outbound-subs/1/del")
+
+    result = api.xray.delete_outbound_sub(1)
+
+    check(m, "POST", "outbound-subs/1/del")
+    assert result is None
+
+
+def test_refresh_outbound_sub(m, api):
+    mock(m, "POST", "outbound-subs/1/refresh", load("outbound_sub_outbounds"))
+
+    outbounds = api.xray.refresh_outbound_sub(1)
+
+    check(m, "POST", "outbound-subs/1/refresh")
+    assert outbounds == [{"tag": "sub1-vless", "protocol": "vless"}]
+
+
+def test_refresh_outbound_sub_without_outbounds(m, api):
+    mock(m, "POST", "outbound-subs/1/refresh", {"success": True, "msg": "", "obj": None})
+
+    assert api.xray.refresh_outbound_sub(1) == []
+
+
+def test_move_outbound_sub(m, api):
+    mock(m, "POST", "outbound-subs/1/move")
+
+    result = api.xray.move_outbound_sub(1, "up")
+
+    check(m, "POST", "outbound-subs/1/move")
+    assert form(m) == {"dir": ["up"]}
+    assert result is None
+
+
+def test_parse_outbound_sub(m, api):
+    mock(m, "POST", "outbound-subs/parse", load("outbound_sub_outbounds"))
+
+    outbounds = api.xray.parse_outbound_sub(
+        "https://example.com/sub", "agent", allow_private=True, allow_insecure=True
+    )
+
+    check(m, "POST", "outbound-subs/parse")
+    assert form(m) == {
+        "url": ["https://example.com/sub"],
+        "userAgent": ["agent"],
+        "allowPrivate": ["true"],
+        "allowInsecure": ["true"],
+    }
+    assert outbounds == [{"tag": "sub1-vless", "protocol": "vless"}]

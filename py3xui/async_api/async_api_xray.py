@@ -17,6 +17,7 @@ from py3xui.xray.geodata import (
     GeoEntryPage,
     GeoFile,
 )
+from py3xui.xray.outbound_sub import OutboundSub
 from py3xui.xray.pia import PiaAccount, PiaCountry, PiaKey, PiaServers
 from py3xui.xray.xray import OutboundTraffic, XraySettings, parse_json_obj
 
@@ -69,6 +70,13 @@ class AsyncXrayApi(AsyncBaseApi):  # pylint: disable=too-many-public-methods
         get_geodata_categories: Retrieves one page of the categories of a geo database.
         get_geodata_entries: Retrieves one page of the entries of a category.
         validate_geodata: Reports the routing tokens which do not resolve.
+        get_outbound_subs: Retrieves the outbound subscriptions.
+        add_outbound_sub: Adds a new outbound subscription.
+        update_outbound_sub: Updates an outbound subscription.
+        delete_outbound_sub: Deletes an outbound subscription.
+        refresh_outbound_sub: Fetches an outbound subscription right away.
+        move_outbound_sub: Moves an outbound subscription one step in the order.
+        parse_outbound_sub: Previews a subscription URL without saving it.
 
     Examples:
         ```python
@@ -1098,3 +1106,208 @@ class AsyncXrayApi(AsyncBaseApi):  # pylint: disable=too-many-public-methods
         response = await self._post_form(url, headers, form)
         issues_json = response.json().get(ApiFields.OBJ) or []
         return [GeodataTokenIssue.model_validate(data) for data in issues_json]
+
+    async def get_outbound_subs(self) -> list[OutboundSub]:
+        """Retrieves the outbound subscriptions in the order of their priority. The panel leaves
+        out the fetched outbounds here, see the outbound_count field.
+
+        Returns:
+            list[OutboundSub]: The outbound subscriptions.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+
+            subs: list[py3xui.OutboundSub] = await api.xray.get_outbound_subs()
+            ```
+        """
+        endpoint = "panel/api/xray/outbound-subs"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        self.logger.info("Getting outbound subscriptions...")
+
+        response = await self._get(url, headers)
+        subs_json = response.json().get(ApiFields.OBJ) or []
+        return [OutboundSub.model_validate(data) for data in subs_json]
+
+    async def add_outbound_sub(self, sub: OutboundSub) -> OutboundSub:
+        """Adds a new outbound subscription. The panel only stores it, use
+        `refresh_outbound_sub()` to fetch the outbounds right away.
+
+        Arguments:
+            sub (OutboundSub): The subscription to add.
+
+        Returns:
+            OutboundSub: The created subscription.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+
+            sub = py3xui.OutboundSub(url="https://example.com/sub", remark="example")
+            created: py3xui.OutboundSub = await api.xray.add_outbound_sub(sub)
+            ```
+        """
+        endpoint = "panel/api/xray/outbound-subs"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        data = sub.to_form_fields()
+        self.logger.info("Adding outbound subscription: %s", sub.remark)
+
+        response = await self._post_form(url, headers, data)
+        return OutboundSub.model_validate(response.json().get(ApiFields.OBJ))
+
+    async def update_outbound_sub(self, sub_id: int, sub: OutboundSub) -> None:
+        """Updates an outbound subscription.
+
+        Note:
+            The panel replaces all the editable fields, so the absent ones get their defaults.
+            Get the subscription with `get_outbound_subs()` and change the fields you need.
+
+        Arguments:
+            sub_id (int): The ID of the subscription.
+            sub (OutboundSub): The new values of the subscription.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+
+            subs = await api.xray.get_outbound_subs()
+            sub = subs[0]
+            sub.remark = "new remark"
+            await api.xray.update_outbound_sub(sub.id, sub)
+            ```
+        """
+        endpoint = f"panel/api/xray/outbound-subs/{sub_id}"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        data = sub.to_form_fields()
+        self.logger.info("Updating outbound subscription: %s", sub_id)
+
+        await self._post_form(url, headers, data)
+
+    async def delete_outbound_sub(self, sub_id: int) -> None:
+        """Deletes an outbound subscription.
+
+        Arguments:
+            sub_id (int): The ID of the subscription.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+
+            await api.xray.delete_outbound_sub(1)
+            ```
+        """
+        endpoint = f"panel/api/xray/outbound-subs/{sub_id}/del"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        self.logger.info("Deleting outbound subscription: %s", sub_id)
+
+        await self._post_form(url, headers, {})
+
+    async def refresh_outbound_sub(self, sub_id: int) -> list[dict[str, Any]]:
+        """Fetches an outbound subscription right away.
+
+        Arguments:
+            sub_id (int): The ID of the subscription.
+
+        Returns:
+            list[dict[str, Any]]: The generated Xray outbounds.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+
+            outbounds = await api.xray.refresh_outbound_sub(1)
+            ```
+        """
+        endpoint = f"panel/api/xray/outbound-subs/{sub_id}/refresh"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        self.logger.info("Refreshing outbound subscription: %s", sub_id)
+
+        response = await self._post_form(url, headers, {})
+        return response.json().get(ApiFields.OBJ) or []
+
+    async def move_outbound_sub(self, sub_id: int, direction: str) -> None:
+        """Moves an outbound subscription one step in the order of the merged outbounds.
+
+        Arguments:
+            sub_id (int): The ID of the subscription.
+            direction (str): "up" raises the priority, anything else lowers it.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+
+            await api.xray.move_outbound_sub(1, "up")
+            ```
+        """
+        endpoint = f"panel/api/xray/outbound-subs/{sub_id}/move"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        data = {"dir": direction}
+        self.logger.info("Moving outbound subscription %s: %s", sub_id, direction)
+
+        await self._post_form(url, headers, data)
+
+    async def parse_outbound_sub(
+        self,
+        url: str,
+        user_agent: str | None = None,
+        allow_private: bool = False,
+        allow_insecure: bool = False,
+    ) -> list[dict[str, Any]]:
+        """Fetches a subscription URL and parses it into outbounds without saving it.
+
+        Arguments:
+            url (str): The URL of the subscription.
+            user_agent (str | None): The User-Agent used to fetch the URL.
+            allow_private (bool): Whether to allow a private or loopback address.
+            allow_insecure (bool): Whether to skip the TLS certificate verification.
+
+        Returns:
+            list[dict[str, Any]]: The generated Xray outbounds.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+
+            outbounds = await api.xray.parse_outbound_sub("https://example.com/sub")
+            ```
+        """
+        endpoint = "panel/api/xray/outbound-subs/parse"
+        headers = {"Accept": "application/json"}
+        request_url = self._url(endpoint)
+        data = {
+            "url": url,
+            "userAgent": user_agent,
+            "allowPrivate": allow_private,
+            "allowInsecure": allow_insecure,
+        }
+        self.logger.info("Parsing outbound subscription URL...")
+
+        response = await self._post_form(request_url, headers, data)
+        return response.json().get(ApiFields.OBJ) or []

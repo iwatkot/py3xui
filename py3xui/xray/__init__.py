@@ -14,6 +14,7 @@ from py3xui.xray.geodata import (
     GeoEntryPage,
     GeoFile,
 )
+from py3xui.xray.outbound_sub import OutboundSub
 from py3xui.xray.pia import (
     PiaAccount,
     PiaCountry,

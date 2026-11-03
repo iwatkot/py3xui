@@ -115,3 +115,10 @@ traffic = api.xray.get_outbounds_traffic()
 | `get_geodata_categories(file, query=None, offset=None, limit=None)` | `GET /panel/api/xray/geodata/categories` | `GeoCategoryPage` |
 | `get_geodata_entries(file, code, query=None, offset=None, limit=None)` | `GET /panel/api/xray/geodata/entries` | `GeoEntryPage` |
 | `validate_geodata(tokens, kind=None)` | `POST /panel/api/xray/geodata/validate` | `list[GeodataTokenIssue]` |
+| `get_outbound_subs()` | `GET /panel/api/xray/outbound-subs` | `list[OutboundSub]` |
+| `add_outbound_sub(sub)` | `POST /panel/api/xray/outbound-subs` | `OutboundSub` |
+| `update_outbound_sub(sub_id, sub)` | `POST /panel/api/xray/outbound-subs/{id}` | `None` |
+| `delete_outbound_sub(sub_id)` | `POST /panel/api/xray/outbound-subs/{id}/del` | `None` |
+| `refresh_outbound_sub(sub_id)` | `POST /panel/api/xray/outbound-subs/{id}/refresh` | `list[dict]` |
+| `move_outbound_sub(sub_id, direction)` | `POST /panel/api/xray/outbound-subs/{id}/move` | `None` |
+| `parse_outbound_sub(url, user_agent=None, allow_private=False, allow_insecure=False)` | `POST /panel/api/xray/outbound-subs/parse` | `list[dict]` |
