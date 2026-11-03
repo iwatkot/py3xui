@@ -1,0 +1,91 @@
+{
+  "success": true,
+  "msg": "",
+  "obj": {
+    "filtered": 47,
+    "groups": [
+      "staff",
+      "trial"
+    ],
+    "items": [
+      {
+        "comment": "Primary device",
+        "createdAt": 1735000000000,
+        "email": "alice@example.com",
+        "enable": true,
+        "expiryTime": 1735689600000,
+        "group": "staff",
+        "inboundIds": [
+          3,
+          5
+        ],
+        "limitHwid": 0,
+        "limitIp": 0,
+        "reset": 0,
+        "resetDay": 0,
+        "resetMax": 0,
+        "resetWeekday": 0,
+        "subId": "abcd1234",
+        "totalGB": 53687091200,
+        "traffic": null,
+        "updatedAt": 1735100000000
+      },
+      {
+        "createdAt": 1735000000000,
+        "email": "user1",
+        "enable": true,
+        "expiryTime": 1735689600000,
+        "inboundIds": [
+          1
+        ],
+        "limitHwid": 0,
+        "limitIp": 0,
+        "reset": 0,
+        "resetDay": 0,
+        "resetMax": 0,
+        "resetWeekday": 0,
+        "subId": "i7tvdpeffi0hvvf1",
+        "totalGB": 53687091200,
+        "traffic": {
+          "down": 2097152,
+          "email": "user1",
+          "enable": true,
+          "expiryTime": 1735689600000,
+          "id": 14825,
+          "inboundId": 1,
+          "lastOnline": 1735680000000,
+          "lastSubFetch": 1735680000000,
+          "reset": 0,
+          "resetCount": 0,
+          "resetDay": 0,
+          "resetMax": 0,
+          "resetWeekday": 0,
+          "subId": "i7tvdpeffi0hvvf1",
+          "total": 10737418240,
+          "up": 1048576,
+          "uuid": "e18c9a96-71bf-48d4-933f-8b9a46d4290c"
+        },
+        "updatedAt": 1735100000000
+      }
+    ],
+    "page": 1,
+    "pageSize": 25,
+    "summary": {
+      "active": 1850,
+      "deactive": [
+        "bob@example.com"
+      ],
+      "deactiveCount": 150,
+      "depleted": [],
+      "depletedCount": 0,
+      "expiring": [],
+      "expiringCount": 0,
+      "online": [
+        "alice@example.com"
+      ],
+      "onlineCount": 1,
+      "total": 2000
+    },
+    "total": 2000
+  }
+}

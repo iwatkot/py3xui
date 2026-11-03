@@ -1,0 +1,9 @@
+{
+  "success": true,
+  "msg": "",
+  "obj": [
+    "alice",
+    "bob",
+    "carol"
+  ]
+}

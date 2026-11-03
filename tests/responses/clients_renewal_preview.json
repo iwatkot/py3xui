@@ -1,0 +1,15 @@
+{
+  "success": true,
+  "msg": "",
+  "obj": {
+    "canRenew": true,
+    "delayedStart": false,
+    "nextExpiry": "2030-02-01T00:00:00Z",
+    "renewAt": "2030-01-01T00:00:00Z",
+    "renewals": 1,
+    "suggestedExpiry": "2030-01-01T00:00:00Z",
+    "suggestedExpiryTime": 1893456000000,
+    "timeZone": "UTC",
+    "validThrough": "2029-12-31T23:59:59Z"
+  }
+}

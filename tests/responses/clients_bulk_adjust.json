@@ -1,0 +1,13 @@
+{
+  "success": true,
+  "msg": "",
+  "obj": {
+    "adjusted": 2,
+    "skipped": [
+      {
+        "email": "carol",
+        "reason": "unlimited expiry"
+      }
+    ]
+  }
+}

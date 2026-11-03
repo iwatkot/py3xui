@@ -1,0 +1,27 @@
+{
+  "success": true,
+  "msg": "",
+  "obj": [
+    {
+      "client": {
+        "email": "alice@example.com",
+        "id": "...",
+        "totalGB": 53687091200,
+        "expiryTime": 0,
+        "limitHwid": 2,
+        "enable": true,
+        "subId": "..."
+      },
+      "inboundIds": [
+        7,
+        9
+      ],
+      "traffic": {
+        "up": 1048576,
+        "down": 2097152,
+        "resetCount": 0,
+        "lastOnline": 1735680000000
+      }
+    }
+  ]
+}

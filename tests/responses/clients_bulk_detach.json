@@ -1,0 +1,12 @@
+{
+  "success": true,
+  "msg": "",
+  "obj": {
+    "detached": [
+      "alice",
+      "bob"
+    ],
+    "skipped": [],
+    "errors": []
+  }
+}

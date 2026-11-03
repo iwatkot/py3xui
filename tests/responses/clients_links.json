@@ -1,0 +1,7 @@
+{
+  "success": true,
+  "msg": "",
+  "obj": [
+    "vless://uuid@host:443?...#user1"
+  ]
+}

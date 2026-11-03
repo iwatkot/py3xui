@@ -1,0 +1,13 @@
+{
+  "success": true,
+  "msg": "",
+  "obj": {
+    "created": 2,
+    "skipped": [
+      {
+        "email": "alice@example.com",
+        "reason": "email already in use"
+      }
+    ]
+  }
+}
