@@ -1,0 +1,6 @@
+{
+  "success": true,
+  "obj": {
+    "caCert": "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----\n"
+  }
+}
