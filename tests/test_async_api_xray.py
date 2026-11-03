@@ -9,12 +9,17 @@ from pytest_httpx import HTTPXMock
 
 from py3xui import (
     AsyncApi,
+    BalancerStatus,
     GeodataSource,
+    OutboundTestEgress,
+    OutboundTestEndpoint,
+    OutboundTestResult,
     OutboundTraffic,
     PiaAccount,
     PiaCountry,
     PiaKey,
     PiaServers,
+    RouteTestResult,
     XraySettings,
 )
 from py3xui.async_api import AsyncXrayApi
@@ -64,6 +69,10 @@ def form(m):
 
 def query(m):
     return parse_qs(m.get_requests()[-1].url.query.decode())
+
+
+def body_text(m):
+    return m.get_requests()[-1].content.decode()
 
 
 # --- tests ---
@@ -415,3 +424,120 @@ async def test_pia_add_key(m, api):
     assert isinstance(key, PiaKey)
     assert key.secret_key == "fake-secret-key"
     assert key.endpoint == "192.0.2.1:1337"
+
+
+@pytest.mark.asyncio
+async def test_test_outbound(m, api):
+    mock(m, "POST", "testOutbound", load("test_outbound"))
+
+    result = await api.xray.test_outbound('{"tag":"proxy"}', '[{"tag":"proxy"}]', "tcp")
+
+    check(m, "POST", "testOutbound")
+    assert form(m) == {
+        "outbound": ['{"tag":"proxy"}'],
+        "allOutbounds": ['[{"tag":"proxy"}]'],
+        "mode": ["tcp"],
+    }
+    assert isinstance(result, OutboundTestResult)
+    assert result.success is True
+    assert result.http_status == 204
+    assert result.ttfb_ms == 90
+    assert result.endpoints == [
+        OutboundTestEndpoint(address="192.0.2.1:443", success=True, delay=12)
+    ]
+    assert result.egress == OutboundTestEgress(ipv4="192.0.2.2", country="NL", warp="off")
+
+
+@pytest.mark.asyncio
+async def test_test_outbound_only_required_fields(m, api):
+    mock(m, "POST", "testOutbound", {"success": True, "msg": "", "obj": {"success": False, "delay": 0}})
+
+    result = await api.xray.test_outbound('{"tag":"proxy"}')
+
+    assert form(m) == {"outbound": ['{"tag":"proxy"}']}
+    assert result.success is False
+    assert result.endpoints == []
+    assert result.egress is None
+
+
+@pytest.mark.asyncio
+async def test_test_outbounds(m, api):
+    mock(m, "POST", "testOutbounds", load("test_outbounds"))
+
+    results = await api.xray.test_outbounds('[{"tag":"proxy"}]', mode="real")
+
+    check(m, "POST", "testOutbounds")
+    assert form(m) == {"outbounds": ['[{"tag":"proxy"}]'], "mode": ["real"]}
+    assert [result.tag for result in results] == ["proxy", "dead"]
+    assert results[1].error == "timeout"
+
+
+@pytest.mark.asyncio
+async def test_get_balancer_status(m, api):
+    mock(m, "POST", "balancerStatus", load("balancer_status"))
+
+    statuses = await api.xray.get_balancer_status(["b1", "b2"])
+
+    check(m, "POST", "balancerStatus")
+    assert form(m) == {"tags": ["b1,b2"]}
+    assert statuses == {
+        "b1": BalancerStatus(tag="b1", running=True, override="direct", selected=["direct"]),
+        "b2": BalancerStatus(tag="b2", running=False, override="", selected=[]),
+    }
+
+
+@pytest.mark.asyncio
+async def test_set_balancer_override(m, api):
+    mock(m, "POST", "balancerOverride")
+
+    result = await api.xray.set_balancer_override("b1", "direct")
+
+    check(m, "POST", "balancerOverride")
+    assert form(m) == {"tag": ["b1"], "target": ["direct"]}
+    assert result is None
+
+
+@pytest.mark.asyncio
+async def test_set_balancer_override_clear(m, api):
+    mock(m, "POST", "balancerOverride")
+
+    await api.xray.set_balancer_override("b1")
+
+    assert parse_qs(body_text(m), keep_blank_values=True) == {"tag": ["b1"], "target": [""]}
+
+
+@pytest.mark.asyncio
+async def test_test_route(m, api):
+    mock(m, "POST", "routeTest", load("route_test"))
+
+    result = await api.xray.test_route(
+        domain="example.com",
+        ip="192.0.2.1",
+        port=443,
+        network="tcp",
+        inbound_tag="in-443",
+        protocol="tls",
+        email="user@example.com",
+    )
+
+    check(m, "POST", "routeTest")
+    assert form(m) == {
+        "domain": ["example.com"],
+        "ip": ["192.0.2.1"],
+        "port": ["443"],
+        "network": ["tcp"],
+        "inboundTag": ["in-443"],
+        "protocol": ["tls"],
+        "email": ["user@example.com"],
+    }
+    assert result == RouteTestResult(matched=True, outbound_tag="direct", group_tags=["b1"])
+
+
+@pytest.mark.asyncio
+async def test_test_route_skips_empty_arguments(m, api):
+    mock(m, "POST", "routeTest", {"success": True, "msg": "", "obj": {"matched": False, "outboundTag": ""}})
+
+    result = await api.xray.test_route(ip="192.0.2.1")
+
+    assert form(m) == {"ip": ["192.0.2.1"]}
+    assert result == RouteTestResult(matched=False, outbound_tag="", group_tags=[])

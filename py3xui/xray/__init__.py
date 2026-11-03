@@ -1,4 +1,11 @@
 # pylint: disable=missing-module-docstring
+from py3xui.xray.diagnostics import (
+    BalancerStatus,
+    OutboundTestEgress,
+    OutboundTestEndpoint,
+    OutboundTestResult,
+    RouteTestResult,
+)
 from py3xui.xray.pia import (
     PiaAccount,
     PiaCountry,

@@ -80,7 +80,9 @@ class XraySettings(BaseModel):
     client_reverse_tags: StrList = Field(  # type: ignore
         default=[], alias=XraySettingsFields.CLIENT_REVERSE_TAGS
     )
-    outbound_test_url: str = Field(default="", alias=XraySettingsFields.OUTBOUND_TEST_URL)  # type: ignore
+    outbound_test_url: str = Field(  # type: ignore
+        default="", alias=XraySettingsFields.OUTBOUND_TEST_URL
+    )
     geodata_sources: list[GeodataSource] = Field(  # type: ignore
         default=[], alias=XraySettingsFields.GEODATA_SOURCES
     )

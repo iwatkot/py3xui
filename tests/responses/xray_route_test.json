@@ -1,0 +1,11 @@
+{
+    "success": true,
+    "msg": "",
+    "obj": {
+        "matched": true,
+        "outboundTag": "direct",
+        "groupTags": [
+            "b1"
+        ]
+    }
+}

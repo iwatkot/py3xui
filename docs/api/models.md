@@ -16,3 +16,4 @@ Models of `api.xray`, exported from `py3xui`:
 
 - `XraySettings`, `GeodataSource`, `OutboundTraffic`
 - `PiaAccount`, `PiaCountry`, `PiaRegion`, `PiaServer`, `PiaServers`, `PiaKey`
+- `OutboundTestResult`, `OutboundTestEndpoint`, `OutboundTestEgress`, `BalancerStatus`, `RouteTestResult`

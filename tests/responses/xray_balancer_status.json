@@ -1,0 +1,20 @@
+{
+    "success": true,
+    "msg": "",
+    "obj": {
+        "b1": {
+            "tag": "b1",
+            "running": true,
+            "override": "direct",
+            "selected": [
+                "direct"
+            ]
+        },
+        "b2": {
+            "tag": "b2",
+            "running": false,
+            "override": "",
+            "selected": null
+        }
+    }
+}

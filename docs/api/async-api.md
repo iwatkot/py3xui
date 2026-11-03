@@ -103,3 +103,8 @@ traffic = await api.xray.get_outbounds_traffic()
 | `pia_get_data()` | `POST /panel/api/xray/pia/data` | `PiaAccount \| None` |
 | `pia_delete()` | `POST /panel/api/xray/pia/del` | `None` |
 | `pia_add_key(hostname)` | `POST /panel/api/xray/pia/addKey` | `PiaKey` |
+| `test_outbound(outbound, all_outbounds=None, mode=None)` | `POST /panel/api/xray/testOutbound` | `OutboundTestResult` |
+| `test_outbounds(outbounds, all_outbounds=None, mode=None)` | `POST /panel/api/xray/testOutbounds` | `list[OutboundTestResult]` |
+| `get_balancer_status(tags)` | `POST /panel/api/xray/balancerStatus` | `dict[str, BalancerStatus]` |
+| `set_balancer_override(balancer_tag, target="")` | `POST /panel/api/xray/balancerOverride` | `None` |
+| `test_route(domain=None, ip=None, port=None, network=None, inbound_tag=None, protocol=None, email=None)` | `POST /panel/api/xray/routeTest` | `RouteTestResult` |

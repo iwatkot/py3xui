@@ -4,6 +4,11 @@
 from typing import Any
 
 from py3xui.api.api_base import ApiFields, BaseApi
+from py3xui.xray.diagnostics import (
+    BalancerStatus,
+    OutboundTestResult,
+    RouteTestResult,
+)
 from py3xui.xray.pia import PiaAccount, PiaCountry, PiaKey, PiaServers
 from py3xui.xray.xray import OutboundTraffic, XraySettings, parse_json_obj
 
@@ -47,6 +52,11 @@ class XrayApi(BaseApi):  # pylint: disable=too-many-public-methods
         pia_get_data: Retrieves the signed in PIA account.
         pia_delete: Deletes the stored PIA account.
         pia_add_key: Registers a WireGuard key on a PIA server.
+        test_outbound: Tests an outbound configuration.
+        test_outbounds: Tests a batch of outbound configurations.
+        get_balancer_status: Retrieves the live state of balancers.
+        set_balancer_override: Forces a balancer to an outbound or clears the override.
+        test_route: Asks the core which outbound it would pick for a connection.
 
     Examples:
         ```python
@@ -735,3 +745,187 @@ class XrayApi(BaseApi):  # pylint: disable=too-many-public-methods
 
         response = self._post_form(url, headers, data)
         return PiaKey.model_validate(response.json().get(ApiFields.OBJ))
+
+    def test_outbound(
+        self, outbound: str, all_outbounds: str | None = None, mode: str | None = None
+    ) -> OutboundTestResult:
+        """Tests an outbound configuration.
+
+        Arguments:
+            outbound (str): The outbound configuration as a JSON string.
+            all_outbounds (str | None): All the outbounds as a JSON array string, used to
+                resolve the dialerProxy dependencies.
+            mode (str | None): "tcp" for a dial-only probe, "real" for the full request delay,
+                by default a full HTTP probe is used.
+
+        Returns:
+            OutboundTestResult: The result of the test.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+
+            result: py3xui.OutboundTestResult = api.xray.test_outbound(
+                '{"tag": "direct", "protocol": "freedom"}', mode="tcp"
+            )
+            ```
+        """
+        endpoint = "panel/api/xray/testOutbound"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        data = {"outbound": outbound, "allOutbounds": all_outbounds, "mode": mode}
+        self.logger.info("Testing outbound...")
+
+        response = self._post_form(url, headers, data)
+        return OutboundTestResult.model_validate(response.json().get(ApiFields.OBJ))
+
+    def test_outbounds(
+        self, outbounds: str, all_outbounds: str | None = None, mode: str | None = None
+    ) -> list[OutboundTestResult]:
+        """Tests a batch of outbound configurations (the panel accepts up to 50).
+
+        Arguments:
+            outbounds (str): The outbound configurations as a JSON array string.
+            all_outbounds (str | None): All the outbounds as a JSON array string, used to
+                resolve the dialerProxy dependencies.
+            mode (str | None): "tcp" for dial-only probes, "real" for the full request delay,
+                by default full HTTP probes are used.
+
+        Returns:
+            list[OutboundTestResult]: The results in the order of the input.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+
+            results: list[py3xui.OutboundTestResult] = api.xray.test_outbounds(
+                '[{"tag": "direct", "protocol": "freedom"}]'
+            )
+            ```
+        """
+        endpoint = "panel/api/xray/testOutbounds"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        form = {"outbounds": outbounds, "allOutbounds": all_outbounds, "mode": mode}
+        self.logger.info("Testing outbounds...")
+
+        response = self._post_form(url, headers, form)
+        results_json = response.json().get(ApiFields.OBJ) or []
+        return [OutboundTestResult.model_validate(data) for data in results_json]
+
+    def get_balancer_status(self, tags: list[str]) -> dict[str, BalancerStatus]:
+        """Retrieves the live state of the balancers in the running core.
+
+        Arguments:
+            tags (list[str]): The tags of the balancers.
+
+        Returns:
+            dict[str, BalancerStatus]: The state of the balancers by their tags.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+
+            statuses = api.xray.get_balancer_status(["balancer-1"])
+            ```
+        """
+        endpoint = "panel/api/xray/balancerStatus"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        data = {"tags": ",".join(tags)}
+        self.logger.info("Getting status of balancers: %s", tags)
+
+        response = self._post_form(url, headers, data)
+        statuses_json = response.json().get(ApiFields.OBJ) or {}
+        return {
+            tag: BalancerStatus.model_validate(data)
+            for tag, data in statuses_json.items()
+        }
+
+    def set_balancer_override(self, balancer_tag: str, target: str = "") -> None:
+        """Forces a balancer in the running core to always pick one outbound.
+
+        Arguments:
+            balancer_tag (str): The tag of the balancer.
+            target (str): The tag of the outbound, an empty value clears the override.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+
+            api.xray.set_balancer_override("balancer-1", "direct")
+            ```
+        """
+        endpoint = "panel/api/xray/balancerOverride"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        data = {"tag": balancer_tag, "target": target}
+        self.logger.info("Setting override of balancer %s to: %s", balancer_tag, target)
+
+        self._post_form(url, headers, data)
+
+    def test_route(  # pylint: disable=R0913, R0917
+        self,
+        domain: str | None = None,
+        ip: str | None = None,
+        port: int | None = None,
+        network: str | None = None,
+        inbound_tag: str | None = None,
+        protocol: str | None = None,
+        email: str | None = None,
+    ) -> RouteTestResult:
+        """Asks the running core which outbound its router would pick for a synthetic
+        connection. No traffic is sent. Either domain or ip is required.
+
+        Arguments:
+            domain (str | None): The target domain.
+            ip (str | None): The target IP address.
+            port (int | None): The target port.
+            network (str | None): "tcp" (default) or "udp".
+            inbound_tag (str | None): Simulates the arrival on this inbound.
+            protocol (str | None): The sniffed protocol (http, tls, bittorrent etc.).
+            email (str | None): The user for the user-based rules.
+
+        Returns:
+            RouteTestResult: The routing decision.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+
+            result: py3xui.RouteTestResult = api.xray.test_route(
+                domain="example.com", port=443
+            )
+            ```
+        """
+        endpoint = "panel/api/xray/routeTest"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        data = {
+            "domain": domain,
+            "ip": ip,
+            "port": port,
+            "network": network,
+            "inboundTag": inbound_tag,
+            "protocol": protocol,
+            "email": email,
+        }
+        self.logger.info("Testing route...")
+
+        response = self._post_form(url, headers, data)
+        return RouteTestResult.model_validate(response.json().get(ApiFields.OBJ))

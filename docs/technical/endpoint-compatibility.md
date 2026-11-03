@@ -18,3 +18,4 @@ Compatibility behavior is implemented in both sync and async clients.
 - `update()` and the outbound test methods take the Xray JSON as a string, exactly as the form fields expect it.
 - `warp/*` and `nord/*` return JSON strings in `obj`; the methods parse them, an empty value gives an empty `dict`. `pia/*` return plain objects.
 - The `warp`, `nord` and `pia` routes take an `{action}` path parameter; every action has its own method with typed arguments.
+- `balancerStatus` reports `selected: null` for a balancer that is not running; `BalancerStatus.selected` is an empty list then.

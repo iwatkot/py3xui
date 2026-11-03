@@ -1,0 +1,26 @@
+{
+    "success": true,
+    "msg": "",
+    "obj": {
+        "tag": "proxy",
+        "success": true,
+        "delay": 120,
+        "mode": "http",
+        "httpStatus": 204,
+        "connectMs": 3,
+        "tlsMs": 70,
+        "ttfbMs": 90,
+        "endpoints": [
+            {
+                "address": "192.0.2.1:443",
+                "success": true,
+                "delay": 12
+            }
+        ],
+        "egress": {
+            "ipv4": "192.0.2.2",
+            "country": "NL",
+            "warp": "off"
+        }
+    }
+}

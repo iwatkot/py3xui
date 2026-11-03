@@ -1,0 +1,19 @@
+{
+    "success": true,
+    "msg": "",
+    "obj": [
+        {
+            "tag": "proxy",
+            "success": true,
+            "delay": 120,
+            "mode": "real"
+        },
+        {
+            "tag": "dead",
+            "success": false,
+            "delay": 0,
+            "error": "timeout",
+            "mode": "real"
+        }
+    ]
+}
