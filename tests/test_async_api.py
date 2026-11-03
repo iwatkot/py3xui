@@ -964,3 +964,15 @@ async def test_unsuccessful_response_raises_xui_api_error(httpx_mock: HTTPXMock)
     assert exc_info.value.msg == "Client not found"
     assert exc_info.value.obj is None
     assert str(exc_info.value) == "Response status is not successful, message: Client not found"
+
+
+@pytest.mark.asyncio
+async def test_response_that_is_not_an_object_raises_xui_api_error(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST", url=f"{HOST}/panel/api/clients/clearIps/{EMAIL}", json=["unexpected"]
+    )
+    api = AsyncApi(HOST, USERNAME, PASSWORD)
+    api.session = SESSION
+
+    with pytest.raises(XuiApiError, match="unexpected response of type list"):
+        await api.client.reset_ips(EMAIL)

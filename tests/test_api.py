@@ -753,3 +753,13 @@ def test_unsuccessful_response_raises_xui_api_error():
         assert exc_info.value.msg == "Client not found"
         assert exc_info.value.obj is None
         assert str(exc_info.value) == "Response status is not successful, message: Client not found"
+
+
+def test_response_that_is_not_an_object_raises_xui_api_error():
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/clients/clearIps/{EMAIL}", json=["unexpected"])
+        api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
+
+        with pytest.raises(XuiApiError, match="unexpected response of type list"):
+            api.client.reset_ips(EMAIL)

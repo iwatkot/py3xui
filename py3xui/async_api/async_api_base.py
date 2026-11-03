@@ -408,6 +408,8 @@ class AsyncBaseApi:
             XuiApiError: If the response status is not successful.
         """
         response_json = response.json()
+        if not isinstance(response_json, dict):
+            raise XuiApiError(f"unexpected response of type {type(response_json).__name__}")
 
         status = response_json.get(ApiFields.SUCCESS)
         message = response_json.get(ApiFields.MSG)
