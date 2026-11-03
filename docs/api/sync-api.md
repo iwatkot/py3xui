@@ -49,12 +49,19 @@ api.client.delete(inbound_id, str(client.id) if client else email)
 
 ## Error Handling Pattern
 
+When the panel answers with `success: false`, py3xui raises `XuiApiError`. It is a subclass of
+`ValueError` and carries the panel's `msg` and `obj` fields.
+
 ```python
+from py3xui import XuiApiError
+
 try:
 	api.login()
 	print(api.server.get_status())
+except XuiApiError as exc:
+	print("API response error:", exc.msg)
 except ValueError as exc:
-	print("API response error:", exc)
+	print("Client-side error:", exc)
 except Exception as exc:
 	print("Unexpected failure:", exc)
 ```

@@ -24,6 +24,26 @@ class ApiFields:
     POST = "POST"
 
 
+class XuiApiError(ValueError):
+    """Raised when the XUI API responds with `success: false`.
+
+    Inherits from `ValueError`, so existing `except ValueError` handlers keep working.
+
+    Arguments:
+        msg (str | None): The `msg` field of the response.
+        obj (Any): The `obj` field of the response, if any.
+
+    Attributes:
+        msg (str | None): The `msg` field of the response.
+        obj (Any): The `obj` field of the response, if any.
+    """
+
+    def __init__(self, msg: str | None, obj: Any = None):
+        super().__init__(f"Response status is not successful, message: {msg}")
+        self.msg = msg
+        self.obj = obj
+
+
 # pylint: disable=R0902
 class BaseApi:
     """Base class for the XUI API. Contains common methods for making requests.
@@ -333,14 +353,16 @@ class BaseApi:
             response (requests.Response): The response from the XUI API.
 
         Raises:
-            ValueError: If the response status is not successful.
+            XuiApiError: If the response status is not successful.
         """
         response_json = response.json()
+        if not isinstance(response_json, dict):
+            raise XuiApiError(f"unexpected response of type {type(response_json).__name__}")
 
         status = response_json.get(ApiFields.SUCCESS)
         message = response_json.get(ApiFields.MSG)
         if not status:
-            raise ValueError(f"Response status is not successful, message: {message}")
+            raise XuiApiError(message, response_json.get(ApiFields.OBJ))
 
     def _url(self, endpoint: str) -> str:
         """Returns the URL for the XUI API (adds the endpoint to the host URL).

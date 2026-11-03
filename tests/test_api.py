@@ -5,7 +5,7 @@ import uuid
 import pytest
 import requests_mock
 
-from py3xui import Api, Client, Inbound
+from py3xui import Api, Client, Inbound, XuiApiError
 from py3xui.api.api_base import ApiFields
 from py3xui.api.api_server import XrayVersionUnavailableError
 from py3xui.inbound import Settings, Sniffing, StreamSettings
@@ -736,3 +736,30 @@ def test_get_server_config():
 
 
 # endregion
+
+
+def test_unsuccessful_response_raises_xui_api_error():
+    response_example = {ApiFields.SUCCESS: False, ApiFields.MSG: "Client not found", ApiFields.OBJ: None}
+
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/clients/clearIps/{EMAIL}", json=response_example)
+        api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
+
+        with pytest.raises(XuiApiError) as exc_info:
+            api.client.reset_ips(EMAIL)
+
+        assert isinstance(exc_info.value, ValueError)
+        assert exc_info.value.msg == "Client not found"
+        assert exc_info.value.obj is None
+        assert str(exc_info.value) == "Response status is not successful, message: Client not found"
+
+
+def test_response_that_is_not_an_object_raises_xui_api_error():
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/clients/clearIps/{EMAIL}", json=["unexpected"])
+        api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
+
+        with pytest.raises(XuiApiError, match="unexpected response of type list"):
+            api.client.reset_ips(EMAIL)

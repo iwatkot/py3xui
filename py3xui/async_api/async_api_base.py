@@ -8,7 +8,7 @@ from typing import Any
 
 import httpx
 
-from py3xui.api.api_base import ApiFields
+from py3xui.api.api_base import ApiFields, XuiApiError
 from py3xui.utils import COOKIE_NAMES
 
 
@@ -405,14 +405,16 @@ class AsyncBaseApi:
             response (httpx.Response): The response from the XUI API.
 
         Raises:
-            ValueError: If the response status is not successful.
+            XuiApiError: If the response status is not successful.
         """
         response_json = response.json()
+        if not isinstance(response_json, dict):
+            raise XuiApiError(f"unexpected response of type {type(response_json).__name__}")
 
         status = response_json.get(ApiFields.SUCCESS)
         message = response_json.get(ApiFields.MSG)
         if not status:
-            raise ValueError(f"Response status is not successful, message: {message}")
+            raise XuiApiError(message, response_json.get(ApiFields.OBJ))
 
     async def _post(
         self, url: str, headers: dict[str, str], data: dict[str, Any], **kwargs
