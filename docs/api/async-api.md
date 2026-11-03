@@ -65,3 +65,19 @@ except Exception as exc:
 
 - [Common Tasks](../examples/common-tasks.md)
 - [Asynchronous Recipes](../examples/async-recipes.md)
+
+## Hosts API (3x-ui v3.11.0)
+
+Available as `api.host`, with the same methods as the sync client:
+
+- `get_list()`, `get_raw_list()`, `get_by_id(group_id)`, `get_by_inbound(inbound_id)`, `get_tags()`
+- `add(host)`, `update(group_id, host)`, `delete(group_id)`, `set_enable(group_id, enable)`, `reorder(group_ids)`
+- `bulk_add(host)`, `bulk_set_enable(group_ids, enable)`, `bulk_delete(group_ids)`
+
+`update` replaces the group, so fetch it first and change only what is needed:
+
+```python
+group = await api.host.get_by_id("1234567890123456")
+group.remark = "cdn-back"
+await api.host.update(group.group_id, group)
+```
