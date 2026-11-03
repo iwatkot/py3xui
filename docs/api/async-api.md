@@ -46,12 +46,19 @@ print(status.cpu, len(inbounds), len(online))
 
 ## Error Handling Pattern
 
+When the panel answers with `success: false`, py3xui raises `XuiApiError`. It is a subclass of
+`ValueError` and carries the panel's `msg` and `obj` fields.
+
 ```python
+from py3xui import XuiApiError
+
 try:
 	await api.login()
 	print(await api.server.get_status())
+except XuiApiError as exc:
+	print("API response error:", exc.msg)
 except ValueError as exc:
-	print("API response error:", exc)
+	print("Client-side error:", exc)
 except Exception as exc:
 	print("Unexpected failure:", exc)
 ```
