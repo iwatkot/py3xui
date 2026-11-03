@@ -1,0 +1,5 @@
+{
+  "success": true,
+  "msg": "",
+  "obj": {"auths": [{"id": "x25519", "label": "X25519, not Post-Quantum", "decryption": "mlkem768x25519plus.native.600s.dec", "encryption": "mlkem768x25519plus.native.0rtt.enc"}, {"id": "x25519_random", "label": "X25519, not Post-Quantum (random)", "decryption": "mlkem768x25519plus.random.600s.dec", "encryption": "mlkem768x25519plus.random.0rtt.enc"}]}
+}

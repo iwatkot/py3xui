@@ -1,0 +1,5 @@
+{
+  "success": true,
+  "msg": "",
+  "obj": [{"guid": "c3d4", "parentGuid": "a1b2", "name": "Node3", "address": "10.0.0.3", "scheme": "https", "port": 2053, "status": "online", "lastHeartbeat": 1735689600, "latencyMs": 42, "panelVersion": "3.11.0", "xrayVersion": "25.10.31", "xrayState": "running"}]
+}

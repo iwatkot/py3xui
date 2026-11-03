@@ -1,0 +1,5 @@
+{
+  "success": true,
+  "msg": "",
+  "obj": [{"alpn": "h2", "certChainBytes": 3427, "certChainValid": true, "certIssuer": "Google Trust Services", "certSubject": "cloudflare.com", "certValid": true, "curveID": "X25519", "feasible": true, "h2": true, "host": "www.cloudflare.com", "ip": "104.16.124.96", "latencyMs": 180, "notAfter": "2026-08-01T00:00:00Z", "port": 443, "privateTarget": false, "reason": "", "serverNames": ["www.cloudflare.com"], "target": "www.cloudflare.com:443", "tls13": true, "tlsVersion": "1.3", "x25519": true}, {"alpn": "", "certChainBytes": 0, "certChainValid": false, "certIssuer": "", "certSubject": "", "certValid": false, "curveID": "", "feasible": false, "h2": false, "host": "", "ip": "", "latencyMs": 0, "notAfter": "", "port": 0, "privateTarget": false, "reason": "invalid CIDR: bad mask", "serverNames": null, "target": "10.0.0.0/99", "tls13": false, "tlsVersion": "", "x25519": false}]
+}

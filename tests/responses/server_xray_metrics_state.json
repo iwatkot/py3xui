@@ -1,0 +1,5 @@
+{
+  "success": true,
+  "msg": "",
+  "obj": {"enabled": false, "listen": "", "reason": "metrics block is not configured"}
+}

@@ -1,0 +1,5 @@
+{
+  "success": true,
+  "msg": "",
+  "obj": {"channel": "dev", "currentVersion": "3.11.0-dev", "latestVersion": "dev+abc1234", "currentCommit": "def5678", "latestCommit": "abc1234", "updateAvailable": true}
+}
