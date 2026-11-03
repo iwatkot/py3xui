@@ -395,10 +395,10 @@ class BaseApi:
         if not kwargs.pop("is_csrf_request", False):
             headers = self._generate_headers(headers)
 
+        skip_check = kwargs.pop("skip_check", False)
+
         for retry in range(1, self.max_retries + 1):
             try:
-                skip_check = kwargs.pop("skip_check", False)
-
                 # 'verify' is a variable controlling the server TLS certificate verification.
                 # When set to True, it commands the requests library to verify the server's
                 # certificate against a list of trusted CAs (Certificate Authorities). If it
