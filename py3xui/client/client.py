@@ -194,6 +194,13 @@ class Client(BaseModel):
         extra="allow",
     )
 
+    @field_validator("reverse", mode="before")
+    @classmethod
+    def ignore_invalid_reverse(cls, value: Any) -> Any:
+        """Treats a stored reverse value that is not a JSON object as absent, like the panel does
+        when it converts a client record to a client."""
+        return value if isinstance(value, dict) else None
+
     @field_validator("allowed_ips", mode="before")
     @classmethod
     def split_allowed_ips(cls, value: Any) -> Any:
