@@ -1,4 +1,5 @@
 import json
+import logging
 
 import pytest
 import requests_mock
@@ -136,3 +137,31 @@ def test_settings_clients_are_sent_without_default_values():
 
     assert settings["clients"] == [{"email": "a@example.com", "enable": True, "id": "6f0f4c4e"}]
     assert settings["decryption"] == "none"
+
+
+def test_update_does_not_log_secrets(caplog):
+    inbound = Inbound.model_validate(_inbound_json(WIREGUARD_SETTINGS))
+    logger = logging.getLogger("py3xui-test")
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/inbounds/update/7", json=RESPONSE_OK)
+        api = Api(HOST, USERNAME, PASSWORD, logger=logger)
+        api.session = SESSION
+
+        with caplog.at_level(logging.INFO, logger="py3xui-test"):
+            api.inbound.update(7, inbound)
+
+    assert WIREGUARD_SETTINGS["secretKey"] not in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_async_update_does_not_log_secrets(httpx_mock: HTTPXMock, caplog):
+    inbound = Inbound.model_validate(_inbound_json(WIREGUARD_SETTINGS))
+    logger = logging.getLogger("py3xui-test")
+    httpx_mock.add_response(method="POST", url=f"{HOST}/panel/api/inbounds/update/7", json=RESPONSE_OK)
+    api = AsyncApi(HOST, USERNAME, PASSWORD, logger=logger)
+    api.session = SESSION
+
+    with caplog.at_level(logging.INFO, logger="py3xui-test"):
+        await api.inbound.update(7, inbound)
+
+    assert WIREGUARD_SETTINGS["secretKey"] not in caplog.text
