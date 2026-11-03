@@ -3,11 +3,11 @@
 import json
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
 
 from py3xui.client.client import Client
 from py3xui.inbound.settings import Settings
-from py3xui.inbound.sniffing import Sniffing
+from py3xui.inbound.sniffing import Sniffing, SniffingFields
 from py3xui.inbound.stream_settings import StreamSettings
 
 
@@ -84,6 +84,28 @@ class Inbound(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
     )
+
+    @field_validator("settings", "sniffing", "stream_settings", mode="before")
+    @classmethod
+    def replace_empty_json_field(cls, value: Any, info: ValidationInfo) -> Any:
+        """Replaces an empty settings, sniffing or stream settings value with its empty form. The
+        panel returns these fields as null when they are not stored, for example stream settings
+        of the protocols that have no stream.
+
+        Args:
+            value (Any): The value to validate.
+            info (ValidationInfo): The information about the field being validated.
+
+        Returns:
+            Any: The empty form of the field if the value is empty, otherwise the value as is.
+        """
+        if value is None or value == "":
+            return {
+                "settings": {},
+                "sniffing": {SniffingFields.ENABLED: False},
+                "stream_settings": "",
+            }[str(info.field_name)]
+        return value
 
     @field_validator("stream_settings")
     def validate_stream_settings(  # pylint: disable=no-self-argument

@@ -225,6 +225,32 @@ def test_delete_inbound_failed():
             api.inbound.delete(1)
 
 
+def test_get_inbounds_with_null_json_fields():
+    inbound_json = {
+        "id": 7,
+        "enable": True,
+        "port": 8443,
+        "protocol": "mtproto",
+        "settings": None,
+        "streamSettings": None,
+        "sniffing": None,
+    }
+    with requests_mock.Mocker() as m:
+        m.get(
+            f"{HOST}/panel/api/inbounds/list",
+            json={ApiFields.SUCCESS: True, ApiFields.MSG: "", ApiFields.OBJ: [inbound_json]},
+        )
+        api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
+
+        inbounds = api.inbound.get_list()
+
+    assert inbounds[0].stream_settings == ""
+    assert inbounds[0].sniffing.enabled is False
+    assert inbounds[0].settings.clients == []
+    assert inbounds[0].to_json()["streamSettings"] == ""
+
+
 def test_update_inbound():
     with requests_mock.Mocker() as m:
         m.post(f"{HOST}/panel/api/inbounds/update/1", json={ApiFields.SUCCESS: True})
