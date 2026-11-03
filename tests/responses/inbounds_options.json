@@ -1,0 +1,29 @@
+{
+  "msg": "",
+  "success": true,
+  "obj": [
+    {
+      "awgServer": null,
+      "enable": true,
+      "id": 1,
+      "listen": "",
+      "mtprotoDomain": "",
+      "network": "",
+      "nodeAddress": "",
+      "nodeId": null,
+      "port": 443,
+      "protocol": "vless",
+      "remark": "VLESS-443",
+      "security": "",
+      "shareAddr": "",
+      "shareAddrStrategy": "",
+      "ssMethod": "",
+      "tag": "in-443-tcp",
+      "tlsFlowCapable": true,
+      "tuicServer": null,
+      "wgDns": "",
+      "wgMtu": 0,
+      "wgPublicKey": ""
+    }
+  ]
+}

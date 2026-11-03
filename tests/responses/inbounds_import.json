@@ -1,0 +1,63 @@
+{
+  "success": true,
+  "msg": "Inbound created",
+  "obj": {
+    "id": 7,
+    "up": 0,
+    "down": 0,
+    "total": 0,
+    "remark": "VLESS-443",
+    "subSortIndex": 1,
+    "excludeFromSub": false,
+    "enable": true,
+    "expiryTime": 0,
+    "trafficReset": "never",
+    "trafficResetDay": 1,
+    "lastTrafficResetTime": 0,
+    "clientStats": null,
+    "listen": "",
+    "port": 443,
+    "protocol": "vless",
+    "settings": {
+      "clients": [
+        {
+          "id": "e18c9a96-71bf-48d4-933f-8b9a46d4290c",
+          "email": "alice",
+          "enable": true,
+          "flow": "",
+          "limitIp": 0,
+          "totalGB": 0,
+          "expiryTime": 0,
+          "tgId": "",
+          "subId": "i7tvdpeffi0hvvf1",
+          "reset": 0
+        }
+      ],
+      "decryption": "none",
+      "fallbacks": []
+    },
+    "streamSettings": {
+      "network": "tcp",
+      "security": "none",
+      "tcpSettings": {
+        "acceptProxyProtocol": false,
+        "header": {
+          "type": "none"
+        }
+      }
+    },
+    "tag": "in-443-tcp",
+    "sniffing": {
+      "enabled": true,
+      "destOverride": [
+        "http",
+        "tls"
+      ],
+      "metadataOnly": false,
+      "routeOnly": false
+    },
+    "shareAddrStrategy": "node",
+    "shareAddr": "",
+    "disableFlow": false
+  }
+}

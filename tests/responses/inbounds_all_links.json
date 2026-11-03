@@ -1,0 +1,8 @@
+{
+  "msg": "",
+  "success": true,
+  "obj": [
+    "vless://uuid@host:443?security=reality&...#Germany-alice",
+    "vmess://eyJ2IjoyLC..."
+  ]
+}

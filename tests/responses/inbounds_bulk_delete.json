@@ -1,0 +1,13 @@
+{
+  "msg": "",
+  "success": true,
+  "obj": {
+    "deleted": 2,
+    "skipped": [
+      {
+        "id": 3,
+        "reason": "..."
+      }
+    ]
+  }
+}
