@@ -330,7 +330,7 @@ async def test_delete_client_by_email_skips_lookup(httpx_mock: HTTPXMock):
     email = "user@example.com"
     httpx_mock.add_response(
         method="POST",
-        url=f"{HOST}/panel/api/clients/del/{email}",
+        url=f"{HOST}/panel/api/clients/del/user%40example.com",
         json={ApiFields.SUCCESS: True},
         status_code=200,
     )
