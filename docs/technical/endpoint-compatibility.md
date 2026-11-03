@@ -36,3 +36,11 @@ Compatibility behavior is implemented in both sync and async clients.
 - `POST panel/api/clients/bulkAttach`: `bulk_attach`
 - `POST panel/api/clients/bulkDetach`: `bulk_detach`
 - `POST panel/api/clients/bulkResetTraffic`: `bulk_reset_stats`
+- `GET panel/api/clients/groups`: `get_groups`
+- `GET panel/api/clients/groups/{name}/emails`: `get_group_emails`
+- `POST panel/api/clients/groups/create`: `add_group`
+- `POST panel/api/clients/groups/rename`: `rename_group`
+- `POST panel/api/clients/groups/delete`: `delete_group`
+- `POST panel/api/clients/groups/resetTraffic`: `reset_group_stats`
+- `POST panel/api/clients/groups/bulkAdd`: `bulk_add_to_group`
+- `POST panel/api/clients/groups/bulkRemove`: `bulk_remove_from_group`

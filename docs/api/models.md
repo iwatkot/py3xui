@@ -31,3 +31,4 @@ When the upstream panel response shape changes, py3xui adapts parsing logic whil
 - `ClientEntry`: `client`, `inbound_ids` and `traffic` (`ClientEntryTraffic`). Returned by `export_clients`, accepted by `import_clients` and `bulk_add`.
 - `BulkResult`: `count` (created, adjusted, deleted or changed clients) and `skipped` (`BulkSkip` with `email` and `reason`).
 - `BulkAttachResult` / `BulkDetachResult`: `attached` or `detached`, `skipped` and `errors` as lists of strings.
+- `ClientGroup`: `name`, `client_count`, `traffic_used`, `up`, `down`.

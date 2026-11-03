@@ -1,5 +1,5 @@
 """This module contains the read-only models returned by the client endpoints of the XUI API:
-traffic counters, paged client lists, renewal previews and bulk operation results."""
+traffic counters, paged client lists, renewal previews, bulk operation results and groups."""
 
 from typing import Any
 
@@ -70,6 +70,10 @@ class ClientInfoFields:
     DELETED = "deleted"
     CHANGED = "changed"
     SKIPPED = "skipped"
+
+    NAME = "name"
+    CLIENT_COUNT = "clientCount"
+    TRAFFIC_USED = "trafficUsed"
 
 
 def _empty_list(value: Any) -> Any:
@@ -355,3 +359,23 @@ class BulkDetachResult(BaseModel):
     def replace_null(cls, value: Any) -> Any:
         """Replaces JSON null with an empty list."""
         return _empty_list(value)
+
+
+class ClientGroup(BaseModel):
+    """Represents a client group of `panel/api/clients/groups`.
+
+    Attributes:
+        name (str): The name of the group.
+        client_count (int): The number of clients in the group.
+        traffic_used (int): The traffic used by the group since its last reset, in bytes.
+        up (int): The uploaded traffic of the group since its last reset, in bytes.
+        down (int): The downloaded traffic of the group since its last reset, in bytes.
+    """
+
+    name: str
+    client_count: int = Field(default=0, alias=ClientInfoFields.CLIENT_COUNT)  # type: ignore
+    traffic_used: int = Field(default=0, alias=ClientInfoFields.TRAFFIC_USED)  # type: ignore
+    up: int = 0
+    down: int = 0
+
+    model_config = ConfigDict(populate_by_name=True)

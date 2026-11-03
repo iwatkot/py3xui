@@ -1,0 +1,20 @@
+{
+  "success": true,
+  "msg": "",
+  "obj": [
+    {
+      "name": "customer-a",
+      "clientCount": 5,
+      "trafficUsed": 3072,
+      "up": 1024,
+      "down": 2048
+    },
+    {
+      "name": "internal",
+      "clientCount": 0,
+      "trafficUsed": 0,
+      "up": 0,
+      "down": 0
+    }
+  ]
+}

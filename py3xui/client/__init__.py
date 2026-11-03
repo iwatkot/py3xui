@@ -11,6 +11,7 @@ from py3xui.client.client_info import (
     BulkDetachResult,
     BulkResult,
     BulkSkip,
+    ClientGroup,
     ClientPage,
     ClientRenewalPreview,
     ClientsSummary,

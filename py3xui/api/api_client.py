@@ -16,6 +16,7 @@ from py3xui.client import (
     ClientDetails,
     ClientEntry,
     ClientExternalLink,
+    ClientGroup,
     ClientPage,
     ClientRenewalPreview,
     ClientTraffic,
@@ -67,6 +68,14 @@ class ClientApi(BaseApi):  # pylint: disable=too-many-public-methods
         bulk_attach: Attaches many clients to inbounds.
         bulk_detach: Detaches many clients from inbounds.
         bulk_reset_stats: Resets the traffic counters of many clients.
+        get_groups: Retrieves all client groups.
+        get_group_emails: Retrieves the emails of a client group.
+        add_group: Creates a client group.
+        rename_group: Renames a client group.
+        delete_group: Deletes a client group.
+        reset_group_stats: Resets the traffic counter of a client group.
+        bulk_add_to_group: Adds many clients to a group.
+        bulk_remove_from_group: Clears the group of many clients.
 
     Examples:
         ```python
@@ -1230,6 +1239,235 @@ class ClientApi(BaseApi):  # pylint: disable=too-many-public-methods
         url = self._url(endpoint)
         data = {"emails": emails}
         self.logger.info("Resetting stats of %s clients", len(emails))
+
+        response = self._post(url, headers, data)
+        result = response.json().get(ApiFields.OBJ) or {}
+        return result.get("affected", 0)
+
+    def get_groups(self) -> list[ClientGroup]:
+        """This route is used to retrieve all client groups with their member counts and traffic,
+        including empty groups.
+
+        Returns:
+            list[ClientGroup]: The client groups, sorted by name.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+            groups = api.client.get_groups()
+            ```
+        """
+        endpoint = "panel/api/clients/groups"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        self.logger.info("Getting client groups")
+
+        response = self._get(url, headers)
+        groups_json = response.json().get(ApiFields.OBJ) or []
+        return [ClientGroup.model_validate(group) for group in groups_json]
+
+    def get_group_emails(self, name: str) -> list[str]:
+        """This route is used to retrieve the emails of the clients that belong to a group.
+
+        Arguments:
+            name (str): The name of the group.
+
+        Returns:
+            list[str]: The emails of the clients.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+            emails = api.client.get_group_emails("customer-a")
+            ```
+        """
+        endpoint = f"panel/api/clients/groups/{quote(name, safe='')}/emails"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        self.logger.info("Getting emails of client group: %s", name)
+
+        response = self._get(url, headers)
+        return response.json().get(ApiFields.OBJ) or []
+
+    def add_group(self, name: str) -> None:
+        """This route is used to create a new empty client group.
+
+        Arguments:
+            name (str): The name of the group.
+
+        Raises:
+            ValueError: If a group with this name already exists.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+            api.client.add_group("customer-a")
+            ```
+        """
+        endpoint = "panel/api/clients/groups/create"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data = {"name": name}
+        self.logger.info("Adding client group: %s", name)
+
+        self._post(url, headers, data)
+        self.logger.info("Client group added successfully.")
+
+    def rename_group(self, old_name: str, new_name: str) -> int:
+        """This route is used to rename a client group, the new name is applied to all its
+        clients.
+
+        Arguments:
+            old_name (str): The current name of the group.
+            new_name (str): The new name of the group.
+
+        Returns:
+            int: The number of clients whose group was changed.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+            affected = api.client.rename_group("customer-a", "tier-1")
+            ```
+        """
+        endpoint = "panel/api/clients/groups/rename"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data = {"oldName": old_name, "newName": new_name}
+        self.logger.info("Renaming client group %s to %s", old_name, new_name)
+
+        response = self._post(url, headers, data)
+        result = response.json().get(ApiFields.OBJ) or {}
+        return result.get("affected", 0)
+
+    def delete_group(self, name: str) -> int:
+        """This route is used to delete a client group. The clients are not deleted, only their
+        group is cleared.
+
+        Arguments:
+            name (str): The name of the group.
+
+        Returns:
+            int: The number of clients whose group was cleared.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+            affected = api.client.delete_group("customer-a")
+            ```
+        """
+        endpoint = "panel/api/clients/groups/delete"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data = {"name": name}
+        self.logger.info("Deleting client group: %s", name)
+
+        response = self._post(url, headers, data)
+        result = response.json().get(ApiFields.OBJ) or {}
+        return result.get("affected", 0)
+
+    def reset_group_stats(self, name: str) -> None:
+        """This route is used to reset the traffic counter of a client group. The counters of the
+        clients themselves are not changed.
+
+        Arguments:
+            name (str): The name of the group.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+            api.client.reset_group_stats("customer-a")
+            ```
+        """
+        endpoint = "panel/api/clients/groups/resetTraffic"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data = {"name": name}
+        self.logger.info("Resetting stats of client group: %s", name)
+
+        self._post(url, headers, data)
+        self.logger.info("Client group stats reset successfully.")
+
+    def bulk_add_to_group(self, group: str, emails: list[str]) -> int:
+        """This route is used to add many clients to a group in one call. The group is created if
+        it does not exist.
+
+        Arguments:
+            group (str): The name of the group, must not be blank.
+            emails (list[str]): The emails of the clients.
+
+        Returns:
+            int: The number of affected clients.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+            affected = api.client.bulk_add_to_group("customer-a", ["alice", "bob"])
+            ```
+        """
+        endpoint = "panel/api/clients/groups/bulkAdd"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data = {"emails": emails, "group": group}
+        self.logger.info("Adding %s clients to group: %s", len(emails), group)
+
+        response = self._post(url, headers, data)
+        result = response.json().get(ApiFields.OBJ) or {}
+        return result.get("affected", 0)
+
+    def bulk_remove_from_group(self, emails: list[str]) -> int:
+        """This route is used to clear the group of many clients in one call. The clients are
+        kept.
+
+        Arguments:
+            emails (list[str]): The emails of the clients.
+
+        Returns:
+            int: The number of affected clients.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+            affected = api.client.bulk_remove_from_group(["alice", "bob"])
+            ```
+        """
+        endpoint = "panel/api/clients/groups/bulkRemove"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data = {"emails": emails}
+        self.logger.info("Removing %s clients from their group", len(emails))
 
         response = self._post(url, headers, data)
         result = response.json().get(ApiFields.OBJ) or {}

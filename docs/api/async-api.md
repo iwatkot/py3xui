@@ -106,3 +106,10 @@ All methods live on `api.client` and match the sync API in names, arguments and 
 - `bulk_add(entries)`: creates many clients, each with its own inbounds.
 - `bulk_attach(emails, inbound_ids)` / `bulk_detach(emails, inbound_ids)`: attaches many clients to inbounds or detaches them.
 - `bulk_reset_stats(emails)`: resets the traffic counters of many clients, returns their number.
+- `get_groups()`: all client groups with member counts and traffic.
+- `get_group_emails(name)`: emails of the clients of a group.
+- `add_group(name)`: creates an empty group.
+- `rename_group(old_name, new_name)`: renames a group, returns the number of affected clients.
+- `delete_group(name)`: deletes a group, the clients are kept. Returns the number of affected clients.
+- `reset_group_stats(name)`: resets the traffic counter of a group, client counters are not changed.
+- `bulk_add_to_group(group, emails)` / `bulk_remove_from_group(emails)`: sets or clears the group of many clients, returns the number of affected clients.

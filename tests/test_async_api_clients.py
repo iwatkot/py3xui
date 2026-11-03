@@ -15,6 +15,7 @@ from py3xui import (
     ClientEntry,
     ClientEntryTraffic,
     ClientExternalLink,
+    ClientGroup,
     ClientPage,
     ClientRenewalPreview,
     ClientTraffic,
@@ -514,6 +515,120 @@ async def test_bulk_reset_stats(httpx_mock: HTTPXMock):
     )
 
     affected = await _api().client.bulk_reset_stats(["alice", "bob"])
+
+    assert _json_body(httpx_mock.get_request()) == {"emails": ["alice", "bob"]}
+    assert affected == 2
+
+
+@pytest.mark.asyncio
+async def test_get_groups(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="GET", url=f"{HOST}/panel/api/clients/groups", json=_response("clients_groups")
+    )
+
+    groups = await _api().client.get_groups()
+
+    assert len(groups) == 2
+    assert isinstance(groups[0], ClientGroup)
+    assert groups[0].client_count == 5
+    assert groups[0].traffic_used == 3072
+
+
+@pytest.mark.asyncio
+async def test_get_group_emails(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{HOST}/panel/api/clients/groups/customer%20a%2F1/emails",
+        json=_response("clients_group_emails"),
+    )
+
+    emails = await _api().client.get_group_emails("customer a/1")
+
+    assert emails == ["alice", "bob", "carol"]
+
+
+@pytest.mark.asyncio
+async def test_add_group(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/clients/groups/create",
+        json=_response("clients_group_create"),
+    )
+
+    result = await _api().client.add_group("customer-a")
+
+    assert _json_body(httpx_mock.get_request()) == {"name": "customer-a"}
+    assert result is None
+
+
+@pytest.mark.asyncio
+async def test_rename_group(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/clients/groups/rename",
+        json=_response("clients_group_rename"),
+    )
+
+    affected = await _api().client.rename_group("customer-a", "tier-1")
+
+    assert _json_body(httpx_mock.get_request()) == {"oldName": "customer-a", "newName": "tier-1"}
+    assert affected == 5
+
+
+@pytest.mark.asyncio
+async def test_delete_group(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/clients/groups/delete",
+        json=_response("clients_group_delete"),
+    )
+
+    affected = await _api().client.delete_group("customer-a")
+
+    assert _json_body(httpx_mock.get_request()) == {"name": "customer-a"}
+    assert affected == 5
+
+
+@pytest.mark.asyncio
+async def test_reset_group_stats(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/clients/groups/resetTraffic",
+        json=_response("clients_group_reset_traffic"),
+    )
+
+    result = await _api().client.reset_group_stats("customer-a")
+
+    assert _json_body(httpx_mock.get_request()) == {"name": "customer-a"}
+    assert result is None
+
+
+@pytest.mark.asyncio
+async def test_bulk_add_to_group(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/clients/groups/bulkAdd",
+        json=_response("clients_group_bulk_add"),
+    )
+
+    affected = await _api().client.bulk_add_to_group("customer-a", ["alice", "bob"])
+
+    assert _json_body(httpx_mock.get_request()) == {
+        "emails": ["alice", "bob"],
+        "group": "customer-a",
+    }
+    assert affected == 2
+
+
+@pytest.mark.asyncio
+async def test_bulk_remove_from_group(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/clients/groups/bulkRemove",
+        json=_response("clients_group_bulk_remove"),
+    )
+
+    affected = await _api().client.bulk_remove_from_group(["alice", "bob"])
 
     assert _json_body(httpx_mock.get_request()) == {"emails": ["alice", "bob"]}
     assert affected == 2

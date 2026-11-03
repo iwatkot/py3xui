@@ -15,6 +15,7 @@ from py3xui import (
     ClientEntry,
     ClientEntryTraffic,
     ClientExternalLink,
+    ClientGroup,
     ClientPage,
     ClientRenewalPreview,
     ClientTraffic,
@@ -483,6 +484,102 @@ def test_bulk_reset_stats():
             json=_response("clients_bulk_reset_traffic"),
         )
         affected = _api().client.bulk_reset_stats(["alice", "bob"])
+
+        assert m.last_request.method == "POST"
+        assert m.last_request.json() == {"emails": ["alice", "bob"]}
+    assert affected == 2
+
+
+def test_get_groups():
+    with requests_mock.Mocker() as m:
+        m.get(f"{HOST}/panel/api/clients/groups", json=_response("clients_groups"))
+        groups = _api().client.get_groups()
+
+        assert m.last_request.method == "GET"
+    assert len(groups) == 2
+    assert isinstance(groups[0], ClientGroup)
+    assert groups[0].name == "customer-a"
+    assert groups[0].client_count == 5
+    assert groups[0].traffic_used == 3072
+    assert groups[0].down == 2048
+    assert groups[1].client_count == 0
+
+
+def test_get_group_emails():
+    with requests_mock.Mocker() as m:
+        m.get(
+            f"{HOST}/panel/api/clients/groups/customer%20a%2F1/emails",
+            json=_response("clients_group_emails"),
+        )
+        emails = _api().client.get_group_emails("customer a/1")
+
+        assert m.last_request.method == "GET"
+        assert m.last_request.path == "/panel/api/clients/groups/customer%20a%2f1/emails"
+    assert emails == ["alice", "bob", "carol"]
+
+
+def test_add_group():
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/clients/groups/create", json=_response("clients_group_create"))
+        result = _api().client.add_group("customer-a")
+
+        assert m.last_request.method == "POST"
+        assert m.last_request.json() == {"name": "customer-a"}
+    assert result is None
+
+
+def test_rename_group():
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/clients/groups/rename", json=_response("clients_group_rename"))
+        affected = _api().client.rename_group("customer-a", "tier-1")
+
+        assert m.last_request.method == "POST"
+        assert m.last_request.json() == {"oldName": "customer-a", "newName": "tier-1"}
+    assert affected == 5
+
+
+def test_delete_group():
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/clients/groups/delete", json=_response("clients_group_delete"))
+        affected = _api().client.delete_group("customer-a")
+
+        assert m.last_request.method == "POST"
+        assert m.last_request.json() == {"name": "customer-a"}
+    assert affected == 5
+
+
+def test_reset_group_stats():
+    with requests_mock.Mocker() as m:
+        m.post(
+            f"{HOST}/panel/api/clients/groups/resetTraffic",
+            json=_response("clients_group_reset_traffic"),
+        )
+        result = _api().client.reset_group_stats("customer-a")
+
+        assert m.last_request.method == "POST"
+        assert m.last_request.json() == {"name": "customer-a"}
+    assert result is None
+
+
+def test_bulk_add_to_group():
+    with requests_mock.Mocker() as m:
+        m.post(
+            f"{HOST}/panel/api/clients/groups/bulkAdd", json=_response("clients_group_bulk_add")
+        )
+        affected = _api().client.bulk_add_to_group("customer-a", ["alice", "bob"])
+
+        assert m.last_request.method == "POST"
+        assert m.last_request.json() == {"emails": ["alice", "bob"], "group": "customer-a"}
+    assert affected == 2
+
+
+def test_bulk_remove_from_group():
+    with requests_mock.Mocker() as m:
+        m.post(
+            f"{HOST}/panel/api/clients/groups/bulkRemove",
+            json=_response("clients_group_bulk_remove"),
+        )
+        affected = _api().client.bulk_remove_from_group(["alice", "bob"])
 
         assert m.last_request.method == "POST"
         assert m.last_request.json() == {"emails": ["alice", "bob"]}
