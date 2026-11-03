@@ -7,6 +7,8 @@ from py3xui.client.client import (
     ClientExternalLink,
 )
 from py3xui.client.client_info import (
+    BulkAttachResult,
+    BulkDetachResult,
     BulkResult,
     BulkSkip,
     ClientPage,

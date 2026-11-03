@@ -7,6 +7,8 @@ from pytest_httpx import HTTPXMock
 
 from py3xui import (
     AsyncApi,
+    BulkAttachResult,
+    BulkDetachResult,
     BulkResult,
     Client,
     ClientDetails,
@@ -350,3 +352,168 @@ async def test_import_clients(httpx_mock: HTTPXMock):
     assert isinstance(result, BulkResult)
     assert result.count == 2
     assert result.skipped[0].email == "alice@example.com"
+
+
+@pytest.mark.asyncio
+async def test_bulk_adjust(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/clients/bulkAdjust",
+        json=_response("clients_bulk_adjust"),
+    )
+
+    result = await _api().client.bulk_adjust(
+        ["alice", "bob"], add_days=30, add_bytes=-5, flow="none", limit_hwid=0, ad_tag="none"
+    )
+
+    assert _json_body(httpx_mock.get_request()) == {
+        "emails": ["alice", "bob"],
+        "addDays": 30,
+        "addBytes": -5,
+        "flow": "none",
+        "limitHwid": 0,
+        "adTag": "none",
+    }
+    assert isinstance(result, BulkResult)
+    assert result.count == 2
+    assert result.skipped[0].reason == "unlimited expiry"
+
+
+@pytest.mark.asyncio
+async def test_bulk_adjust_leaves_out_unset_directives(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/clients/bulkAdjust",
+        json=_response("clients_bulk_adjust"),
+    )
+
+    await _api().client.bulk_adjust(["alice"], add_days=1)
+
+    assert _json_body(httpx_mock.get_request()) == {
+        "emails": ["alice"],
+        "addDays": 1,
+        "addBytes": 0,
+    }
+
+
+@pytest.mark.asyncio
+async def test_bulk_enable(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/clients/bulkEnable",
+        json=_response("clients_bulk_enable"),
+    )
+
+    result = await _api().client.bulk_enable(["alice", "bob"])
+
+    assert _json_body(httpx_mock.get_request()) == {"emails": ["alice", "bob"]}
+    assert result.count == 2
+
+
+@pytest.mark.asyncio
+async def test_bulk_disable(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/clients/bulkDisable",
+        json=_response("clients_bulk_disable"),
+    )
+
+    result = await _api().client.bulk_disable(["alice", "bob"])
+
+    assert _json_body(httpx_mock.get_request()) == {"emails": ["alice", "bob"]}
+    assert result.count == 2
+
+
+@pytest.mark.asyncio
+async def test_bulk_delete(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/clients/bulkDel",
+        json=_response("clients_bulk_del"),
+    )
+
+    result = await _api().client.bulk_delete(["alice", "bob"], keep_traffic=True)
+
+    assert _json_body(httpx_mock.get_request()) == {
+        "emails": ["alice", "bob"],
+        "keepTraffic": True,
+    }
+    assert result.count == 2
+
+
+@pytest.mark.asyncio
+async def test_bulk_add(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/clients/bulkCreate",
+        json=_response("clients_bulk_create"),
+    )
+    entries = [
+        ClientEntry(
+            client=Client(email="alice@example.com", enable=True, limit_hwid=2),
+            inbound_ids=[7],
+        ),
+        ClientEntry(client=Client(email="bob@example.com", enable=False), inbound_ids=[7, 9]),
+    ]
+
+    result = await _api().client.bulk_add(entries)
+
+    assert _json_body(httpx_mock.get_request()) == [
+        {
+            "client": {"email": "alice@example.com", "enable": True, "limitHwid": 2},
+            "inboundIds": [7],
+        },
+        {"client": {"email": "bob@example.com", "enable": False}, "inboundIds": [7, 9]},
+    ]
+    assert result.count == 2
+
+
+@pytest.mark.asyncio
+async def test_bulk_attach(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/clients/bulkAttach",
+        json=_response("clients_bulk_attach"),
+    )
+
+    result = await _api().client.bulk_attach(["alice", "bob"], [7, 9])
+
+    assert _json_body(httpx_mock.get_request()) == {
+        "emails": ["alice", "bob"],
+        "inboundIds": [7, 9],
+    }
+    assert isinstance(result, BulkAttachResult)
+    assert result.attached == ["alice", "bob"]
+    assert result.skipped == ["bob"]
+
+
+@pytest.mark.asyncio
+async def test_bulk_detach(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/clients/bulkDetach",
+        json=_response("clients_bulk_detach"),
+    )
+
+    result = await _api().client.bulk_detach(["alice", "bob"], [7, 9])
+
+    assert _json_body(httpx_mock.get_request()) == {
+        "emails": ["alice", "bob"],
+        "inboundIds": [7, 9],
+    }
+    assert isinstance(result, BulkDetachResult)
+    assert result.detached == ["alice", "bob"]
+
+
+@pytest.mark.asyncio
+async def test_bulk_reset_stats(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/clients/bulkResetTraffic",
+        json=_response("clients_bulk_reset_traffic"),
+    )
+
+    affected = await _api().client.bulk_reset_stats(["alice", "bob"])
+
+    assert _json_body(httpx_mock.get_request()) == {"emails": ["alice", "bob"]}
+    assert affected == 2

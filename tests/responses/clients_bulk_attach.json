@@ -1,0 +1,14 @@
+{
+  "success": true,
+  "msg": "",
+  "obj": {
+    "attached": [
+      "alice",
+      "bob"
+    ],
+    "skipped": [
+      "bob"
+    ],
+    "errors": []
+  }
+}

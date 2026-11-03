@@ -7,6 +7,8 @@ import requests_mock
 
 from py3xui import (
     Api,
+    BulkAttachResult,
+    BulkDetachResult,
     BulkResult,
     Client,
     ClientDetails,
@@ -349,3 +351,139 @@ def test_export_import_round_trip():
     del expected[0]["client"]["expiryTime"]
     del expected[0]["traffic"]["resetCount"]
     assert sent == expected
+
+
+def test_bulk_adjust():
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/clients/bulkAdjust", json=_response("clients_bulk_adjust"))
+        result = _api().client.bulk_adjust(
+            ["alice", "bob"], add_days=30, add_bytes=-5, flow="none", limit_hwid=0, ad_tag="none"
+        )
+
+        assert m.last_request.method == "POST"
+        assert m.last_request.json() == {
+            "emails": ["alice", "bob"],
+            "addDays": 30,
+            "addBytes": -5,
+            "flow": "none",
+            "limitHwid": 0,
+            "adTag": "none",
+        }
+    assert isinstance(result, BulkResult)
+    assert result.count == 2
+    assert result.skipped[0].email == "carol"
+    assert result.skipped[0].reason == "unlimited expiry"
+
+
+def test_bulk_adjust_leaves_out_unset_directives():
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/clients/bulkAdjust", json=_response("clients_bulk_adjust"))
+        _api().client.bulk_adjust(["alice"], add_days=1)
+
+        assert m.last_request.json() == {"emails": ["alice"], "addDays": 1, "addBytes": 0}
+
+
+def test_bulk_enable():
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/clients/bulkEnable", json=_response("clients_bulk_enable"))
+        result = _api().client.bulk_enable(["alice", "bob"])
+
+        assert m.last_request.method == "POST"
+        assert m.last_request.json() == {"emails": ["alice", "bob"]}
+    assert result.count == 2
+    assert result.skipped[0].reason == "client not found"
+
+
+def test_bulk_disable():
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/clients/bulkDisable", json=_response("clients_bulk_disable"))
+        result = _api().client.bulk_disable(["alice", "bob"])
+
+        assert m.last_request.method == "POST"
+        assert m.last_request.json() == {"emails": ["alice", "bob"]}
+    assert result.count == 2
+
+
+def test_bulk_delete():
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/clients/bulkDel", json=_response("clients_bulk_del"))
+        result = _api().client.bulk_delete(["alice", "bob"], keep_traffic=True)
+
+        assert m.last_request.method == "POST"
+        assert m.last_request.json() == {"emails": ["alice", "bob"], "keepTraffic": True}
+    assert result.count == 2
+    assert result.skipped[0].email == "carol"
+
+
+def test_bulk_add():
+    entries = [
+        ClientEntry(
+            client=Client(email="alice@example.com", enable=True, limit_hwid=2),
+            inbound_ids=[7],
+        ),
+        ClientEntry(client=Client(email="bob@example.com", enable=False), inbound_ids=[7, 9]),
+    ]
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/clients/bulkCreate", json=_response("clients_bulk_create"))
+        result = _api().client.bulk_add(entries)
+
+        assert m.last_request.method == "POST"
+        assert m.last_request.json() == [
+            {
+                "client": {"email": "alice@example.com", "enable": True, "limitHwid": 2},
+                "inboundIds": [7],
+            },
+            {"client": {"email": "bob@example.com", "enable": False}, "inboundIds": [7, 9]},
+        ]
+    assert result.count == 2
+    assert result.skipped[0].reason == "email already in use"
+
+
+def test_bulk_attach():
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/clients/bulkAttach", json=_response("clients_bulk_attach"))
+        result = _api().client.bulk_attach(["alice", "bob"], [7, 9])
+
+        assert m.last_request.method == "POST"
+        assert m.last_request.json() == {"emails": ["alice", "bob"], "inboundIds": [7, 9]}
+    assert isinstance(result, BulkAttachResult)
+    assert result.attached == ["alice", "bob"]
+    assert result.skipped == ["bob"]
+    assert result.errors == []
+
+
+def test_bulk_attach_null_lists():
+    response = {
+        ApiFields.SUCCESS: True,
+        ApiFields.OBJ: {"attached": None, "skipped": None, "errors": None},
+    }
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/clients/bulkAttach", json=response)
+        result = _api().client.bulk_attach([], [])
+
+    assert result == BulkAttachResult()
+
+
+def test_bulk_detach():
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/clients/bulkDetach", json=_response("clients_bulk_detach"))
+        result = _api().client.bulk_detach(["alice", "bob"], [7, 9])
+
+        assert m.last_request.method == "POST"
+        assert m.last_request.json() == {"emails": ["alice", "bob"], "inboundIds": [7, 9]}
+    assert isinstance(result, BulkDetachResult)
+    assert result.detached == ["alice", "bob"]
+    assert result.skipped == []
+
+
+def test_bulk_reset_stats():
+    with requests_mock.Mocker() as m:
+        m.post(
+            f"{HOST}/panel/api/clients/bulkResetTraffic",
+            json=_response("clients_bulk_reset_traffic"),
+        )
+        affected = _api().client.bulk_reset_stats(["alice", "bob"])
+
+        assert m.last_request.method == "POST"
+        assert m.last_request.json() == {"emails": ["alice", "bob"]}
+    assert affected == 2

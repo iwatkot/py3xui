@@ -28,3 +28,11 @@ Compatibility behavior is implemented in both sync and async clients.
 - `POST panel/api/clients/delOrphans`: `delete_orphans`
 - `GET panel/api/clients/export`: `export_clients`
 - `POST panel/api/clients/import`: `import_clients`
+- `POST panel/api/clients/bulkAdjust`: `bulk_adjust`
+- `POST panel/api/clients/bulkEnable`: `bulk_enable`
+- `POST panel/api/clients/bulkDisable`: `bulk_disable`
+- `POST panel/api/clients/bulkDel`: `bulk_delete`
+- `POST panel/api/clients/bulkCreate`: `bulk_add`
+- `POST panel/api/clients/bulkAttach`: `bulk_attach`
+- `POST panel/api/clients/bulkDetach`: `bulk_detach`
+- `POST panel/api/clients/bulkResetTraffic`: `bulk_reset_stats`

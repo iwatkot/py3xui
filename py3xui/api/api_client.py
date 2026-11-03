@@ -1,14 +1,16 @@
 """This module contains the ClientApi class which provides methods to interact with the
 clients in the XUI API."""
 
-# pylint: disable=R0801
+# pylint: disable=R0801,too-many-lines
 
 import json
-from typing import Any
+from typing import Any, cast
 from urllib.parse import quote
 
 from py3xui.api.api_base import ApiFields, BaseApi
 from py3xui.client import (
+    BulkAttachResult,
+    BulkDetachResult,
     BulkResult,
     Client,
     ClientDetails,
@@ -57,6 +59,14 @@ class ClientApi(BaseApi):  # pylint: disable=too-many-public-methods
         delete_orphans: Deletes clients without inbounds.
         export_clients: Exports all clients.
         import_clients: Imports clients.
+        bulk_adjust: Shifts the expiry and traffic limit of many clients.
+        bulk_enable: Enables many clients.
+        bulk_disable: Disables many clients.
+        bulk_delete: Deletes many clients.
+        bulk_add: Creates many clients.
+        bulk_attach: Attaches many clients to inbounds.
+        bulk_detach: Detaches many clients from inbounds.
+        bulk_reset_stats: Resets the traffic counters of many clients.
 
     Examples:
         ```python
@@ -959,6 +969,271 @@ class ClientApi(BaseApi):  # pylint: disable=too-many-public-methods
 
         response = self._post(url, headers, data)
         return BulkResult.model_validate(response.json().get(ApiFields.OBJ) or {})
+
+    def bulk_adjust(  # pylint: disable=too-many-arguments
+        self,
+        emails: list[str],
+        add_days: int = 0,
+        add_bytes: int = 0,
+        *,
+        flow: str | None = None,
+        limit_hwid: int | None = None,
+        ad_tag: str | None = None,
+    ) -> BulkResult:
+        """This route is used to shift the expiry and the traffic limit of many clients in one
+        call. Clients with an unlimited expiry or traffic limit are skipped for that field. At
+        least one adjustment must be given.
+
+        Arguments:
+            emails (list[str]): The emails of the clients.
+            add_days (int): The days to add to the expiry time, can be negative. Defaults to 0.
+            add_bytes (int): The bytes to add to the traffic limit, can be negative. Defaults
+                to 0.
+            flow (str | None): The XTLS flow to set: "xtls-rprx-vision",
+                "xtls-rprx-vision-udp443", or "none" to clear it. None leaves it unchanged.
+            limit_hwid (int | None): The limit of devices to set, 0 means unlimited. None leaves
+                it unchanged.
+            ad_tag (str | None): The MTProto ad tag (32 hex characters) to set, or "none" to clear
+                it. None leaves it unchanged.
+
+        Returns:
+            BulkResult: The number of adjusted clients and the skipped ones.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+            result = api.client.bulk_adjust(["alice", "bob"], add_days=30)
+            print(result.count, result.skipped)
+            ```
+        """
+        endpoint = "panel/api/clients/bulkAdjust"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data: dict[str, Any] = {"emails": emails, "addDays": add_days, "addBytes": add_bytes}
+        if flow is not None:
+            data["flow"] = flow
+        if limit_hwid is not None:
+            data["limitHwid"] = limit_hwid
+        if ad_tag is not None:
+            data["adTag"] = ad_tag
+        self.logger.info("Adjusting %s clients", len(emails))
+
+        response = self._post(url, headers, data)
+        return BulkResult.model_validate(response.json().get(ApiFields.OBJ) or {})
+
+    def bulk_enable(self, emails: list[str]) -> BulkResult:
+        """This route is used to enable many clients in one call. A client with exhausted traffic
+        or a passed expiry is disabled again by the panel on the next traffic check.
+
+        Arguments:
+            emails (list[str]): The emails of the clients.
+
+        Returns:
+            BulkResult: The number of changed clients and the skipped ones.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+            result = api.client.bulk_enable(["alice", "bob"])
+            ```
+        """
+        endpoint = "panel/api/clients/bulkEnable"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data = {"emails": emails}
+        self.logger.info("Enabling %s clients", len(emails))
+
+        response = self._post(url, headers, data)
+        return BulkResult.model_validate(response.json().get(ApiFields.OBJ) or {})
+
+    def bulk_disable(self, emails: list[str]) -> BulkResult:
+        """This route is used to disable many clients in one call.
+
+        Arguments:
+            emails (list[str]): The emails of the clients.
+
+        Returns:
+            BulkResult: The number of changed clients and the skipped ones.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+            result = api.client.bulk_disable(["alice", "bob"])
+            ```
+        """
+        endpoint = "panel/api/clients/bulkDisable"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data = {"emails": emails}
+        self.logger.info("Disabling %s clients", len(emails))
+
+        response = self._post(url, headers, data)
+        return BulkResult.model_validate(response.json().get(ApiFields.OBJ) or {})
+
+    def bulk_delete(self, emails: list[str], keep_traffic: bool = False) -> BulkResult:
+        """This route is used to delete many clients in one call.
+
+        Arguments:
+            emails (list[str]): The emails of the clients.
+            keep_traffic (bool): Whether to keep the traffic records of the clients. Defaults to
+                False.
+
+        Returns:
+            BulkResult: The number of deleted clients and the skipped ones.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+            result = api.client.bulk_delete(["alice", "bob"])
+            ```
+        """
+        endpoint = "panel/api/clients/bulkDel"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data = {"emails": emails, "keepTraffic": keep_traffic}
+        self.logger.info("Deleting %s clients", len(emails))
+
+        response = self._post(url, headers, data)
+        return BulkResult.model_validate(response.json().get(ApiFields.OBJ) or {})
+
+    def bulk_add(self, entries: list[ClientEntry]) -> BulkResult:
+        """This route is used to create many clients in one call, each on its own set of inbounds.
+        Clients that can not be created, e.g. with a duplicate email, are returned in `skipped`.
+
+        Arguments:
+            entries (list[ClientEntry]): The clients to create with their inbound IDs.
+
+        Returns:
+            BulkResult: The number of created clients and the skipped ones.
+
+        Examples:
+            ```python
+            import uuid
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+            client = py3xui.Client(id=str(uuid.uuid4()), email="test", enable=True)
+            entry = py3xui.ClientEntry(client=client, inbound_ids=[7])
+            result = api.client.bulk_add([entry])
+            ```
+        """
+        endpoint = "panel/api/clients/bulkCreate"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        # This endpoint takes a JSON array, not an object.
+        data = [entry.model_dump(by_alias=True, exclude_defaults=True) for entry in entries]
+        self.logger.info("Adding %s clients", len(entries))
+
+        response = self._post(url, headers, cast(Any, data))
+        return BulkResult.model_validate(response.json().get(ApiFields.OBJ) or {})
+
+    def bulk_attach(self, emails: list[str], inbound_ids: list[int]) -> BulkAttachResult:
+        """This route is used to attach many existing clients to many inbounds in one call.
+
+        Arguments:
+            emails (list[str]): The emails of the clients.
+            inbound_ids (list[int]): The IDs of the inbounds to attach every client to.
+
+        Returns:
+            BulkAttachResult: The attached and skipped emails and the errors.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+            result = api.client.bulk_attach(["alice", "bob"], [7, 9])
+            print(result.attached, result.skipped, result.errors)
+            ```
+        """
+        endpoint = "panel/api/clients/bulkAttach"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data = {"emails": emails, "inboundIds": inbound_ids}
+        self.logger.info("Attaching %s clients to inbounds: %s", len(emails), inbound_ids)
+
+        response = self._post(url, headers, data)
+        return BulkAttachResult.model_validate(response.json().get(ApiFields.OBJ) or {})
+
+    def bulk_detach(self, emails: list[str], inbound_ids: list[int]) -> BulkDetachResult:
+        """This route is used to detach many existing clients from many inbounds in one call. The
+        clients are kept even if they end up without inbounds.
+
+        Arguments:
+            emails (list[str]): The emails of the clients.
+            inbound_ids (list[int]): The IDs of the inbounds to detach the clients from.
+
+        Returns:
+            BulkDetachResult: The detached and skipped emails and the errors.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+            result = api.client.bulk_detach(["alice", "bob"], [7, 9])
+            print(result.detached, result.skipped, result.errors)
+            ```
+        """
+        endpoint = "panel/api/clients/bulkDetach"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data = {"emails": emails, "inboundIds": inbound_ids}
+        self.logger.info("Detaching %s clients from inbounds: %s", len(emails), inbound_ids)
+
+        response = self._post(url, headers, data)
+        return BulkDetachResult.model_validate(response.json().get(ApiFields.OBJ) or {})
+
+    def bulk_reset_stats(self, emails: list[str]) -> int:
+        """This route is used to reset the traffic counters of many clients in one call.
+
+        Arguments:
+            emails (list[str]): The emails of the clients.
+
+        Returns:
+            int: The number of clients that were reset.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+            affected = api.client.bulk_reset_stats(["alice", "bob"])
+            ```
+        """
+        endpoint = "panel/api/clients/bulkResetTraffic"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        data = {"emails": emails}
+        self.logger.info("Resetting stats of %s clients", len(emails))
+
+        response = self._post(url, headers, data)
+        result = response.json().get(ApiFields.OBJ) or {}
+        return result.get("affected", 0)
 
     def _resolve_client_email(self, inbound_id: int, client_identifier: str) -> str:
         """Resolves legacy client IDs/UUIDs to client email for delete endpoint."""

@@ -315,3 +315,43 @@ class BulkResult(BaseModel):
     def replace_null(cls, value: Any) -> Any:
         """Replaces JSON null with an empty list."""
         return _empty_list(value)
+
+
+class BulkAttachResult(BaseModel):
+    """Represents the result of `panel/api/clients/bulkAttach`.
+
+    Attributes:
+        attached (list[str]): The emails of the attached clients.
+        skipped (list[str]): The emails of the clients that were already attached.
+        errors (list[str]): The error messages.
+    """
+
+    attached: list[str] = Field(default_factory=list)
+    skipped: list[str] = Field(default_factory=list)
+    errors: list[str] = Field(default_factory=list)
+
+    @field_validator("attached", "skipped", "errors", mode="before")
+    @classmethod
+    def replace_null(cls, value: Any) -> Any:
+        """Replaces JSON null with an empty list."""
+        return _empty_list(value)
+
+
+class BulkDetachResult(BaseModel):
+    """Represents the result of `panel/api/clients/bulkDetach`.
+
+    Attributes:
+        detached (list[str]): The emails of the detached clients.
+        skipped (list[str]): The emails of the clients that were not attached.
+        errors (list[str]): The error messages.
+    """
+
+    detached: list[str] = Field(default_factory=list)
+    skipped: list[str] = Field(default_factory=list)
+    errors: list[str] = Field(default_factory=list)
+
+    @field_validator("detached", "skipped", "errors", mode="before")
+    @classmethod
+    def replace_null(cls, value: Any) -> Any:
+        """Replaces JSON null with an empty list."""
+        return _empty_list(value)

@@ -100,3 +100,9 @@ All methods live on `api.client` and match the sync API in names, arguments and 
 - `delete_orphans()`: deletes clients without inbounds, returns the number of deleted clients.
 - `export_clients()`: all clients with their inbounds and usage counters.
 - `import_clients(entries)`: imports the result of `export_clients`, existing emails are skipped.
+- `bulk_adjust(emails, add_days, add_bytes, *, flow, limit_hwid, ad_tag)`: shifts the expiry and traffic limit of many clients, optionally sets flow, device limit and ad tag.
+- `bulk_enable(emails)` / `bulk_disable(emails)`: enables or disables many clients.
+- `bulk_delete(emails, keep_traffic)`: deletes many clients.
+- `bulk_add(entries)`: creates many clients, each with its own inbounds.
+- `bulk_attach(emails, inbound_ids)` / `bulk_detach(emails, inbound_ids)`: attaches many clients to inbounds or detaches them.
+- `bulk_reset_stats(emails)`: resets the traffic counters of many clients, returns their number.
