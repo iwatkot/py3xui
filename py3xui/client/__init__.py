@@ -1,2 +1,2 @@
 # pylint: disable=missing-module-docstring
-from py3xui.client.client import Client
+from py3xui.client.client import Client, ClientDetails

@@ -5,7 +5,7 @@ import uuid
 import pytest
 import requests_mock
 
-from py3xui import Api, Client, Inbound
+from py3xui import Api, Client, ClientDetails, Inbound
 from py3xui.api.api_base import ApiFields
 from py3xui.api.api_server import XrayVersionUnavailableError
 from py3xui.inbound import Settings, Sniffing, StreamSettings
@@ -19,6 +19,29 @@ EMAIL = "alhtim2x"
 CSRF_TOKEN = "test-csrf-token"
 TOKEN = "test-api-token"
 CSRF_RESPONSE = {ApiFields.SUCCESS: True, ApiFields.OBJ: CSRF_TOKEN}
+
+DETAILS_EMAIL = "alice+wg@example.com"
+DETAILS_EMAIL_QUOTED = "alice%2Bwg%40example.com"
+
+
+def _expected_round_trip_payload(record: dict) -> dict:
+    """Returns what update() must send back for the record from get_client_details.json after
+    total_gb is changed: every stored field, in the shape the update endpoint accepts."""
+    expected = {
+        key: value
+        for key, value in record.items()
+        if key not in {"id", "allowedIPs", "createdAt", "updatedAt"} and value not in ("", 0)
+    }
+    expected.update(
+        {
+            "id": record["uuid"],
+            "allowedIPs": ["10.66.0.2/32", "fd00:66::2/128"],
+            "created_at": record["createdAt"],
+            "updated_at": record["updatedAt"],
+            "totalGB": 50 * 1024**3,
+        }
+    )
+    return expected
 
 
 def test_login_success():
@@ -337,6 +360,86 @@ def test_update_client_normalizes_id_from_uuid():
 
         payload = m.last_request.json()
         assert payload["id"] == client.uuid
+
+
+def test_get_client_details():
+    response_example = json.load(open(os.path.join(RESPONSES_DIR, "get_client_details.json")))
+
+    with requests_mock.Mocker() as m:
+        m.get(
+            f"{HOST}/panel/api/clients/get/{DETAILS_EMAIL_QUOTED}",
+            json=response_example,
+        )
+        api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
+        details = api.client.get_details(DETAILS_EMAIL)
+
+        assert m.last_request.method == "GET"
+        assert isinstance(details, ClientDetails)
+        assert details.inbound_ids == [3, 5]
+        assert details.tunnel_allowed_ips == {3: "10.66.0.2/32", 5: "10.77.0.2/32"}
+        assert details.used_traffic == 1073741824
+        assert details.external_links[0]["value"] == "vless://example"
+
+        client = details.client
+        assert client.email == DETAILS_EMAIL
+        assert client.uuid == "6f0f4c4e-7d4c-4b9e-9a51-2c1f4e8d7a10"
+        assert client.group == "staff"
+        assert client.private_key.startswith("fake-private")
+        assert client.allowed_ips == ["10.66.0.2/32", "fd00:66::2/128"]
+        assert client.keep_alive == 25
+        assert client.reverse == {"tag": "reverse-out"}
+        assert client.limit_hwid == 3
+        assert client.traffic_reset == "monthly"
+        assert client.created_at == 1735689600000
+        assert client.futureField == {"nested": [1, 2, 3]}  # type: ignore[attr-defined]
+
+
+def test_get_client_details_not_found():
+    with requests_mock.Mocker() as m:
+        m.get(
+            f"{HOST}/panel/api/clients/get/{EMAIL}",
+            json={ApiFields.SUCCESS: True, ApiFields.MSG: "", ApiFields.OBJ: None},
+        )
+        api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
+
+        assert api.client.get_details(EMAIL) is None
+
+
+def test_get_client_details_update_round_trip_keeps_all_fields():
+    response_example = json.load(open(os.path.join(RESPONSES_DIR, "get_client_details.json")))
+    record = response_example[ApiFields.OBJ]["client"]
+
+    with requests_mock.Mocker() as m:
+        m.get(
+            f"{HOST}/panel/api/clients/get/{DETAILS_EMAIL_QUOTED}",
+            json=response_example,
+        )
+        m.post(
+            f"{HOST}/panel/api/clients/update/{DETAILS_EMAIL}",
+            json={ApiFields.SUCCESS: True, ApiFields.MSG: "Client updated"},
+        )
+        api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
+
+        details = api.client.get_details(DETAILS_EMAIL)
+        assert details is not None
+        details.client.total_gb = 50 * 1024**3
+        api.client.update(details.client.uuid, details.client)
+
+        assert m.last_request.method == "POST"
+        assert m.last_request.json() == _expected_round_trip_payload(record)
+
+
+def test_client_model_dump_keeps_unknown_fields():
+    client = Client.model_validate(
+        {"email": "test", "enable": True, "limitHwid": 2, "someNewField": "value"}
+    )
+
+    dumped = client.model_dump(by_alias=True, exclude_defaults=True)
+
+    assert dumped == {"email": "test", "enable": True, "limitHwid": 2, "someNewField": "value"}
 
 
 def test_reset_client_ips():
