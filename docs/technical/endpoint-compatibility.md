@@ -10,3 +10,9 @@ Examples:
 - Online clients: `panel/api/clients/onlines`
 
 Compatibility behavior is implemented in both sync and async clients.
+
+## Xray API (3x-ui v3.11.0)
+
+- `POST xray/` returns its payload as a JSON string in `obj`; `get_settings()` parses it into `XraySettings`.
+- `xray/update` replaces the outbound test URL on every call: when `outboundTestUrl` is absent the panel resets it to the default one.
+- `update()` and the outbound test methods take the Xray JSON as a string, exactly as the form fields expect it.

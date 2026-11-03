@@ -68,3 +68,21 @@ except Exception as exc:
 
 - [Common Tasks](../examples/common-tasks.md)
 - [Synchronous Recipes](../examples/sync-recipes.md)
+
+## Xray API (3x-ui v3.11.0)
+
+`api.xray` wraps `/panel/api/xray/*`.
+
+```python
+settings = api.xray.get_settings()
+traffic = api.xray.get_outbounds_traffic()
+```
+
+| Method | Endpoint | Returns |
+|---|---|---|
+| `get_settings()` | `POST /panel/api/xray/` | `XraySettings` |
+| `get_default_config()` | `GET /panel/api/xray/getDefaultJsonConfig` | `dict` |
+| `get_outbounds_traffic()` | `GET /panel/api/xray/getOutboundsTraffic` | `list[OutboundTraffic]` |
+| `get_result()` | `GET /panel/api/xray/getXrayResult` | `str` |
+| `update(config, outbound_test_url=None)` | `POST /panel/api/xray/update` | `None` |
+| `reset_outbound_stats(tag)` | `POST /panel/api/xray/resetOutboundsTraffic` | `None` |
