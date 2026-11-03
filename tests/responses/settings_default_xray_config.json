@@ -1,0 +1,25 @@
+{
+  "success": true,
+  "msg": "",
+  "obj": {
+    "log": {
+      "access": "none",
+      "error": "",
+      "loglevel": "warning"
+    },
+    "outbounds": [
+      {
+        "protocol": "freedom",
+        "settings": {
+          "domainStrategy": "AsIs"
+        },
+        "tag": "direct"
+      },
+      {
+        "protocol": "blackhole",
+        "settings": {},
+        "tag": "blocked"
+      }
+    ]
+  }
+}

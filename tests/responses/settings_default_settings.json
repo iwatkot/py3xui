@@ -1,0 +1,28 @@
+{
+  "success": true,
+  "msg": "",
+  "obj": {
+    "expireDiff": 0,
+    "trafficDiff": 0,
+    "pageSize": 25,
+    "defaultCert": "",
+    "defaultKey": "",
+    "tgBotEnable": false,
+    "subThemeDir": "",
+    "happLinkEnable": false,
+    "subEnable": true,
+    "subJsonEnable": false,
+    "subClashEnable": false,
+    "subTitle": "",
+    "subURI": "http://localhost:2096/sub/",
+    "subJsonURI": "",
+    "subClashURI": "",
+    "datepicker": "gregorian",
+    "ipLimitEnable": false,
+    "accessLogEnable": false,
+    "webDomain": "",
+    "subDomain": "",
+    "devChannelEnable": false,
+    "isDevBuild": false
+  }
+}

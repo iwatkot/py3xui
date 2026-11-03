@@ -68,3 +68,21 @@ except Exception as exc:
 
 - [Common Tasks](../examples/common-tasks.md)
 - [Synchronous Recipes](../examples/sync-recipes.md)
+
+## Settings API (3x-ui v3.11.0)
+
+`api.setting` covers `panel/api/setting/*`.
+
+```python
+settings = api.setting.get_all()
+settings.sub_title = "My subscription"
+api.setting.update(settings)
+```
+
+- Reads: `get_all`, `get_default_settings`, `get_factory_defaults`, `get_default_xray_config`, `get_tg_bot_capabilities`.
+- Changes: `update`, `update_user`, `restart_panel`, `validate_regex`.
+- Tests: `test_smtp` (returns the result, also on failure), `test_tg_bot`, `test_discord`.
+
+`update` replaces every setting, so start from `get_all()`. Secrets come back blank and a blank secret keeps the stored value; pass `clear_*` to remove one.
+
+API tokens: `get_api_tokens`, `add_api_token` (the only call that returns the token value), `delete_api_token` and `set_api_token_enabled`. The last two need the stored scope of the token in `expected_scope`; a mismatch is rejected by the panel.
