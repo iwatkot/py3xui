@@ -1,0 +1,13 @@
+{
+    "success": true,
+    "msg": "",
+    "obj": {
+        "total": 1284,
+        "items": [
+            {
+                "kind": "domain",
+                "value": "google.com"
+            }
+        ]
+    }
+}

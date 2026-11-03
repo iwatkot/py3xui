@@ -6,7 +6,13 @@ from py3xui.inbound.inbound import Inbound
 from py3xui.server.server import RealityKeyPair, Server
 from py3xui.xray import (
     BalancerStatus,
+    GeoCategory,
+    GeoCategoryPage,
     GeodataSource,
+    GeodataTokenIssue,
+    GeoEntry,
+    GeoEntryPage,
+    GeoFile,
     OutboundTestEgress,
     OutboundTestEndpoint,
     OutboundTestResult,

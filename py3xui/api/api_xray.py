@@ -1,6 +1,6 @@
 """This module contains the XrayApi class for handling the Xray settings in the XUI API."""
 
-# pylint: disable=R0801
+# pylint: disable=R0801, too-many-lines
 from typing import Any
 
 from py3xui.api.api_base import ApiFields, BaseApi
@@ -8,6 +8,12 @@ from py3xui.xray.diagnostics import (
     BalancerStatus,
     OutboundTestResult,
     RouteTestResult,
+)
+from py3xui.xray.geodata import (
+    GeoCategoryPage,
+    GeodataTokenIssue,
+    GeoEntryPage,
+    GeoFile,
 )
 from py3xui.xray.pia import PiaAccount, PiaCountry, PiaKey, PiaServers
 from py3xui.xray.xray import OutboundTraffic, XraySettings, parse_json_obj
@@ -57,6 +63,10 @@ class XrayApi(BaseApi):  # pylint: disable=too-many-public-methods
         get_balancer_status: Retrieves the live state of balancers.
         set_balancer_override: Forces a balancer to an outbound or clears the override.
         test_route: Asks the core which outbound it would pick for a connection.
+        get_geodata_files: Retrieves the geo databases of the Xray asset folder.
+        get_geodata_categories: Retrieves one page of the categories of a geo database.
+        get_geodata_entries: Retrieves one page of the entries of a category.
+        validate_geodata: Reports the routing tokens which do not resolve.
 
     Examples:
         ```python
@@ -929,3 +939,160 @@ class XrayApi(BaseApi):  # pylint: disable=too-many-public-methods
 
         response = self._post_form(url, headers, data)
         return RouteTestResult.model_validate(response.json().get(ApiFields.OBJ))
+
+    def get_geodata_files(self) -> list[GeoFile]:
+        """Retrieves the geo databases of the Xray asset folder. A database which failed to
+        parse is listed too, with the reason in the error field.
+
+        Returns:
+            list[GeoFile]: The geo databases.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+
+            files: list[py3xui.GeoFile] = api.xray.get_geodata_files()
+            ```
+        """
+        endpoint = "panel/api/xray/geodata/files"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        self.logger.info("Getting geodata files...")
+
+        response = self._get(url, headers)
+        files_json = response.json().get(ApiFields.OBJ) or []
+        return [GeoFile.model_validate(data) for data in files_json]
+
+    def get_geodata_categories(
+        self,
+        file: str,
+        query: str | None = None,
+        offset: int | None = None,
+        limit: int | None = None,
+    ) -> GeoCategoryPage:
+        """Retrieves one page of the categories of a geo database.
+
+        Arguments:
+            file (str): The name of the database file.
+            query (str | None): The filter of the categories.
+            offset (int | None): The number of the categories to skip.
+            limit (int | None): The size of the page.
+
+        Returns:
+            GeoCategoryPage: The page of the categories and the unpaged total.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+
+            page: py3xui.GeoCategoryPage = api.xray.get_geodata_categories(
+                "geosite.dat", limit=10
+            )
+            ```
+        """
+        endpoint = "panel/api/xray/geodata/categories"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        params = {
+            key: value
+            for key, value in {
+                "file": file,
+                "q": query,
+                "offset": offset,
+                "limit": limit,
+            }.items()
+            if value is not None
+        }
+        self.logger.info("Getting categories of geodata file: %s", file)
+
+        response = self._get(url, headers, params=params)
+        return GeoCategoryPage.model_validate(response.json().get(ApiFields.OBJ))
+
+    def get_geodata_entries(  # pylint: disable=R0913, R0917
+        self,
+        file: str,
+        code: str,
+        query: str | None = None,
+        offset: int | None = None,
+        limit: int | None = None,
+    ) -> GeoEntryPage:
+        """Retrieves one page of the entries of a category: domain rules for geosite databases,
+        CIDRs for geoip ones.
+
+        Arguments:
+            file (str): The name of the database file.
+            code (str): The code of the category.
+            query (str | None): The filter of the entries.
+            offset (int | None): The number of the entries to skip.
+            limit (int | None): The size of the page.
+
+        Returns:
+            GeoEntryPage: The page of the entries and the unpaged total.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+
+            page: py3xui.GeoEntryPage = api.xray.get_geodata_entries("geosite.dat", "google")
+            ```
+        """
+        endpoint = "panel/api/xray/geodata/entries"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        params = {
+            key: value
+            for key, value in {
+                "file": file,
+                "code": code,
+                "q": query,
+                "offset": offset,
+                "limit": limit,
+            }.items()
+            if value is not None
+        }
+        self.logger.info("Getting entries of geodata category %s in file: %s", code, file)
+
+        response = self._get(url, headers, params=params)
+        return GeoEntryPage.model_validate(response.json().get(ApiFields.OBJ))
+
+    def validate_geodata(
+        self, tokens: list[str], kind: str | None = None
+    ) -> list[GeodataTokenIssue]:
+        """Checks the routing tokens against the databases on disk (the panel accepts up to 500
+        tokens).
+
+        Arguments:
+            tokens (list[str]): The routing tokens.
+            kind (str | None): "ip" parses the tokens as IP rules, anything else as domain rules.
+
+        Returns:
+            list[GeodataTokenIssue]: The tokens which do not resolve.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+
+            issues = api.xray.validate_geodata(["geosite:google", "geosite:missing"])
+            ```
+        """
+        endpoint = "panel/api/xray/geodata/validate"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        form = {"tokens": ",".join(tokens), "kind": kind}
+        self.logger.info("Validating geodata tokens...")
+
+        response = self._post_form(url, headers, form)
+        issues_json = response.json().get(ApiFields.OBJ) or []
+        return [GeodataTokenIssue.model_validate(data) for data in issues_json]

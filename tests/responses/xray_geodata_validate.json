@@ -1,0 +1,12 @@
+{
+    "success": true,
+    "msg": "",
+    "obj": [
+        {
+            "token": "geosite:blabla",
+            "reason": "categoryMissing",
+            "file": "geosite.dat",
+            "code": "blabla"
+        }
+    ]
+}

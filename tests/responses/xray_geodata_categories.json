@@ -1,0 +1,22 @@
+{
+    "success": true,
+    "msg": "",
+    "obj": {
+        "total": 1043,
+        "items": [
+            {
+                "code": "google",
+                "entries": 1284,
+                "attributes": [
+                    "ads",
+                    "cn"
+                ]
+            },
+            {
+                "code": "plain",
+                "entries": 1,
+                "attributes": null
+            }
+        ]
+    }
+}

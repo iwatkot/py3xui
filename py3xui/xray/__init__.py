@@ -6,6 +6,14 @@ from py3xui.xray.diagnostics import (
     OutboundTestResult,
     RouteTestResult,
 )
+from py3xui.xray.geodata import (
+    GeoCategory,
+    GeoCategoryPage,
+    GeodataTokenIssue,
+    GeoEntry,
+    GeoEntryPage,
+    GeoFile,
+)
 from py3xui.xray.pia import (
     PiaAccount,
     PiaCountry,

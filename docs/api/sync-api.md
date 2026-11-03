@@ -111,3 +111,7 @@ traffic = api.xray.get_outbounds_traffic()
 | `get_balancer_status(tags)` | `POST /panel/api/xray/balancerStatus` | `dict[str, BalancerStatus]` |
 | `set_balancer_override(balancer_tag, target="")` | `POST /panel/api/xray/balancerOverride` | `None` |
 | `test_route(domain=None, ip=None, port=None, network=None, inbound_tag=None, protocol=None, email=None)` | `POST /panel/api/xray/routeTest` | `RouteTestResult` |
+| `get_geodata_files()` | `GET /panel/api/xray/geodata/files` | `list[GeoFile]` |
+| `get_geodata_categories(file, query=None, offset=None, limit=None)` | `GET /panel/api/xray/geodata/categories` | `GeoCategoryPage` |
+| `get_geodata_entries(file, code, query=None, offset=None, limit=None)` | `GET /panel/api/xray/geodata/entries` | `GeoEntryPage` |
+| `validate_geodata(tokens, kind=None)` | `POST /panel/api/xray/geodata/validate` | `list[GeodataTokenIssue]` |

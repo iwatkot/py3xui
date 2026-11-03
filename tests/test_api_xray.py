@@ -9,7 +9,13 @@ import requests_mock
 from py3xui import (
     Api,
     BalancerStatus,
+    GeoCategory,
+    GeoCategoryPage,
     GeodataSource,
+    GeodataTokenIssue,
+    GeoEntry,
+    GeoEntryPage,
+    GeoFile,
     OutboundTestEgress,
     OutboundTestEndpoint,
     OutboundTestResult,
@@ -500,3 +506,91 @@ def test_test_route_skips_empty_arguments(m, api):
 
     assert form(m) == {"ip": ["192.0.2.1"]}
     assert result == RouteTestResult(matched=False, outbound_tag="", group_tags=[])
+
+
+def test_get_geodata_files(m, api):
+    mock(m, "GET", "geodata/files", load("geodata_files"))
+
+    files = api.xray.get_geodata_files()
+
+    check(m, "GET", "geodata/files")
+    assert files[0] == GeoFile(
+        name="geosite.dat",
+        kind="site",
+        size=1467392,
+        modified_at=1769558400000,
+        categories=1043,
+    )
+    assert files[1].error == "failed to parse"
+
+
+def test_get_geodata_categories(m, api):
+    mock(m, "GET", "geodata/categories", load("geodata_categories"))
+
+    page = api.xray.get_geodata_categories("geosite.dat", "goo", 10, 20)
+
+    check(m, "GET", "geodata/categories")
+    assert query(m) == {
+        "file": ["geosite.dat"],
+        "q": ["goo"],
+        "offset": ["10"],
+        "limit": ["20"],
+    }
+    assert page == GeoCategoryPage(
+        total=1043,
+        items=[
+            GeoCategory(code="google", entries=1284, attributes=["ads", "cn"]),
+            GeoCategory(code="plain", entries=1, attributes=[]),
+        ],
+    )
+
+
+def test_get_geodata_categories_only_file(m, api):
+    mock(m, "GET", "geodata/categories", load("geodata_categories"))
+
+    api.xray.get_geodata_categories("geosite.dat")
+
+    assert query(m) == {"file": ["geosite.dat"]}
+
+
+def test_get_geodata_categories_zero_offset_is_sent(m, api):
+    mock(m, "GET", "geodata/categories", load("geodata_categories"))
+
+    api.xray.get_geodata_categories("geosite.dat", offset=0)
+
+    assert query(m) == {"file": ["geosite.dat"], "offset": ["0"]}
+
+
+def test_get_geodata_entries(m, api):
+    mock(m, "GET", "geodata/entries", load("geodata_entries"))
+
+    page = api.xray.get_geodata_entries("geosite.dat", "google", "mail", 5, 10)
+
+    check(m, "GET", "geodata/entries")
+    assert query(m) == {
+        "file": ["geosite.dat"],
+        "code": ["google"],
+        "q": ["mail"],
+        "offset": ["5"],
+        "limit": ["10"],
+    }
+    assert page == GeoEntryPage(
+        total=1284, items=[GeoEntry(kind="domain", value="google.com")]
+    )
+
+
+def test_validate_geodata(m, api):
+    mock(m, "POST", "geodata/validate", load("geodata_validate"))
+
+    issues = api.xray.validate_geodata(["geosite:google", "geosite:blabla"], "ip")
+
+    check(m, "POST", "geodata/validate")
+    assert form(m) == {"tokens": ["geosite:google,geosite:blabla"], "kind": ["ip"]}
+    assert issues == [
+        GeodataTokenIssue(
+            token="geosite:blabla",
+            reason="categoryMissing",
+            file="geosite.dat",
+            code="blabla",
+        )
+    ]
