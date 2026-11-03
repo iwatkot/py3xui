@@ -34,6 +34,10 @@ class InboundFields:
 
     TAG = "tag"
 
+    LAST_TRAFFIC_RESET_TIME = "lastTrafficResetTime"
+    ORIGIN_NODE_GUID = "originNodeGuid"
+    FALLBACK_PARENT = "fallbackParent"
+
 
 class Inbound(BaseModel):
     """Represents an inbound connection in the XUI API.
@@ -54,6 +58,9 @@ class Inbound(BaseModel):
         expiry_time (int): The expiry time for the inbound connection. Optional.
         client_stats (list[Client]): The client stats for the inbound connection. Optional.
         tag (str): The tag for the inbound connection. Optional.
+
+    Fields that are not declared above are kept as extra fields and sent back by `to_json()`, so a
+    "get -> modify -> update" cycle does not reset them.
     """
 
     enable: bool
@@ -83,6 +90,7 @@ class Inbound(BaseModel):
 
     model_config = ConfigDict(
         populate_by_name=True,
+        extra="allow",
     )
 
     @field_validator("stream_settings")
@@ -125,13 +133,29 @@ class Inbound(BaseModel):
             InboundFields.PORT,
             InboundFields.PROTOCOL,
             InboundFields.EXPIRY_TIME,
+            InboundFields.TOTAL,
+            InboundFields.TAG,
         }
+        # Fields the model does not declare are stored by the panel and replaced on update, so they
+        # are sent back, except for the ones the panel manages on its own.
+        panel_managed = {
+            InboundFields.LAST_TRAFFIC_RESET_TIME,
+            InboundFields.ORIGIN_NODE_GUID,
+            InboundFields.FALLBACK_PARENT,
+        }
+        include |= set(self.model_extra or {}) - panel_managed
+
+        settings = self.settings.model_dump(by_alias=True)
+        settings["clients"] = [
+            client.model_dump(by_alias=True, exclude_defaults=True)
+            for client in self.settings.clients
+        ]
 
         result = super().model_dump(by_alias=True)
         result = {k: v for k, v in result.items() if k in include}
         result.update(
             {
-                InboundFields.SETTINGS: self.settings.model_dump_json(by_alias=True),
+                InboundFields.SETTINGS: json.dumps(settings),
                 InboundFields.SNIFFING: self.sniffing.model_dump_json(by_alias=True),
             }
         )

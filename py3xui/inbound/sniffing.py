@@ -1,6 +1,6 @@
 """This module contains the Sniffing class for parsing the XUI API response."""
 
-from pydantic import Field
+from pydantic import ConfigDict, Field
 
 from py3xui.inbound.bases import JsonStringModel
 
@@ -34,3 +34,5 @@ class Sniffing(JsonStringModel):
 
     metadata_only: bool = Field(default=False, alias=SniffingFields.METADATA_ONLY)  # type: ignore
     route_only: bool = Field(default=False, alias=SniffingFields.ROUTE_ONLY)  # type: ignore
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)

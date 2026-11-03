@@ -62,4 +62,5 @@ class StreamSettings(JsonStringModel):
 
     model_config = ConfigDict(
         populate_by_name=True,
+        extra="allow",
     )
