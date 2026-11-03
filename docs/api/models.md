@@ -9,3 +9,13 @@ Core models include:
 - `ServerConfig`
 
 When the upstream panel response shape changes, py3xui adapts parsing logic while preserving stable public methods where possible.
+
+## Xray API (3x-ui v3.11.0)
+
+Models of `api.xray`, exported from `py3xui`:
+
+- `XraySettings`, `GeodataSource`, `OutboundTraffic`
+- `PiaAccount`, `PiaCountry`, `PiaRegion`, `PiaServer`, `PiaServers`, `PiaKey`
+- `OutboundTestResult`, `OutboundTestEndpoint`, `OutboundTestEgress`, `BalancerStatus`, `RouteTestResult`
+- `GeoFile`, `GeoCategory`, `GeoCategoryPage`, `GeoEntry`, `GeoEntryPage`, `GeodataTokenIssue`
+- `OutboundSub` (keeps unknown fields, is sent back to the panel)

@@ -1,0 +1,21 @@
+{
+    "success": true,
+    "msg": "",
+    "obj": [
+        {
+            "name": "geosite.dat",
+            "kind": "site",
+            "size": 1467392,
+            "modifiedAt": 1769558400000,
+            "categories": 1043
+        },
+        {
+            "name": "broken.dat",
+            "kind": "",
+            "size": 12,
+            "modifiedAt": 1769558400000,
+            "categories": 0,
+            "error": "failed to parse"
+        }
+    ]
+}

@@ -1,0 +1,5 @@
+{
+    "success": true,
+    "msg": "",
+    "obj": "{\"xraySetting\": {\"log\": {\"loglevel\": \"warning\"}, \"inbounds\": [], \"outbounds\": [{\"tag\": \"direct\", \"protocol\": \"freedom\"}], \"routing\": {\"rules\": []}}, \"inboundTags\": [\"in-443-tcp\"], \"clientReverseTags\": [], \"outboundTestUrl\": \"https://www.google.com/generate_204\", \"geodataSources\": [{\"url\": \"https://github.com/v2fly/geoip/releases/latest/download/geoip.dat\", \"file\": \"geoip.dat\"}], \"subscriptionOutbounds\": [{\"tag\": \"sub1-vless\", \"protocol\": \"vless\"}], \"subscriptionOutboundTags\": [\"sub1-vless\"]}"
+}

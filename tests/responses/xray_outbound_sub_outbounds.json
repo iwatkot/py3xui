@@ -1,0 +1,10 @@
+{
+    "success": true,
+    "msg": "",
+    "obj": [
+        {
+            "tag": "sub1-vless",
+            "protocol": "vless"
+        }
+    ]
+}

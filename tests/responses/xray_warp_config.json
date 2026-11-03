@@ -1,0 +1,5 @@
+{
+    "success": true,
+    "msg": "",
+    "obj": "{\"id\": \"fake-device-id\", \"account\": {\"license\": \"fake-license\"}, \"config\": {\"client_id\": \"AbCd\"}}"
+}

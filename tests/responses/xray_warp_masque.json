@@ -1,0 +1,5 @@
+{
+    "success": true,
+    "msg": "",
+    "obj": "{\n  \"privateKey\": \"-----BEGIN PRIVATE KEY-----\\nfake\\n-----END PRIVATE KEY-----\\n\",\n  \"publicKey\": \"fake-public-key\",\n  \"address\": [\n    \"172.16.0.2/32\",\n    \"2606:4700::2/128\"\n  ],\n  \"endpoint\": \"162.159.192.1\"\n}"
+}

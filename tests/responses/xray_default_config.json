@@ -1,0 +1,16 @@
+{
+    "success": true,
+    "msg": "",
+    "obj": {
+        "log": {
+            "loglevel": "warning"
+        },
+        "inbounds": [],
+        "outbounds": [
+            {
+                "tag": "direct",
+                "protocol": "freedom"
+            }
+        ]
+    }
+}

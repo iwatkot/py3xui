@@ -1,0 +1,12 @@
+{
+    "success": true,
+    "msg": "",
+    "obj": {
+        "tag": "pia-us_east-server",
+        "hostname": "server.example.com",
+        "secretKey": "fake-secret-key",
+        "address": "10.0.0.2",
+        "publicKey": "fake-public-key",
+        "endpoint": "192.0.2.1:1337"
+    }
+}

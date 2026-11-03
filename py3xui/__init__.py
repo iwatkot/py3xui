@@ -4,3 +4,26 @@ from py3xui.async_api.async_api import AsyncApi
 from py3xui.client.client import Client
 from py3xui.inbound.inbound import Inbound
 from py3xui.server.server import RealityKeyPair, Server
+from py3xui.xray import (
+    BalancerStatus,
+    GeoCategory,
+    GeoCategoryPage,
+    GeodataSource,
+    GeodataTokenIssue,
+    GeoEntry,
+    GeoEntryPage,
+    GeoFile,
+    OutboundSub,
+    OutboundTestEgress,
+    OutboundTestEndpoint,
+    OutboundTestResult,
+    OutboundTraffic,
+    PiaAccount,
+    PiaCountry,
+    PiaKey,
+    PiaRegion,
+    PiaServer,
+    PiaServers,
+    RouteTestResult,
+    XraySettings,
+)

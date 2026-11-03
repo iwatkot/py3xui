@@ -1,0 +1,5 @@
+{
+    "success": true,
+    "msg": "",
+    "obj": "{\n  \"data\": {\n    \"access_token\": \"fake-access-token\",\n    \"device_id\": \"fake-device-id\",\n    \"license_key\": \"fake-license\",\n    \"private_key\": \"fake-private-key\",\n    \"client_id\": \"AbCd\"\n  },\n  \"config\": {\n    \"id\": \"fake-device-id\",\n    \"account\": {\n      \"license\": \"fake-license\"\n    },\n    \"config\": {\n      \"client_id\": \"AbCd\"\n    }\n  },\n  \"warning\": \"failed to re-apply WARP license: fake\"\n}"
+}

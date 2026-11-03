@@ -1,0 +1,13 @@
+{
+    "success": true,
+    "msg": "",
+    "obj": [
+        {
+            "id": 1,
+            "tag": "direct",
+            "up": 100,
+            "down": 200,
+            "total": 300
+        }
+    ]
+}

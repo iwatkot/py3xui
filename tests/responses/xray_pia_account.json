@@ -1,0 +1,8 @@
+{
+    "success": true,
+    "msg": "",
+    "obj": {
+        "username": "fake-user",
+        "accountHint": "fa***"
+    }
+}
