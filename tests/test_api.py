@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import uuid
 
@@ -417,7 +418,7 @@ def test_get_client_details_update_round_trip_keeps_all_fields():
             json=response_example,
         )
         m.post(
-            f"{HOST}/panel/api/clients/update/{DETAILS_EMAIL}",
+            f"{HOST}/panel/api/clients/update/{DETAILS_EMAIL_QUOTED}",
             json={ApiFields.SUCCESS: True, ApiFields.MSG: "Client updated"},
         )
         api = Api(HOST, USERNAME, PASSWORD)
@@ -440,6 +441,52 @@ def test_client_model_dump_keeps_unknown_fields():
     dumped = client.model_dump(by_alias=True, exclude_defaults=True)
 
     assert dumped == {"email": "test", "enable": True, "limitHwid": 2, "someNewField": "value"}
+
+
+def test_get_client_details_missing_client_returns_none():
+    with requests_mock.Mocker() as m:
+        m.get(
+            f"{HOST}/panel/api/clients/get/{EMAIL}",
+            json={ApiFields.SUCCESS: False, ApiFields.MSG: "Obtain (record not found)"},
+        )
+        api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
+
+        assert api.client.get_details(EMAIL) is None
+
+
+def test_get_client_details_other_panel_errors_are_raised():
+    with requests_mock.Mocker() as m:
+        m.get(
+            f"{HOST}/panel/api/clients/get/{EMAIL}",
+            json={ApiFields.SUCCESS: False, ApiFields.MSG: "Obtain (database is locked)"},
+        )
+        api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
+
+        with pytest.raises(ValueError, match="database is locked"):
+            api.client.get_details(EMAIL)
+
+
+def test_update_client_does_not_log_secrets(caplog):
+    client = Client(email="test", enable=True, private_key="private-key-value")
+    logger = logging.getLogger("py3xui-test")
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/clients/update/test", json={ApiFields.SUCCESS: True})
+        api = Api(HOST, USERNAME, PASSWORD, logger=logger)
+        api.session = SESSION
+
+        with caplog.at_level(logging.INFO, logger="py3xui-test"):
+            api.client.update("id", client)
+
+    assert "private-key-value" not in caplog.text
+
+
+def test_client_ignores_reverse_that_is_not_an_object():
+    client = Client.model_validate({"email": "test", "enable": True, "reverse": "not json"})
+
+    assert client.reverse is None
+    assert "reverse" not in client.model_dump(by_alias=True, exclude_defaults=True)
 
 
 def test_reset_client_ips():

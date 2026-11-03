@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import uuid
 
@@ -345,7 +346,7 @@ async def test_get_client_details_update_round_trip_keeps_all_fields(httpx_mock:
     )
     httpx_mock.add_response(
         method="POST",
-        url=f"{HOST}/panel/api/clients/update/{DETAILS_EMAIL}",
+        url=f"{HOST}/panel/api/clients/update/{DETAILS_EMAIL_QUOTED}",
         json={ApiFields.SUCCESS: True, ApiFields.MSG: "Client updated"},
         status_code=200,
     )
@@ -360,6 +361,49 @@ async def test_get_client_details_update_round_trip_keeps_all_fields(httpx_mock:
 
     request = httpx_mock.get_requests(method="POST")[-1]
     assert json.loads(request.content.decode("utf-8")) == _expected_round_trip_payload(record)
+
+
+@pytest.mark.asyncio
+async def test_get_client_details_missing_client_returns_none(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{HOST}/panel/api/clients/get/{EMAIL}",
+        json={ApiFields.SUCCESS: False, ApiFields.MSG: "Obtain (record not found)"},
+    )
+    api = AsyncApi(HOST, USERNAME, PASSWORD)
+    api.session = SESSION
+
+    assert await api.client.get_details(EMAIL) is None
+
+
+@pytest.mark.asyncio
+async def test_get_client_details_other_panel_errors_are_raised(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{HOST}/panel/api/clients/get/{EMAIL}",
+        json={ApiFields.SUCCESS: False, ApiFields.MSG: "Obtain (database is locked)"},
+    )
+    api = AsyncApi(HOST, USERNAME, PASSWORD)
+    api.session = SESSION
+
+    with pytest.raises(ValueError, match="database is locked"):
+        await api.client.get_details(EMAIL)
+
+
+@pytest.mark.asyncio
+async def test_update_client_does_not_log_secrets(httpx_mock: HTTPXMock, caplog):
+    client = Client(email="test", enable=True, private_key="private-key-value")
+    logger = logging.getLogger("py3xui-test")
+    httpx_mock.add_response(
+        method="POST", url=f"{HOST}/panel/api/clients/update/test", json={ApiFields.SUCCESS: True}
+    )
+    api = AsyncApi(HOST, USERNAME, PASSWORD, logger=logger)
+    api.session = SESSION
+
+    with caplog.at_level(logging.INFO, logger="py3xui-test"):
+        await api.client.update("id", client)
+
+    assert "private-key-value" not in caplog.text
 
 
 @pytest.mark.asyncio

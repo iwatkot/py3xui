@@ -179,7 +179,14 @@ class ClientApi(BaseApi):  # pylint: disable=too-many-public-methods
         url = self._url(endpoint)
         self.logger.info("Getting client details for email: %s", email)
 
-        response = self._get(url, headers)
+        try:
+            response = self._get(url, headers)
+        except ValueError as error:
+            # The panel reports a missing client as an unsuccessful response.
+            if "record not found" not in str(error):
+                raise
+            self.logger.warning("No client found for email: %s", email)
+            return None
 
         details_json = response.json().get(ApiFields.OBJ)
         if not details_json:
@@ -277,7 +284,7 @@ class ClientApi(BaseApi):  # pylint: disable=too-many-public-methods
             ```
         """  # pylint: disable=line-too-long
         target_email = client.email or str(client_uuid)
-        endpoint = f"panel/api/clients/update/{target_email}"
+        endpoint = f"panel/api/clients/update/{quote(target_email, safe='')}"
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
@@ -285,7 +292,7 @@ class ClientApi(BaseApi):  # pylint: disable=too-many-public-methods
         if isinstance(data.get("uuid"), str) and not isinstance(data.get("id"), str):
             data["id"] = data["uuid"]
 
-        self.logger.info("Updating client: %s", client)
+        self.logger.info("Updating client: %s", target_email)
         self._post(url, headers, data)
         self.logger.info("Client updated successfully.")
 
