@@ -1,0 +1,51 @@
+{
+  "success": true,
+  "obj": {
+    "activeCount": 20,
+    "address": "node.example.com",
+    "allowPrivateAddress": false,
+    "basePath": "/",
+    "clientCount": 25,
+    "configDirty": false,
+    "configDirtyAt": 0,
+    "cpuPct": 12.5,
+    "createdAt": 1700000000,
+    "depletedCount": 1,
+    "disabledCount": 2,
+    "enable": true,
+    "guid": "node-guid",
+    "hasApiToken": true,
+    "id": 1,
+    "inboundCount": 3,
+    "inboundSyncMode": "all",
+    "inboundTags": [
+      "in-443-tcp"
+    ],
+    "lastError": "",
+    "lastHeartbeat": 1700000000,
+    "latencyMs": 42,
+    "memPct": 45.2,
+    "name": "edge-1",
+    "netDown": 1048576,
+    "netUp": 2097152,
+    "onlineCount": 5,
+    "outboundTag": "direct",
+    "panelVersion": "v3.x.x",
+    "parentGuid": "",
+    "pinnedCertSha256": "",
+    "port": 2053,
+    "remark": "Primary edge",
+    "scheme": "https",
+    "status": "online",
+    "tlsVerifyMode": "verify",
+    "transitive": false,
+    "unavailableMetrics": [
+      ""
+    ],
+    "updatedAt": 1700003600,
+    "uptimeSecs": 86400,
+    "xrayError": "",
+    "xrayState": "running",
+    "xrayVersion": "25.10.31"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "success": true,
+  "obj": [
+    {
+      "id": 1,
+      "name": "de-1",
+      "ok": true
+    },
+    {
+      "id": 2,
+      "name": "fr-1",
+      "ok": false,
+      "error": "node is offline"
+    }
+  ]
+}

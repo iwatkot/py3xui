@@ -2,4 +2,5 @@
 from py3xui.async_api.async_api_client import AsyncClientApi
 from py3xui.async_api.async_api_database import AsyncDatabaseApi
 from py3xui.async_api.async_api_inbound import AsyncInboundApi
+from py3xui.async_api.async_api_node import AsyncNodeApi
 from py3xui.async_api.async_api_server import AsyncServerApi

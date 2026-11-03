@@ -1,0 +1,18 @@
+{
+  "success": true,
+  "obj": {
+    "cpuPct": 12.5,
+    "error": "",
+    "latencyMs": 42,
+    "memPct": 45.2,
+    "panelVersion": "v3.x.x",
+    "status": "online",
+    "unavailableMetrics": [
+      ""
+    ],
+    "uptimeSecs": 86400,
+    "xrayError": "",
+    "xrayState": "",
+    "xrayVersion": "25.10.31"
+  }
+}

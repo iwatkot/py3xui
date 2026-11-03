@@ -68,3 +68,34 @@ except Exception as exc:
 
 - [Common Tasks](../examples/common-tasks.md)
 - [Synchronous Recipes](../examples/sync-recipes.md)
+
+## Nodes API (3x-ui v3.11.0)
+
+Available as `api.node`. Method signatures are the same in the sync and async clients.
+
+| Method | Route |
+|---|---|
+| `get_list()` | `GET /panel/api/nodes/list` |
+| `get_by_id(node_id)` | `GET /panel/api/nodes/get/{id}` |
+| `get_web_cert_files(node_id)` | `GET /panel/api/nodes/webCert/{id}` |
+| `add(node)` | `POST /panel/api/nodes/add` |
+| `update(node_id, node)` | `POST /panel/api/nodes/update/{id}` |
+| `delete(node_id)` | `POST /panel/api/nodes/del/{id}` |
+| `set_enable(node_id, enable)` | `POST /panel/api/nodes/setEnable/{id}` |
+| `test(node)` | `POST /panel/api/nodes/test` |
+| `get_cert_fingerprint(node)` | `POST /panel/api/nodes/certFingerprint` |
+| `get_remote_inbounds(node)` | `POST /panel/api/nodes/inbounds` |
+| `probe(node_id)` | `POST /panel/api/nodes/probe/{id}` |
+| `update_panel(node_ids, dev=False)` | `POST /panel/api/nodes/updatePanel` |
+| `get_history(node_id, metric, bucket)` | `GET /panel/api/nodes/history/{id}/{metric}/{bucket}` |
+| `get_mtls_ca()` | `POST /panel/api/nodes/mtls/ca` |
+| `set_mtls_trust_ca(ca_cert)` | `POST /panel/api/nodes/mtls/trustCA` |
+| `reload_mtls_client()` | `POST /panel/api/nodes/mtls/reloadClient` |
+
+`api_token` is write-only: the panel never returns it, so a read and update cycle keeps the stored token.
+
+```python
+node = api.node.get_by_id(1)
+node.remark = "Primary edge"
+api.node.update(node.id, node)
+```
