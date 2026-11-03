@@ -400,7 +400,7 @@ def test_delete_client():
 def test_delete_client_by_email_skips_lookup():
     email = "user@example.com"
     with requests_mock.Mocker() as m:
-        m.post(f"{HOST}/panel/api/clients/del/{email}", json={ApiFields.SUCCESS: True})
+        m.post(f"{HOST}/panel/api/clients/del/user%40example.com", json={ApiFields.SUCCESS: True})
 
         api = Api(HOST, USERNAME, PASSWORD)
         api.session = SESSION

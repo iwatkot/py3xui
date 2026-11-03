@@ -4,6 +4,7 @@ clients in the XUI API."""
 # pylint: disable=R0801
 
 from typing import Any
+from urllib.parse import quote
 
 from py3xui.api.api_base import ApiFields, BaseApi
 from py3xui.client import Client
@@ -71,7 +72,7 @@ class ClientApi(BaseApi):
             ```
         """  # pylint: disable=line-too-long
 
-        endpoint = f"panel/api/clients/get/{email}"
+        endpoint = f"panel/api/clients/get/{quote(email, safe='')}"
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
@@ -114,7 +115,7 @@ class ClientApi(BaseApi):
             ips = api.client.get_ips("email")
             ```
         """  # pylint: disable=line-too-long
-        endpoint = f"panel/api/clients/ips/{email}"
+        endpoint = f"panel/api/clients/ips/{quote(email, safe='')}"
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
@@ -212,7 +213,7 @@ class ClientApi(BaseApi):
             api.client.reset_ips("email")
             ```
         """  # pylint: disable=line-too-long
-        endpoint = f"panel/api/clients/clearIps/{email}"
+        endpoint = f"panel/api/clients/clearIps/{quote(email, safe='')}"
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
@@ -243,7 +244,7 @@ class ClientApi(BaseApi):
             api.client.reset_stats(inbound_id, "test")
             ```
         """  # pylint: disable=line-too-long
-        endpoint = f"panel/api/clients/resetTraffic/{email}"
+        endpoint = f"panel/api/clients/resetTraffic/{quote(email, safe='')}"
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
@@ -278,7 +279,7 @@ class ClientApi(BaseApi):
             ```
         """  # pylint: disable=line-too-long
         email = self._resolve_client_email(inbound_id=inbound_id, client_identifier=client_uuid)
-        endpoint = f"panel/api/clients/del/{email}"
+        endpoint = f"panel/api/clients/del/{quote(email, safe='')}"
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
@@ -411,8 +412,8 @@ class ClientApi(BaseApi):
         for client_json in clients_json:
             client_id = client_json.get("id")
             client_uuid = client_json.get("uuid")
-            if str(client_identifier) in {str(client_id), str(client_uuid)}:
-                email = client_json.get("email")
+            email = client_json.get("email")
+            if str(client_identifier) in {str(client_id), str(client_uuid), str(email)}:
                 if isinstance(email, str) and email:
                     return email
 
