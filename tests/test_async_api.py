@@ -559,6 +559,34 @@ async def test_delete_inbound_failed(httpx_mock: HTTPXMock):
 
 
 @pytest.mark.asyncio
+async def test_get_inbounds_with_null_json_fields(httpx_mock: HTTPXMock):
+    inbound_json = {
+        "id": 7,
+        "enable": True,
+        "port": 8443,
+        "protocol": "mtproto",
+        "settings": None,
+        "streamSettings": None,
+        "sniffing": None,
+    }
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{HOST}/panel/api/inbounds/list",
+        json={ApiFields.SUCCESS: True, ApiFields.MSG: "", ApiFields.OBJ: [inbound_json]},
+        status_code=200,
+    )
+    api = AsyncApi(HOST, USERNAME, PASSWORD)
+    api.session = SESSION
+
+    inbounds = await api.inbound.get_list()
+
+    assert inbounds[0].stream_settings == ""
+    assert inbounds[0].sniffing.enabled is False
+    assert inbounds[0].settings.clients == []
+    assert inbounds[0].to_json()["streamSettings"] == ""
+
+
+@pytest.mark.asyncio
 async def test_update_inbound(httpx_mock: HTTPXMock):
     response_example = {ApiFields.SUCCESS: True}
 
