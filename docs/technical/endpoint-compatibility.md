@@ -10,3 +10,12 @@ Examples:
 - Online clients: `panel/api/clients/onlines`
 
 Compatibility behavior is implemented in both sync and async clients.
+
+## Sub Balancers API (3x-ui v3.11.0)
+
+- `GET panel/api/sub-balancers`
+- `POST panel/api/sub-balancers`
+- `POST panel/api/sub-balancers/{id}`
+- `POST panel/api/sub-balancers/{id}/del`
+
+Create and update read form fields only: `inboundIds` as repeated keys and `memberWeights` as one JSON object. JSON bodies lose `inboundIds` and are rejected. `DELETE panel/api/sub-balancers/{id}` has the same handler as the POST alias, and py3xui uses the alias.
