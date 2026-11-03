@@ -68,3 +68,21 @@ except Exception as exc:
 
 - [Common Tasks](../examples/common-tasks.md)
 - [Synchronous Recipes](../examples/sync-recipes.md)
+
+## Inbounds API (3x-ui v3.11.0)
+
+Additional methods of `api.inbound`:
+
+- `get_list_slim()`: list inbounds with settings.clients stripped to email, enable and comment.
+- `get_options()`: lightweight inbound projection (`list[InboundOption]`).
+- `get_amneziawg_kernel_readiness()`: check whether the host can run kernel-mode AmneziaWG (`AmneziaWGReadiness`).
+- `get_all_links()`: share links of all clients of all inbounds (`list[str]`).
+- `bulk_delete(inbound_ids)`: delete several inbounds (`InboundBulkDeleteResult`).
+- `set_enable(inbound_id, enable)`: enable or disable an inbound without sending its settings.
+- `set_sub_sort_index(inbound_id, index)`: set the subscription sort order (0 is rejected by the panel).
+- `reset_stats_by_id(inbound_id)`: reset the traffic of one inbound.
+- `delete_all_clients(inbound_id)`: delete all clients and keep the inbound (`InboundClientsDeleteResult`).
+- `import_inbound(inbound)`: import an `Inbound` or a raw JSON string (lossless), returns the created `Inbound`.
+- `push_client_traffics(master_guid, traffics)`: push aggregated client traffic from a master panel.
+- `get_fallbacks(inbound_id)`: fallback rules of a master inbound (`list[InboundFallback]`).
+- `set_fallbacks(inbound_id, fallbacks)`: replace the fallback rules of a master inbound.

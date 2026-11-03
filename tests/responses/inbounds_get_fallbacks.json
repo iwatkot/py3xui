@@ -1,0 +1,17 @@
+{
+  "msg": "",
+  "success": true,
+  "obj": [
+    {
+      "id": 1,
+      "masterId": 10,
+      "childId": 11,
+      "name": "",
+      "alpn": "",
+      "path": "/vlws",
+      "dest": "",
+      "xver": 2,
+      "sortOrder": 0
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "success": true,
+  "msg": "",
+  "obj": {
+    "deleted": 12,
+    "skipped": [
+      {
+        "email": "bob",
+        "reason": "client not found"
+      }
+    ]
+  }
+}
