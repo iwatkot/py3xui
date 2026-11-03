@@ -93,3 +93,5 @@ except Exception as exc:
 - `await api.server.get_logs(count, level="info", syslog=False)`: last lines of the panel log.
 - `await api.server.get_xray_logs(count, keyword="", show_direct=True, show_blocked=True, show_proxy=True)`: last lines of the Xray access log.
 - `await api.server.get_amneziawg_logs(count, keyword="")`: live AmneziaWG activity and log lines.
+- `await api.server.get_migration(save_path)`: saves a cross-engine migration file.
+- `await api.server.import_db(file_path, keep_host_settings=True)`: restores the panel database from a file.

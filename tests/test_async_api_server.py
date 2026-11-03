@@ -514,3 +514,59 @@ async def test_get_amneziawg_logs(httpx_mock: HTTPXMock):
     assert logs.peers[0].allowed_ips == "10.8.1.2/32"
     assert logs.peers[0].handshake == 1735732800000
     assert logs.peers[0].online is True
+
+
+@pytest.mark.asyncio
+async def test_get_migration(httpx_mock: HTTPXMock, tmp_path):
+    save_path = tmp_path / "migration.dump"
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{SERVER_URL}/getMigration",
+        content=b"migration content",
+        headers={"Content-Type": "application/octet-stream"},
+    )
+    await make_api().server.get_migration(str(save_path))
+
+    assert save_path.read_bytes() == b"migration content"
+
+
+@pytest.mark.asyncio
+async def test_get_migration_failed(httpx_mock: HTTPXMock, tmp_path):
+    save_path = tmp_path / "migration.dump"
+    httpx_mock.add_response(method="GET", url=f"{SERVER_URL}/getMigration", json=RESPONSE_FAILED)
+    with pytest.raises(ValueError):
+        await make_api().server.get_migration(str(save_path))
+
+    assert not save_path.exists()
+
+
+@pytest.mark.asyncio
+async def test_import_db(httpx_mock: HTTPXMock, tmp_path):
+    file_path = tmp_path / "backup.db"
+    file_path.write_bytes(b"database content")
+    httpx_mock.add_response(method="POST", url=f"{SERVER_URL}/importDB", json=RESPONSE_OK)
+    await make_api().server.import_db(str(file_path))
+    body = raw_body(httpx_mock.get_request())
+    assert httpx_mock.get_request().headers["Content-Type"].startswith("multipart/form-data")
+
+    assert b'name="keepHostSettings"\r\n\r\ntrue' in body
+    assert b'name="db"; filename="backup.db"' in body
+    assert b"database content" in body
+
+
+@pytest.mark.asyncio
+async def test_import_db_replace_host_settings(httpx_mock: HTTPXMock, tmp_path):
+    file_path = tmp_path / "backup.db"
+    file_path.write_bytes(b"database content")
+    httpx_mock.add_response(method="POST", url=f"{SERVER_URL}/importDB", json=RESPONSE_OK)
+    await make_api().server.import_db(str(file_path), keep_host_settings=False)
+    assert b'name="keepHostSettings"\r\n\r\nfalse' in raw_body(httpx_mock.get_request())
+
+
+@pytest.mark.asyncio
+async def test_import_db_failed(httpx_mock: HTTPXMock, tmp_path):
+    file_path = tmp_path / "backup.db"
+    file_path.write_bytes(b"not a database")
+    httpx_mock.add_response(method="POST", url=f"{SERVER_URL}/importDB", json=RESPONSE_FAILED)
+    with pytest.raises(ValueError):
+        await make_api().server.import_db(str(file_path))

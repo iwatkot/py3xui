@@ -412,3 +412,62 @@ def test_get_amneziawg_logs():
     assert logs.peers[0].allowed_ips == "10.8.1.2/32"
     assert logs.peers[0].handshake == 1735732800000
     assert logs.peers[0].online is True
+
+
+def test_get_migration(tmp_path):
+    save_path = tmp_path / "migration.dump"
+    with requests_mock.Mocker() as m:
+        m.get(
+            f"{SERVER_URL}/getMigration",
+            content=b"migration content",
+            headers={"Content-Type": "application/octet-stream"},
+        )
+        make_api().server.get_migration(str(save_path))
+
+    assert save_path.read_bytes() == b"migration content"
+
+
+def test_get_migration_failed(tmp_path):
+    save_path = tmp_path / "migration.dump"
+    with requests_mock.Mocker() as m:
+        m.get(
+            f"{SERVER_URL}/getMigration",
+            json=RESPONSE_FAILED,
+            headers={"Content-Type": "application/json; charset=utf-8"},
+        )
+        with pytest.raises(ValueError):
+            make_api().server.get_migration(str(save_path))
+
+    assert not save_path.exists()
+
+
+def test_import_db(tmp_path):
+    file_path = tmp_path / "backup.db"
+    file_path.write_bytes(b"database content")
+    with requests_mock.Mocker() as m:
+        m.post(f"{SERVER_URL}/importDB", json=RESPONSE_OK)
+        make_api().server.import_db(str(file_path))
+        body = raw_body(m.last_request)
+        assert m.last_request.headers["Content-Type"].startswith("multipart/form-data")
+
+    assert b'name="keepHostSettings"\r\n\r\ntrue' in body
+    assert b'name="db"; filename="backup.db"' in body
+    assert b"database content" in body
+
+
+def test_import_db_replace_host_settings(tmp_path):
+    file_path = tmp_path / "backup.db"
+    file_path.write_bytes(b"database content")
+    with requests_mock.Mocker() as m:
+        m.post(f"{SERVER_URL}/importDB", json=RESPONSE_OK)
+        make_api().server.import_db(str(file_path), keep_host_settings=False)
+        assert b'name="keepHostSettings"\r\n\r\nfalse' in raw_body(m.last_request)
+
+
+def test_import_db_failed(tmp_path):
+    file_path = tmp_path / "backup.db"
+    file_path.write_bytes(b"not a database")
+    with requests_mock.Mocker() as m:
+        m.post(f"{SERVER_URL}/importDB", json=RESPONSE_FAILED)
+        with pytest.raises(ValueError):
+            make_api().server.import_db(str(file_path))

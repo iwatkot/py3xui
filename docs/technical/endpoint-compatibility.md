@@ -42,3 +42,5 @@ Endpoints used by `api.server`:
 - `POST panel/api/server/logs/{count}`
 - `POST panel/api/server/xraylogs/{count}`
 - `POST panel/api/server/amneziawglogs/{count}`
+- `GET panel/api/server/getMigration`
+- `POST panel/api/server/importDB`

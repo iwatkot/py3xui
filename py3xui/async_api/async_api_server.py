@@ -2,6 +2,7 @@
 
 # pylint: disable=too-many-lines
 
+import os
 from urllib.parse import quote
 
 from py3xui.api.api_base import ApiFields
@@ -75,6 +76,8 @@ class AsyncServerApi(AsyncBaseApi):  # pylint: disable=too-many-public-methods
         get_logs: Retrieves the last lines of the panel log.
         get_xray_logs: Retrieves the last lines of the Xray access log.
         get_amneziawg_logs: Retrieves the live AmneziaWG activity.
+        get_migration: Retrieves a cross-engine migration file and saves it to a specified path.
+        import_db: Restores the panel database from a backup or migration file.
 
     Examples:
         ```python
@@ -1009,3 +1012,69 @@ class AsyncServerApi(AsyncBaseApi):  # pylint: disable=too-many-public-methods
 
         response = await self._post_form(url, headers, {"filter": keyword})
         return AmneziaWGLogs.model_validate(response.json().get(ApiFields.OBJ))
+
+    async def get_migration(self, save_path: str) -> None:
+        """Retrieves a cross-engine migration file and saves it to a specified path: a .dump file
+        on a SQLite panel, a .db file on a PostgreSQL panel.
+
+        Arguments:
+            save_path (str): The path to save the migration file.
+
+        Raises:
+            ValueError: If the panel reports that the file could not be created.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+
+            await api.server.get_migration("migration.dump")
+            ```
+        """
+        endpoint = "panel/api/server/getMigration"
+        headers = {"Accept": "application/octet-stream"}
+        url = self._url(endpoint)
+        self.logger.info("Getting migration file...")
+
+        response = await self._get(url, headers, skip_check=True)
+
+        # The panel reports a failure as a JSON response with the status code 200.
+        if "application/json" in response.headers.get("Content-Type", ""):
+            await self._check_response(response)
+
+        with open(save_path, "wb") as file:
+            file.write(response.content)
+        self.logger.info("Migration file saved to %s", save_path)
+
+    async def import_db(self, file_path: str, keep_host_settings: bool = True) -> None:
+        """Restores the panel database from a backup or migration file. This replaces all the panel
+        data, the panel restarts after the restore.
+
+        Arguments:
+            file_path (str): The path to the file to upload.
+            keep_host_settings (bool): Whether to keep the listen addresses, certificates and node
+                identity of this machine. Pass False to clone another machine wholesale.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+
+            await api.server.import_db("db_backup.db")
+            ```
+        """
+        endpoint = "panel/api/server/importDB"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        self.logger.info("Importing DB from %s...", file_path)
+
+        with open(file_path, "rb") as file:
+            content = file.read()
+
+        files = {"db": (os.path.basename(file_path), content)}
+        await self._post_form(url, headers, {"keepHostSettings": keep_host_settings}, files=files)
+        self.logger.info("DB imported successfully.")
