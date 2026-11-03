@@ -1,6 +1,8 @@
 """This module contains the Settings class, which is used to parse the JSON response
 from the XUI API."""
 
+from pydantic import ConfigDict
+
 from py3xui.client.client import Client
 from py3xui.inbound.bases import JsonStringModel
 
@@ -26,3 +28,5 @@ class Settings(JsonStringModel):
     clients: list[Client] = []
     decryption: str = ""
     fallbacks: list = []
+
+    model_config = ConfigDict(extra="allow")
