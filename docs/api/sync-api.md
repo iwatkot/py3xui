@@ -84,3 +84,5 @@ api.setting.update(settings)
 - Tests: `test_smtp` (returns the result, also on failure), `test_tg_bot`, `test_discord`.
 
 `update` replaces every setting, so start from `get_all()`. Secrets come back blank and a blank secret keeps the stored value; pass `clear_*` to remove one.
+
+API tokens: `get_api_tokens`, `add_api_token` (the only call that returns the token value), `delete_api_token` and `set_api_token_enabled`. The last two need the stored scope of the token in `expected_scope`; a mismatch is rejected by the panel.

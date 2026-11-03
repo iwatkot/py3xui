@@ -17,6 +17,7 @@ Sync and async `api.setting` use JSON bodies on these routes:
 
 - `POST panel/api/setting/all`, `defaultSettings`, `factoryDefaults`, `update`, `validateRegex`, `updateUser`, `restartPanel`
 - `POST panel/api/setting/testSmtp`, `testTgBot`, `tgBotCapabilities`, `testDiscord`
-- `GET panel/api/setting/getDefaultJsonConfig`
+- `GET panel/api/setting/getDefaultJsonConfig`, `apiTokens`
+- `POST panel/api/setting/apiTokens/create`, `apiTokens/delete/{id}`, `apiTokens/setEnabled/{id}`
 
 `testSmtp` adds a `stage` field to the response, so `test_smtp()` returns it instead of raising on failure.

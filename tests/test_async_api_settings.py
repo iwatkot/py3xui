@@ -3,7 +3,7 @@ import json
 import pytest
 from pytest_httpx import HTTPXMock
 
-from py3xui import AllSetting, AsyncApi, TgBotCapabilities
+from py3xui import AllSetting, ApiToken, AsyncApi, TgBotCapabilities
 from py3xui.api.api_base import ApiFields
 from py3xui.setting.setting import AllSettingFields
 
@@ -250,3 +250,95 @@ async def test_get_default_xray_config(httpx_mock: HTTPXMock):
         json=fixture,
     )
     assert await _api().setting.get_default_xray_config() == fixture[ApiFields.OBJ]
+
+
+@pytest.mark.asyncio
+async def test_get_api_tokens(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{HOST}/panel/api/setting/apiTokens",
+        json=_fixture("api_tokens"),
+    )
+    tokens = await _api().setting.get_api_tokens()
+
+    assert tokens == [
+        ApiToken(
+            id=1,
+            name="central-panel-a",
+            enabled=True,
+            created_at=1736000000,
+            scope="node-admin",
+            expires_at=0,
+        )
+    ]
+    assert tokens[0].token == ""
+
+
+@pytest.mark.asyncio
+async def test_add_api_token(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/setting/apiTokens/create",
+        json=_fixture("api_token_created"),
+    )
+    token = await _api().setting.add_api_token(
+        "central-panel-a", "node-admin", 1798761600000
+    )
+
+    assert _body(httpx_mock) == {
+        "name": "central-panel-a",
+        "scope": "node-admin",
+        "expiresAt": 1798761600000,
+    }
+    assert token.id == 2
+    assert token.token == "new-token-string"
+
+
+@pytest.mark.asyncio
+async def test_add_api_token_defaults(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/setting/apiTokens/create",
+        json=_fixture("api_token_created"),
+    )
+    await _api().setting.add_api_token("central-panel-a")
+
+    assert _body(httpx_mock) == {
+        "name": "central-panel-a",
+        "scope": "admin",
+        "expiresAt": 0,
+    }
+
+
+@pytest.mark.asyncio
+async def test_delete_api_token(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST", url=f"{HOST}/panel/api/setting/apiTokens/delete/2", json=SUCCESS
+    )
+    assert await _api().setting.delete_api_token(2, "node-sync") is None
+    assert _body(httpx_mock) == {"expectedScope": "node-sync"}
+
+
+@pytest.mark.asyncio
+async def test_delete_api_token_scope_mismatch_raises(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/setting/apiTokens/delete/2",
+        json={
+            ApiFields.SUCCESS: False,
+            ApiFields.MSG: "token not found with expected scope",
+        },
+    )
+    with pytest.raises(ValueError, match="expected scope"):
+        await _api().setting.delete_api_token(2, "admin")
+
+
+@pytest.mark.asyncio
+async def test_set_api_token_enabled(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/setting/apiTokens/setEnabled/2",
+        json=SUCCESS,
+    )
+    assert await _api().setting.set_api_token_enabled(2, False, "node-sync") is None
+    assert _body(httpx_mock) == {"enabled": False, "expectedScope": "node-sync"}

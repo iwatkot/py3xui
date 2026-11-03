@@ -3,7 +3,7 @@ import json
 import pytest
 import requests_mock
 
-from py3xui import AllSetting, Api, TgBotCapabilities
+from py3xui import AllSetting, Api, ApiToken, TgBotCapabilities
 from py3xui.api.api_base import ApiFields
 from py3xui.setting.setting import AllSettingFields
 
@@ -230,3 +230,89 @@ def test_get_default_xray_config():
 
     assert m.last_request.method == "GET"
     assert config == fixture[ApiFields.OBJ]
+
+
+def test_get_api_tokens():
+    fixture = _fixture("api_tokens")
+    with requests_mock.Mocker() as m:
+        m.get(f"{HOST}/panel/api/setting/apiTokens", json=fixture)
+        tokens = _api().setting.get_api_tokens()
+
+    assert m.last_request.method == "GET"
+    assert tokens == [
+        ApiToken(
+            id=1,
+            name="central-panel-a",
+            enabled=True,
+            created_at=1736000000,
+            scope="node-admin",
+            expires_at=0,
+        )
+    ]
+    assert tokens[0].token == ""
+
+
+def test_add_api_token():
+    with requests_mock.Mocker() as m:
+        m.post(
+            f"{HOST}/panel/api/setting/apiTokens/create",
+            json=_fixture("api_token_created"),
+        )
+        token = _api().setting.add_api_token(
+            "central-panel-a", "node-admin", 1798761600000
+        )
+
+    assert m.last_request.method == "POST"
+    assert m.last_request.json() == {
+        "name": "central-panel-a",
+        "scope": "node-admin",
+        "expiresAt": 1798761600000,
+    }
+    assert token.id == 2
+    assert token.token == "new-token-string"
+
+
+def test_add_api_token_defaults():
+    with requests_mock.Mocker() as m:
+        m.post(
+            f"{HOST}/panel/api/setting/apiTokens/create",
+            json=_fixture("api_token_created"),
+        )
+        _api().setting.add_api_token("central-panel-a")
+
+    assert m.last_request.json() == {
+        "name": "central-panel-a",
+        "scope": "admin",
+        "expiresAt": 0,
+    }
+
+
+def test_delete_api_token():
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/setting/apiTokens/delete/2", json=SUCCESS)
+        assert _api().setting.delete_api_token(2, "node-sync") is None
+
+    assert m.last_request.method == "POST"
+    assert m.last_request.json() == {"expectedScope": "node-sync"}
+
+
+def test_delete_api_token_scope_mismatch_raises():
+    with requests_mock.Mocker() as m:
+        m.post(
+            f"{HOST}/panel/api/setting/apiTokens/delete/2",
+            json={
+                ApiFields.SUCCESS: False,
+                ApiFields.MSG: "token not found with expected scope",
+            },
+        )
+        with pytest.raises(ValueError, match="expected scope"):
+            _api().setting.delete_api_token(2, "admin")
+
+
+def test_set_api_token_enabled():
+    with requests_mock.Mocker() as m:
+        m.post(f"{HOST}/panel/api/setting/apiTokens/setEnabled/2", json=SUCCESS)
+        assert _api().setting.set_api_token_enabled(2, False, "node-sync") is None
+
+    assert m.last_request.method == "POST"
+    assert m.last_request.json() == {"enabled": False, "expectedScope": "node-sync"}

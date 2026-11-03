@@ -5,7 +5,7 @@
 from typing import Any
 
 from py3xui.api.api_base import ApiFields, BaseApi
-from py3xui.setting import AllSetting, TgBotCapabilities
+from py3xui.setting import AllSetting, ApiToken, TgBotCapabilities
 
 
 class SettingApi(BaseApi):
@@ -33,6 +33,10 @@ class SettingApi(BaseApi):
         get_tg_bot_capabilities: Retrieves what the Telegram bot can do.
         test_discord: Sends a test notification through the Discord bot.
         get_default_xray_config: Retrieves the default Xray config template.
+        get_api_tokens: Retrieves all API tokens.
+        add_api_token: Creates an API token.
+        delete_api_token: Deletes an API token.
+        set_api_token_enabled: Enables or disables an API token.
 
     Examples:
         ```python
@@ -394,3 +398,126 @@ class SettingApi(BaseApi):
 
         response = self._get(url, headers)
         return response.json().get(ApiFields.OBJ)
+
+    def get_api_tokens(self) -> list[ApiToken]:
+        """This route is used to retrieve all API tokens, enabled or not.
+
+        The panel never returns the token values here, only their metadata.
+
+        Returns:
+            list[ApiToken]: The API tokens.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+
+            tokens: list[py3xui.ApiToken] = api.setting.get_api_tokens()
+            ```
+        """
+        endpoint = "panel/api/setting/apiTokens"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        self.logger.info("Getting API tokens...")
+
+        response = self._get(url, headers)
+        tokens_json = response.json().get(ApiFields.OBJ)
+        return [ApiToken.model_validate(token) for token in tokens_json]
+
+    def add_api_token(
+        self, name: str, scope: str = "admin", expires_at: int = 0
+    ) -> ApiToken:
+        """This route is used to create an API token.
+
+        The returned model is the only place where the token value is available.
+
+        Arguments:
+            name (str): The unique name of the token, up to 64 characters.
+            scope (str): The scope of the token: `admin`, `monitor`, `node-sync` or
+                `node-admin`.
+            expires_at (int): The future expiry time in Unix milliseconds, 0 for no expiry.
+
+        Returns:
+            ApiToken: The created token with its value in `token`.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+
+            token = api.setting.add_api_token("central-panel-a", scope="monitor")
+            print(token.token)
+            ```
+        """
+        endpoint = "panel/api/setting/apiTokens/create"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        data = {"name": name, "scope": scope, "expiresAt": expires_at}
+        self.logger.info("Creating API token: %s", name)
+
+        response = self._post(url, headers, data)
+        return ApiToken.model_validate(response.json().get(ApiFields.OBJ))
+
+    def delete_api_token(self, token_id: int, expected_scope: str) -> None:
+        """This route is used to delete an API token. Its users stop authenticating immediately.
+
+        The panel deletes the token only if its stored scope matches `expected_scope`, which
+        guards against deleting the wrong token by a mistaken ID.
+
+        Arguments:
+            token_id (int): The ID of the token.
+            expected_scope (str): The stored scope of the token.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+
+            api.setting.delete_api_token(2, "node-sync")
+            ```
+        """
+        endpoint = f"panel/api/setting/apiTokens/delete/{token_id}"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        data = {"expectedScope": expected_scope}
+        self.logger.info("Deleting API token: %s", token_id)
+
+        self._post(url, headers, data)
+        self.logger.info("API token deleted successfully.")
+
+    def set_api_token_enabled(
+        self, token_id: int, enabled: bool, expected_scope: str
+    ) -> None:
+        """This route is used to enable or disable an API token without deleting it.
+
+        The panel changes the token only if its stored scope matches `expected_scope`, which
+        guards against changing the wrong token by a mistaken ID.
+
+        Arguments:
+            token_id (int): The ID of the token.
+            enabled (bool): The new state of the token.
+            expected_scope (str): The stored scope of the token.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+
+            api.setting.set_api_token_enabled(2, False, "node-sync")
+            ```
+        """
+        endpoint = f"panel/api/setting/apiTokens/setEnabled/{token_id}"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        data = {"enabled": enabled, "expectedScope": expected_scope}
+        self.logger.info("Setting API token %s enabled to %s", token_id, enabled)
+
+        self._post(url, headers, data)

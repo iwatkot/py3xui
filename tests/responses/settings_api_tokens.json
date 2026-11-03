@@ -1,0 +1,13 @@
+{
+  "success": true,
+  "obj": [
+    {
+      "id": 1,
+      "name": "central-panel-a",
+      "enabled": true,
+      "createdAt": 1736000000,
+      "scope": "node-admin",
+      "expiresAt": 0
+    }
+  ]
+}
