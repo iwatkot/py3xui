@@ -68,3 +68,26 @@ except Exception as exc:
 
 - [Common Tasks](../examples/common-tasks.md)
 - [Synchronous Recipes](../examples/sync-recipes.md)
+
+## Sub Balancers API (3x-ui v3.11.0)
+
+Available as `api.sub_balancer`.
+
+| Method | Route |
+|---|---|
+| `api.sub_balancer.get_list()` | `GET panel/api/sub-balancers` |
+| `api.sub_balancer.add(balancer)` | `POST panel/api/sub-balancers` |
+| `api.sub_balancer.update(balancer_id, balancer)` | `POST panel/api/sub-balancers/{id}` |
+| `api.sub_balancer.delete(balancer_id)` | `POST panel/api/sub-balancers/{id}/del` |
+
+`update` replaces the whole row: strategy, member weights and sort order that are not set are reset to their defaults, and only `enabled` keeps the stored value when it was not set. To change a single field, take the balancer from `get_list`, modify it and pass it back.
+
+```python
+balancer = py3xui.SubBalancer(remark="auto-fastest", inbound_ids=[1, 3])
+created = api.sub_balancer.add(balancer)
+
+created.enabled = False
+api.sub_balancer.update(created.id, created)
+
+api.sub_balancer.delete(created.id)
+```
