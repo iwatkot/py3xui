@@ -44,3 +44,6 @@ Endpoints used by `api.server`:
 - `POST panel/api/server/amneziawglogs/{count}`
 - `GET panel/api/server/getMigration`
 - `POST panel/api/server/importDB`
+- `GET panel/api/server/descendants`
+- `GET panel/api/server/clientIps`
+- `POST panel/api/server/clientIps`

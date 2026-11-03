@@ -8,6 +8,7 @@ from urllib.parse import quote
 from py3xui.api.api_base import ApiFields
 from py3xui.async_api.async_api_base import AsyncBaseApi
 from py3xui.server.config import ServerConfig, XrayVersionUnavailableError
+from py3xui.server.client_ips import InboundClientIps
 from py3xui.server.keys import (
     EchCert,
     KeysFields,
@@ -16,6 +17,7 @@ from py3xui.server.keys import (
     VlessEncryptionAuth,
     WebCertFiles,
 )
+from py3xui.server.node_summary import NodeSummary
 from py3xui.server.reality_scan import RealityScanResult
 from py3xui.server.server import RealityKeyPair, Server
 from py3xui.server.panel_update import PanelUpdateFields, PanelUpdateInfo, PanelUpdateStatus
@@ -78,6 +80,9 @@ class AsyncServerApi(AsyncBaseApi):  # pylint: disable=too-many-public-methods
         get_amneziawg_logs: Retrieves the live AmneziaWG activity.
         get_migration: Retrieves a cross-engine migration file and saves it to a specified path.
         import_db: Restores the panel database from a backup or migration file.
+        get_descendants: Retrieves the summaries of the nodes managed by the panel.
+        get_client_ips: Retrieves the recently active IP addresses of all the clients.
+        push_client_ips: Merges recently active IP addresses into the panel database.
 
     Examples:
         ```python
@@ -1078,3 +1083,86 @@ class AsyncServerApi(AsyncBaseApi):  # pylint: disable=too-many-public-methods
         files = {"db": (os.path.basename(file_path), content)}
         await self._post_form(url, headers, {"keepHostSettings": keep_host_settings}, files=files)
         self.logger.info("DB imported successfully.")
+
+    async def get_descendants(self) -> list[NodeSummary]:
+        """Gets the read-only summaries of the nodes managed by the panel.
+
+        Returns:
+            list[NodeSummary]: The summaries of the nodes.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+
+            for node in await api.server.get_descendants():
+                print(node.name, node.status)
+            ```
+        """
+        endpoint = "panel/api/server/descendants"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        self.logger.info("Getting node descendants...")
+
+        response = await self._get(url, headers)
+        nodes_json = response.json().get(ApiFields.OBJ) or []
+        return [NodeSummary.model_validate(node) for node in nodes_json]
+
+    async def get_client_ips(self) -> list[InboundClientIps]:
+        """Gets the recently active IP addresses of all the clients.
+
+        Returns:
+            list[InboundClientIps]: The IP addresses by client.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+
+            for record in await api.server.get_client_ips():
+                print(record.client_email, record.ips)
+            ```
+        """
+        endpoint = "panel/api/server/clientIps"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        self.logger.info("Getting client IPs...")
+
+        response = await self._get(url, headers)
+        records_json = response.json().get(ApiFields.OBJ) or []
+        return [InboundClientIps.model_validate(record) for record in records_json]
+
+    async def push_client_ips(self, client_ips: list[InboundClientIps]) -> None:
+        """Merges recently active IP addresses into the panel database. The panel ignores the
+        entries that were last seen more than 30 minutes ago.
+
+        Arguments:
+            client_ips (list[InboundClientIps]): The IP addresses by client.
+
+        Examples:
+            ```python
+            import time
+
+            import py3xui
+            from py3xui.server import InboundClientIpEntry, InboundClientIps
+
+            api = py3xui.AsyncApi.from_env()
+            await api.login()
+
+            entry = InboundClientIpEntry(ip="192.0.2.10", timestamp=int(time.time()))
+            record = InboundClientIps(client_email="alice@example.com", ips=[entry])
+            await api.server.push_client_ips([record])
+            ```
+        """
+        endpoint = "panel/api/server/clientIps"
+        headers = {"Accept": "application/json"}
+        url = self._url(endpoint)
+        self.logger.info("Pushing IPs of %s clients...", len(client_ips))
+
+        data = [record.model_dump(by_alias=True, exclude_defaults=True) for record in client_ips]
+        await self._post(url, headers, data)  # type: ignore[arg-type]
+        self.logger.info("Client IPs pushed successfully.")

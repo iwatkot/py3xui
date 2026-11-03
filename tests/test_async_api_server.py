@@ -5,7 +5,7 @@ from urllib.parse import parse_qs
 import pytest
 from pytest_httpx import HTTPXMock
 
-from py3xui import AsyncApi
+from py3xui import AsyncApi, InboundClientIpEntry, InboundClientIps
 from py3xui.api.api_base import ApiFields
 
 RESPONSES_DIR = "tests/responses"
@@ -570,3 +570,60 @@ async def test_import_db_failed(httpx_mock: HTTPXMock, tmp_path):
     httpx_mock.add_response(method="POST", url=f"{SERVER_URL}/importDB", json=RESPONSE_FAILED)
     with pytest.raises(ValueError):
         await make_api().server.import_db(str(file_path))
+
+
+@pytest.mark.asyncio
+async def test_get_descendants(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{SERVER_URL}/descendants",
+        json=load_response("descendants"),
+    )
+    nodes = await make_api().server.get_descendants()
+
+    assert len(nodes) == 1
+    assert nodes[0].guid == "c3d4"
+    assert nodes[0].parent_guid == "a1b2"
+    assert nodes[0].port == 2053
+    assert nodes[0].last_heartbeat == 1735689600
+    assert nodes[0].latency_ms == 42
+    assert nodes[0].panel_version == "3.11.0"
+    assert nodes[0].xray_version == "25.10.31"
+    assert nodes[0].xray_state == "running"
+    assert nodes[0].xray_error == ""
+
+
+@pytest.mark.asyncio
+async def test_get_client_ips(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{SERVER_URL}/clientIps",
+        json=load_response("client_ips"),
+    )
+    records = await make_api().server.get_client_ips()
+
+    assert [record.client_email for record in records] == [
+        "alice@example.com",
+        "bob@example.com",
+        "carol@example.com",
+    ]
+    assert records[0].id == 1
+    assert records[0].ips[0].ip == "192.0.2.10"
+    assert records[0].ips[0].timestamp == 1735689600
+    assert records[1].ips is None
+    assert records[2].ips[0].ip == "198.51.100.7"
+    assert records[2].ips[0].timestamp == 0
+
+
+@pytest.mark.asyncio
+async def test_push_client_ips(httpx_mock: HTTPXMock):
+    entry = InboundClientIpEntry(ip="192.0.2.10", timestamp=1735689600)
+    record = InboundClientIps(client_email="alice@example.com", ips=[entry])
+    httpx_mock.add_response(method="POST", url=f"{SERVER_URL}/clientIps", json=RESPONSE_OK)
+    await make_api().server.push_client_ips([record])
+    assert json_body(httpx_mock.get_request()) == [
+        {
+            "clientEmail": "alice@example.com",
+            "ips": [{"ip": "192.0.2.10", "timestamp": 1735689600}],
+        }
+    ]

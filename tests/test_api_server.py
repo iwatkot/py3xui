@@ -5,7 +5,7 @@ from urllib.parse import parse_qs
 import pytest
 import requests_mock
 
-from py3xui import Api
+from py3xui import Api, InboundClientIpEntry, InboundClientIps
 from py3xui.api.api_base import ApiFields
 
 RESPONSES_DIR = "tests/responses"
@@ -471,3 +471,52 @@ def test_import_db_failed(tmp_path):
         m.post(f"{SERVER_URL}/importDB", json=RESPONSE_FAILED)
         with pytest.raises(ValueError):
             make_api().server.import_db(str(file_path))
+
+
+def test_get_descendants():
+    with requests_mock.Mocker() as m:
+        m.get(f"{SERVER_URL}/descendants", json=load_response("descendants"))
+        nodes = make_api().server.get_descendants()
+
+    assert len(nodes) == 1
+    assert nodes[0].guid == "c3d4"
+    assert nodes[0].parent_guid == "a1b2"
+    assert nodes[0].port == 2053
+    assert nodes[0].last_heartbeat == 1735689600
+    assert nodes[0].latency_ms == 42
+    assert nodes[0].panel_version == "3.11.0"
+    assert nodes[0].xray_version == "25.10.31"
+    assert nodes[0].xray_state == "running"
+    assert nodes[0].xray_error == ""
+
+
+def test_get_client_ips():
+    with requests_mock.Mocker() as m:
+        m.get(f"{SERVER_URL}/clientIps", json=load_response("client_ips"))
+        records = make_api().server.get_client_ips()
+
+    assert [record.client_email for record in records] == [
+        "alice@example.com",
+        "bob@example.com",
+        "carol@example.com",
+    ]
+    assert records[0].id == 1
+    assert records[0].ips[0].ip == "192.0.2.10"
+    assert records[0].ips[0].timestamp == 1735689600
+    assert records[1].ips is None
+    assert records[2].ips[0].ip == "198.51.100.7"
+    assert records[2].ips[0].timestamp == 0
+
+
+def test_push_client_ips():
+    entry = InboundClientIpEntry(ip="192.0.2.10", timestamp=1735689600)
+    record = InboundClientIps(client_email="alice@example.com", ips=[entry])
+    with requests_mock.Mocker() as m:
+        m.post(f"{SERVER_URL}/clientIps", json=RESPONSE_OK)
+        make_api().server.push_client_ips([record])
+        assert json_body(m.last_request) == [
+            {
+                "clientEmail": "alice@example.com",
+                "ips": [{"ip": "192.0.2.10", "timestamp": 1735689600}],
+            }
+        ]

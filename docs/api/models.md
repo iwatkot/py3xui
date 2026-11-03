@@ -18,3 +18,4 @@ Models in `py3xui.server`:
 - `PanelUpdateInfo`, `PanelUpdateStatus`
 - `Mldsa65KeyPair`, `Mlkem768KeyPair`, `VlessEncryptionAuth`, `EchCert`, `WebCertFiles`, `RealityScanResult`
 - `XrayLogEntry`, `AmneziaWGLogs`, `AmneziaWGPeer`
+- `NodeSummary`, `InboundClientIps`, `InboundClientIpEntry`

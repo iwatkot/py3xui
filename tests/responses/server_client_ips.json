@@ -1,0 +1,5 @@
+{
+  "success": true,
+  "msg": "",
+  "obj": [{"id": 1, "clientEmail": "alice@example.com", "ips": [{"ip": "192.0.2.10", "timestamp": 1735689600}]}, {"id": 2, "clientEmail": "bob@example.com", "ips": null}, {"id": 3, "clientEmail": "carol@example.com", "ips": ["198.51.100.7"]}]
+}

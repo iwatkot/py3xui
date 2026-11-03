@@ -95,3 +95,6 @@ except Exception as exc:
 - `await api.server.get_amneziawg_logs(count, keyword="")`: live AmneziaWG activity and log lines.
 - `await api.server.get_migration(save_path)`: saves a cross-engine migration file.
 - `await api.server.import_db(file_path, keep_host_settings=True)`: restores the panel database from a file.
+- `await api.server.get_descendants()`: summaries of the nodes managed by the panel.
+- `await api.server.get_client_ips()`: recently active IP addresses of all the clients.
+- `await api.server.push_client_ips(client_ips)`: merges recently active IP addresses into the panel database.
