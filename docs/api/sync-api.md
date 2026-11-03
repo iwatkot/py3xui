@@ -26,6 +26,22 @@ online = api.client.online()
 status = api.server.get_status()
 ```
 
+## Client Details and Safe Updates
+
+`get_details()` returns the full client payload: the client, every inbound it is attached to,
+external links, used traffic and tunnel addresses. The panel replaces the client on update, so
+edit the returned `details.client` and pass it back: all its fields, including ones py3xui does
+not declare, are sent with the update.
+
+```python
+details = api.client.get_details("user@example.com")
+
+if details:
+	print(details.inbound_ids, details.tunnel_allowed_ips)
+	details.client.total_gb = 50 * 1024 * 1024 * 1024
+	api.client.update(details.client.uuid, details.client)
+```
+
 ## Client Lifecycle Example
 
 ```python

@@ -4,9 +4,10 @@ clients in the XUI API."""
 # pylint: disable=R0801
 
 from typing import Any
+from urllib.parse import quote
 
 from py3xui.api.api_base import ApiFields, BaseApi
-from py3xui.client import Client
+from py3xui.client import Client, ClientDetails
 
 
 class ClientApi(BaseApi):
@@ -23,6 +24,7 @@ class ClientApi(BaseApi):
 
     Public Methods:
         get_by_email: Retrieves a client by email.
+        get_details: Retrieves full client details by email.
         get_ips: Retrieves the IPs associated with a client.
         add: Adds clients to an inbound.
         update: Updates a client.
@@ -92,6 +94,53 @@ class ClientApi(BaseApi):
             return Client.model_validate(client_payload)
 
         return Client.model_validate(client_json)
+
+    def get_details(self, email: str) -> ClientDetails | None:
+        """This route is used to retrieve the full information about a specific client based on
+        their email: the client itself, all inbounds it is attached to, its external links, used
+        traffic and tunnel addresses.
+
+        Unlike `get_by_email`, the result keeps every inbound ID and the tunnel allowed IPs, and
+        `details.client` can be passed to `update` without losing any client field.
+
+        Arguments:
+            email (str): The email of the client to retrieve.
+
+        Returns:
+            ClientDetails | None: The client details if found, otherwise None.
+
+        Examples:
+            ```python
+            import py3xui
+
+            api = py3xui.Api.from_env()
+            api.login()
+            details = api.client.get_details("email")
+            details.client.total_gb = 50 * 1024**3
+            api.client.update(details.client.uuid, details.client)
+            ```
+        """
+        endpoint = f"panel/api/clients/get/{quote(email, safe='')}"
+        headers = {"Accept": "application/json"}
+
+        url = self._url(endpoint)
+        self.logger.info("Getting client details for email: %s", email)
+
+        try:
+            response = self._get(url, headers)
+        except ValueError as error:
+            # The panel reports a missing client as an unsuccessful response.
+            if "record not found" not in str(error):
+                raise
+            self.logger.warning("No client found for email: %s", email)
+            return None
+
+        details_json = response.json().get(ApiFields.OBJ)
+        if not details_json:
+            self.logger.warning("No client found for email: %s", email)
+            return None
+
+        return ClientDetails.model_validate(details_json)
 
     def get_ips(self, email: str) -> list[str]:
         """This route is used to retrieve the IP records associated with a specific client
@@ -182,7 +231,7 @@ class ClientApi(BaseApi):
             ```
         """  # pylint: disable=line-too-long
         target_email = client.email or str(client_uuid)
-        endpoint = f"panel/api/clients/update/{target_email}"
+        endpoint = f"panel/api/clients/update/{quote(target_email, safe='')}"
         headers = {"Accept": "application/json"}
 
         url = self._url(endpoint)
@@ -190,7 +239,7 @@ class ClientApi(BaseApi):
         if isinstance(data.get("uuid"), str) and not isinstance(data.get("id"), str):
             data["id"] = data["uuid"]
 
-        self.logger.info("Updating client: %s", client)
+        self.logger.info("Updating client: %s", target_email)
         self._post(url, headers, data)
         self.logger.info("Client updated successfully.")
 

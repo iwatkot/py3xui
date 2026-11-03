@@ -1,11 +1,12 @@
 import json
+import logging
 import os
 import uuid
 
 import pytest
 from pytest_httpx import HTTPXMock
 
-from py3xui import AsyncApi, Client, Inbound
+from py3xui import AsyncApi, Client, ClientDetails, Inbound
 from py3xui.api.api_base import ApiFields
 from py3xui.async_api.async_api_server import XrayVersionUnavailableError
 from py3xui.inbound import Settings, Sniffing, StreamSettings
@@ -23,6 +24,29 @@ HOST = "http://localhost"
 USERNAME = "admin"
 PASSWORD = "admin"
 SESSION = "abc123"
+
+DETAILS_EMAIL = "alice+wg@example.com"
+DETAILS_EMAIL_QUOTED = "alice%2Bwg%40example.com"
+
+
+def _expected_round_trip_payload(record: dict) -> dict:
+    """Returns what update() must send back for the record from get_client_details.json after
+    total_gb is changed: every stored field, in the shape the update endpoint accepts."""
+    expected = {
+        key: value
+        for key, value in record.items()
+        if key not in {"id", "allowedIPs", "createdAt", "updatedAt"} and value not in ("", 0)
+    }
+    expected.update(
+        {
+            "id": record["uuid"],
+            "allowedIPs": ["10.66.0.2/32", "fd00:66::2/128"],
+            "created_at": record["createdAt"],
+            "updated_at": record["updatedAt"],
+            "totalGB": 50 * 1024**3,
+        }
+    )
+    return expected
 
 
 @pytest.mark.asyncio
@@ -259,6 +283,127 @@ async def test_update_client_normalizes_id_from_uuid(httpx_mock: HTTPXMock):
     request = httpx_mock.get_request()
     assert request is not None
     assert json.loads(request.content.decode("utf-8"))["id"] == client.uuid
+
+
+@pytest.mark.asyncio
+async def test_get_client_details(httpx_mock: HTTPXMock):
+    response_example = json.load(open(os.path.join(RESPONSES_DIR, "get_client_details.json")))
+
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{HOST}/panel/api/clients/get/{DETAILS_EMAIL_QUOTED}",
+        json=response_example,
+        status_code=200,
+    )
+
+    api = AsyncApi(HOST, USERNAME, PASSWORD)
+    api.session = SESSION
+    details = await api.client.get_details(DETAILS_EMAIL)
+
+    assert isinstance(details, ClientDetails)
+    assert details.inbound_ids == [3, 5]
+    assert details.tunnel_allowed_ips == {3: "10.66.0.2/32", 5: "10.77.0.2/32"}
+    assert details.used_traffic == 1073741824
+    assert details.external_links[0]["value"] == "vless://example"
+
+    client = details.client
+    assert client.email == DETAILS_EMAIL
+    assert client.uuid == "6f0f4c4e-7d4c-4b9e-9a51-2c1f4e8d7a10"
+    assert client.group == "staff"
+    assert client.allowed_ips == ["10.66.0.2/32", "fd00:66::2/128"]
+    assert client.keep_alive == 25
+    assert client.reverse == {"tag": "reverse-out"}
+    assert client.limit_hwid == 3
+    assert client.created_at == 1735689600000
+    assert client.futureField == {"nested": [1, 2, 3]}  # type: ignore[attr-defined]
+
+
+@pytest.mark.asyncio
+async def test_get_client_details_not_found(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{HOST}/panel/api/clients/get/{EMAIL}",
+        json={ApiFields.SUCCESS: True, ApiFields.MSG: "", ApiFields.OBJ: None},
+        status_code=200,
+    )
+
+    api = AsyncApi(HOST, USERNAME, PASSWORD)
+    api.session = SESSION
+
+    assert await api.client.get_details(EMAIL) is None
+
+
+@pytest.mark.asyncio
+async def test_get_client_details_update_round_trip_keeps_all_fields(httpx_mock: HTTPXMock):
+    response_example = json.load(open(os.path.join(RESPONSES_DIR, "get_client_details.json")))
+    record = response_example[ApiFields.OBJ]["client"]
+
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{HOST}/panel/api/clients/get/{DETAILS_EMAIL_QUOTED}",
+        json=response_example,
+        status_code=200,
+    )
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{HOST}/panel/api/clients/update/{DETAILS_EMAIL_QUOTED}",
+        json={ApiFields.SUCCESS: True, ApiFields.MSG: "Client updated"},
+        status_code=200,
+    )
+
+    api = AsyncApi(HOST, USERNAME, PASSWORD)
+    api.session = SESSION
+
+    details = await api.client.get_details(DETAILS_EMAIL)
+    assert details is not None
+    details.client.total_gb = 50 * 1024**3
+    await api.client.update(details.client.uuid, details.client)
+
+    request = httpx_mock.get_requests(method="POST")[-1]
+    assert json.loads(request.content.decode("utf-8")) == _expected_round_trip_payload(record)
+
+
+@pytest.mark.asyncio
+async def test_get_client_details_missing_client_returns_none(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{HOST}/panel/api/clients/get/{EMAIL}",
+        json={ApiFields.SUCCESS: False, ApiFields.MSG: "Obtain (record not found)"},
+    )
+    api = AsyncApi(HOST, USERNAME, PASSWORD)
+    api.session = SESSION
+
+    assert await api.client.get_details(EMAIL) is None
+
+
+@pytest.mark.asyncio
+async def test_get_client_details_other_panel_errors_are_raised(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{HOST}/panel/api/clients/get/{EMAIL}",
+        json={ApiFields.SUCCESS: False, ApiFields.MSG: "Obtain (database is locked)"},
+    )
+    api = AsyncApi(HOST, USERNAME, PASSWORD)
+    api.session = SESSION
+
+    with pytest.raises(ValueError, match="database is locked"):
+        await api.client.get_details(EMAIL)
+
+
+@pytest.mark.asyncio
+async def test_update_client_does_not_log_secrets(httpx_mock: HTTPXMock, caplog):
+    client = Client(email="test", enable=True, private_key="private-key-value")
+    logger = logging.getLogger("py3xui-test")
+    httpx_mock.add_response(
+        method="POST", url=f"{HOST}/panel/api/clients/update/test", json={ApiFields.SUCCESS: True}
+    )
+    api = AsyncApi(HOST, USERNAME, PASSWORD, logger=logger)
+    api.session = SESSION
+
+    with caplog.at_level(logging.INFO, logger="py3xui-test"):
+        await api.client.update("id", client)
+
+    assert "private-key-value" not in caplog.text
 
 
 @pytest.mark.asyncio
