@@ -2,6 +2,7 @@ import json
 import os
 import uuid
 
+import httpx
 import pytest
 from pytest_httpx import HTTPXMock
 
@@ -674,6 +675,43 @@ async def test_get_db(httpx_mock: HTTPXMock, tmp_path):
     assert httpx_mock.get_request(), "Mocked request was not called"
     assert save_path.exists(), "Backup file was not created"
     assert save_path.read_bytes() == db_content, "Backup file content does not match"
+
+
+@pytest.mark.asyncio
+async def test_get_db_retry_keeps_skip_check(httpx_mock: HTTPXMock, tmp_path, monkeypatch):
+    async def no_sleep(_):
+        return None
+
+    monkeypatch.setattr("py3xui.async_api.async_api_base.asyncio.sleep", no_sleep)
+    save_path = tmp_path / "backup.db"
+    url = f"{HOST}/panel/api/server/getDb"
+    httpx_mock.add_exception(httpx.ConnectError("connection lost"), method="GET", url=url)
+    httpx_mock.add_response(method="GET", url=url, content=b"SQLite format 3")
+
+    api = AsyncApi(HOST, USERNAME, PASSWORD)
+    api.session = SESSION
+
+    await api.server.get_db(str(save_path))
+
+    assert save_path.read_bytes() == b"SQLite format 3"
+
+
+@pytest.mark.asyncio
+async def test_get_db_panel_error_does_not_save_file(httpx_mock: HTTPXMock, tmp_path):
+    save_path = tmp_path / "backup.db"
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{HOST}/panel/api/server/getDb",
+        json={ApiFields.SUCCESS: False, ApiFields.MSG: "database is locked"},
+    )
+
+    api = AsyncApi(HOST, USERNAME, PASSWORD)
+    api.session = SESSION
+
+    with pytest.raises(ValueError, match="database is locked"):
+        await api.server.get_db(str(save_path))
+
+    assert not save_path.exists()
 
 
 @pytest.mark.asyncio

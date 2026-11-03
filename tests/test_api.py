@@ -3,6 +3,7 @@ import os
 import uuid
 
 import pytest
+import requests
 import requests_mock
 
 from py3xui import Api, Client, Inbound
@@ -538,6 +539,44 @@ def test_get_db():
         import os
 
         os.remove(save_path)
+
+
+def test_get_db_retry_keeps_skip_check(tmp_path, monkeypatch):
+    monkeypatch.setattr("py3xui.api.api_base.sleep", lambda _: None)
+    save_path = tmp_path / "backup.db"
+
+    with requests_mock.Mocker() as m:
+        m.get(
+            f"{HOST}/panel/api/server/getDb",
+            [
+                {"exc": requests.exceptions.ConnectionError},
+                {"content": b"SQLite format 3"},
+            ],
+        )
+        api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
+
+        api.server.get_db(str(save_path))
+
+    assert save_path.read_bytes() == b"SQLite format 3"
+
+
+def test_get_db_panel_error_does_not_save_file(tmp_path):
+    save_path = tmp_path / "backup.db"
+
+    with requests_mock.Mocker() as m:
+        m.get(
+            f"{HOST}/panel/api/server/getDb",
+            json={ApiFields.SUCCESS: False, ApiFields.MSG: "database is locked"},
+            headers={"Content-Type": "application/json; charset=utf-8"},
+        )
+        api = Api(HOST, USERNAME, PASSWORD)
+        api.session = SESSION
+
+        with pytest.raises(ValueError, match="database is locked"):
+            api.server.get_db(str(save_path))
+
+    assert not save_path.exists()
 
 
 def test_get_db_failed():

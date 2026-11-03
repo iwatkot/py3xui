@@ -63,6 +63,10 @@ class ServerApi(BaseApi):
 
         response = self._get(url, headers, skip_check=True)
 
+        # The panel reports a failure as a JSON response with the status code 200.
+        if "application/json" in response.headers.get("Content-Type", ""):
+            self._check_response(response)
+
         if response.status_code == 200:
             with open(save_path, "wb") as file:
                 file.write(response.content)
